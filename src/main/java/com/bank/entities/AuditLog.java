@@ -11,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+
 @Table(name = "audit_logs")
 public class AuditLog extends AbstractEntity {
 

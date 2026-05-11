@@ -11,7 +11,6 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Getter
@@ -22,10 +21,12 @@ import java.util.List;
 @Table(name = "users")
 public class User extends AbstractEntity {
     private String name;
-    private String email;
     private String password;
     private String phone;
     private String nin;
+
+    @Column(unique = true)
+    private String email;
 
     @Enumerated(EnumType.STRING)
     private UserAccountType accountType;
@@ -34,17 +35,6 @@ public class User extends AbstractEntity {
     private LocalDateTime deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_user_institution_id"))
     private Institution institution;
-
-    @OneToOne(mappedBy = "user")
-    private MemberProfile memberProfile;
-
-    @OneToOne(mappedBy = "user")
-    private AuditLog auditLog;
-
-    @OneToMany(mappedBy = "user")
-    private List<LoanApplication> loanApplication;
-
-    @OneToMany(mappedBy = "user")
-    private List<Transaction> transaction;
 }

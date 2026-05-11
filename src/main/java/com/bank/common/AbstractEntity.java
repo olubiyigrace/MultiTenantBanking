@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @SuperBuilder
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public class AbstractEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,5 +26,5 @@ public class AbstractEntity {
     @CreatedDate
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

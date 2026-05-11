@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -17,37 +17,44 @@ import java.util.List;
 @SuperBuilder
 @Table(name = "institutions")
 public class Institution extends AbstractEntity {
+    @Column(nullable = false)
     private String name;
-    private String email;
+
+    @Column(nullable = false)
     private String phone;
+
+    @Column(unique = true, nullable = false)
     private String rcNumber;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Builder.Default
     private String baseCurrency = "NGN";
 
     @Enumerated(EnumType.STRING)
     private InstitutionType institutionType;
 
     @Enumerated(EnumType.STRING)
-    private InstitutionStatus status;
+    private InstitutionStatus status = InstitutionStatus.PENDING;
 
-    @OneToMany(mappedBy = "institution")
-    private List<User> user;
+    @Column(nullable = false)
+    private String adminName;
 
-    @OneToMany(mappedBy = "institution")
-    private List<MemberProfile> memberProfile;
+    @Column(nullable = false)
+    private String adminEmail;
 
-    @OneToMany(mappedBy = "institution")
-    private List<SavingsAccount> savingsAccount;
+    @Column(nullable = false)
+    private String adminPhone;
 
-    @OneToMany(mappedBy = "institution")
-    private List<Transaction> transaction;
+    @Column(nullable = false)
+    private String adminNin;
 
-    @OneToMany(mappedBy = "institution")
-    private List<LoanProduct> loanProduct;
+    @Column(nullable = false)
+    private String adminPassword;
 
-    @OneToMany(mappedBy = "institution")
-    private List<LoanApplication> loanApplication;
-
-    @OneToMany(mappedBy = "institution")
-    private List<AuditLog> auditLog;
-
+    private Boolean isVerified = false;
+    private String emailVerificationToken;
+    private LocalDateTime emailVerificationTokenExpiry;
+    private LocalDateTime emailVerifiedAt;
 }
