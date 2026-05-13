@@ -1,6 +1,5 @@
 package com.bank.entities;
 
-import com.bank.common.AbstractEntity;
 import com.bank.enums.InstitutionStatus;
 import com.bank.enums.InstitutionType;
 import jakarta.persistence.*;
@@ -9,6 +8,9 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
+import static jakarta.persistence.EnumType.STRING;
+import static jakarta.persistence.GenerationType.UUID;
+
 @Entity
 @Getter
 @Setter
@@ -16,7 +18,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @SuperBuilder
 @Table(name = "institutions")
-public class Institution extends AbstractEntity {
+public class Institution {
+    @Id
+    @GeneratedValue(strategy = UUID)
+    @Column(name = "id", updatable = false, nullable = false)
+    private String id;
+
     @Column(nullable = false)
     private String name;
 
@@ -32,10 +39,10 @@ public class Institution extends AbstractEntity {
     @Builder.Default
     private String baseCurrency = "NGN";
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(STRING)
     private InstitutionType institutionType;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(STRING)
     private InstitutionStatus status = InstitutionStatus.PENDING;
 
     @Column(nullable = false)

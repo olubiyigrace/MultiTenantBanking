@@ -1,6 +1,7 @@
 package com.bank.services.impl;
 
-import com.bank.dto.RegisterInstitutionRequest;
+import com.bank.requests.LoginRequest;
+import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.entities.Institution;
 import com.bank.enums.InstitutionStatus;
 import com.bank.exceptions.DuplicateResourceException;
@@ -10,16 +11,24 @@ import com.bank.repositories.InstitutionRepository;
 import com.bank.services.EmailService;
 import com.bank.services.InstitutionService;
 import com.bank.mapper.InstitutionMapper;
+import com.bank.services.JwtService;
+import com.bank.utils.TokenPair;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -30,15 +39,17 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final InstitutionMapper institutionMapper;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
     @Override
     @Transactional
     public void registerInstitution(RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException {
         if (institutionRepository.existsByRcNumber(registerInstitutionRequest.getRcNumber())){
-            throw new DuplicateResourceException("Institution already exists.");
+            throw new DuplicateResourceException("Institution with the RC Number '" + registerInstitutionRequest.getRcNumber() + "' has been registered.");
         }
          if (institutionRepository.existsByEmail(registerInstitutionRequest.getEmail())){
-            throw new DuplicateResourceException("Institution email already exists.");
+            throw new DuplicateResourceException("Institution with the email '" + registerInstitutionRequest.getEmail() + "' has been registered.");
         }
         final Institution institution = institutionMapper.toEntity(registerInstitutionRequest);
          institution.setStatus(InstitutionStatus.PENDING);
@@ -105,5 +116,28 @@ public class InstitutionServiceImpl implements InstitutionService {
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
+    }
+    @Transactional
+    public TokenPair adminLogin(LoginRequest loginRequest) throws MessagingException {
+        Optional<Institution> institution = institutionRepository.findByAdminEmail(loginRequest.getAdminEmail());
+        if (institution.isEmpty()) throw new EntityNotFoundException("Institution admin email '" + loginRequest.getAdminEmail() + "' not found");
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getAdminEmail(),
+                        loginRequest.getAdminPassword()
+                )
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        Map<String, Object> model = new HashMap<>();
+        model.put("name", loginRequest.getAdminEmail());
+        model.put("resetPassword", "https://multitenantbank.com/api/v1/reset-password?token=");
+
+        emailService.sendVerificationEmail(
+                loginRequest.getAdminEmail(),
+                "New Login Alert!",
+                "login",
+                model
+        );
+        return jwtService.generateTokenPair(authentication);
     }
 }

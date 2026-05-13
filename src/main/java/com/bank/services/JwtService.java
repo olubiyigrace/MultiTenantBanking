@@ -1,6 +1,6 @@
 package com.bank.services;
 
-import com.bank.dto.TokenPair;
+import com.bank.utils.TokenPair;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

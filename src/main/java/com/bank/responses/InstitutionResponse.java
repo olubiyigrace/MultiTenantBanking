@@ -1,4 +1,4 @@
-package com.bank.dto;
+package com.bank.responses;
 
 import com.bank.enums.InstitutionStatus;
 import com.bank.enums.InstitutionType;
@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class InstitutionResponse {
-    private UUID id;
+    private String id;
     private String name;
     private String email;
     private String phone;

@@ -20,21 +20,27 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @Table(name = "users")
 public class User extends AbstractEntity {
+    @Column(nullable = false, updatable = false)
     private String name;
+
+    @Column(nullable = false, updatable = true)
     private String password;
+
+    @Column(nullable = false, updatable = false)
     private String phone;
+
+    @Column(nullable = false, updatable = false)
     private String nin;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false, updatable = false)
     private String email;
 
     @Enumerated(EnumType.STRING)
-    private UserAccountType accountType;
+    private UserAccountType userAccountType;
 
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
     private LocalDateTime deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_user_institution_id"))
     private Institution institution;
 }

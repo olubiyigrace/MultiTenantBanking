@@ -1,6 +1,7 @@
 //package com.bank.filters;
 //
 //import com.bank.services.JwtService;
+//import jakarta.persistence.EntityNotFoundException;
 //import jakarta.servlet.FilterChain;
 //import jakarta.servlet.ServletException;
 //import jakarta.servlet.http.HttpServletRequest;
@@ -53,8 +54,8 @@
 //                }
 //            }
 //            filterChain.doFilter(request, response);
-////        } catch (EntityNotFoundException entityNotFoundException) {
-////            sendErrorResponse(response, "Unauthorized", HttpStatus.UNAUTHORIZED);
+//        } catch (EntityNotFoundException entityNotFoundException) {
+//            sendErrorResponse(response, "Unauthorized", HttpStatus.UNAUTHORIZED);
 //        } catch (Exception exception) {
 //            sendErrorResponse(response, "Authentication error; " + exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 //        }

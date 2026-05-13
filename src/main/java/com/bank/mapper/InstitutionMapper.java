@@ -1,14 +1,11 @@
 package com.bank.mapper;
 
-import com.bank.dto.InstitutionResponse;
-import com.bank.dto.RegisterInstitutionRequest;
+import com.bank.responses.InstitutionResponse;
+import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.entities.Institution;
-import com.bank.enums.InstitutionStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor

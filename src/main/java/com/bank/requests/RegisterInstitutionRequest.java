@@ -1,11 +1,8 @@
-package com.bank.dto;
+package com.bank.requests;
 
 import com.bank.enums.InstitutionType;
 import jakarta.persistence.Column;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +29,7 @@ public class RegisterInstitutionRequest {
     @Pattern(regexp = "^RC\\s?\\d{4,10}$", message = "Invalid RC number format")
     private String rcNumber;
 
+    @NotNull(message = "Institution Type cannot be null")
     private InstitutionType institutionType;
 
 

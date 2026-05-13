@@ -38,8 +38,8 @@
 <body>
 <div class="container">
     <h2>Hello, <span th:text="${name}">User</span>!</h2>
-    <p>Thank you for registering with us. Kindly note that your registration is incomplete without verifying your email. This verification code expires in 10 minutes.</p>
-    <p>Please verify your email address by clicking the button below:</p>
+    <p>Thank you for registering with us. Kindly note that your registration is incomplete without verifying your email. </p>
+    <p>Verify your email address by clicking the button below(verification code expires in 10 minutes):</p>
 
     <a class="button" th:href="${verificationUrl}">Verify Email</a>
 

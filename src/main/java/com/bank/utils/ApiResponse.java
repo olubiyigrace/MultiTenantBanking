@@ -14,19 +14,6 @@ public class ApiResponse<T> {
         this.data = data;
     }
 
-    public static <T> ApiResponse<T> success(boolean success, String message, T data) {
-        return new ApiResponse<>(success, message, data);
-    }
-
-    public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, "Login successful", data);
-    }
-
-    public static <T> ApiResponse<T> fail(String message) {
-        return new ApiResponse<>(false, message, null);
-    }
-
-    public static <T> ApiResponse<T> fail(String message, T data) {
-        return new ApiResponse<>(false, message, data);
-    }
+    public static <T> ApiResponse <T> success(boolean success, String message, T data){return new ApiResponse<>(success, message, data);}
+    public static <T> ApiResponse <T> success( T data){return new ApiResponse<>(true, "Login successful", data);}
 }
