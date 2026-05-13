@@ -21,10 +21,10 @@ import java.util.UUID;
 @SuperBuilder
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-@FilterDef(name = "institutionFilter",
-        parameters = @ParamDef(name = "institutionId", type = UUID.class),
-        defaultCondition = "institution_id = :institutionId")
-@Filter(name = "institutionFilter")
+//@FilterDef(name = "institutionFilter",
+//        parameters = @ParamDef(name = "institutionId", type = UUID.class),
+//        defaultCondition = "institution_id = :institutionId")
+//@Filter(name = "institutionFilter")
 public class AbstractEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,8 +33,8 @@ public class AbstractEntity {
 
     @LastModifiedDate
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
-    @Column(name = "updated_at", nullable = false, updatable = false)
-    private LocalDateTime UpdatedAt;
+    @Column(name = "updated_at", nullable = false, updatable = false, insertable = false)
+    private LocalDateTime updatedAt;
 
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
     @Column(name = "deleted_at", nullable = false, updatable = false)

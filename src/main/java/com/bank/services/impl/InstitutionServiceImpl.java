@@ -44,12 +44,14 @@ public class InstitutionServiceImpl implements InstitutionService {
 
     @Override
     @Transactional
-    public void registerInstitution(RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException {
+    public void registerInstitution(final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException {
         if (institutionRepository.existsByRcNumber(registerInstitutionRequest.getRcNumber())){
+            log.debug("Institution with the RC Number '{}' has been registered.", registerInstitutionRequest.getRcNumber());
             throw new DuplicateResourceException("Institution with the RC Number '" + registerInstitutionRequest.getRcNumber() + "' has been registered.");
         }
          if (institutionRepository.existsByEmail(registerInstitutionRequest.getEmail())){
-            throw new DuplicateResourceException("Institution with the email '" + registerInstitutionRequest.getEmail() + "' has been registered.");
+             log.debug("Institution with the email '{}' has been registered.", registerInstitutionRequest.getEmail());
+             throw new DuplicateResourceException("Institution with the email '" + registerInstitutionRequest.getEmail() + "' has been registered.");
         }
         final Institution institution = institutionMapper.toEntity(registerInstitutionRequest);
          institution.setStatus(InstitutionStatus.PENDING);
@@ -76,9 +78,11 @@ public class InstitutionServiceImpl implements InstitutionService {
     Institution institution = institutionRepository.findByEmail(email)
             .orElseThrow(() -> new InvalidRequestException("Institution with the email '" + email + "' does not exist. Visit the website to register"));
     if (!passwordEncoder.matches(verificationTokenFromRequest, institution.getEmailVerificationToken())) {
+        log.debug("Invalid token!");
         throw new InvalidRequestException("Invalid token!");
     }
     if (institution.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+        log.debug("Token has expired!");
         throw new RuntimeException("Token has expired!");
     }
     institution.setEmailVerifiedAt(LocalDateTime.now());
@@ -96,6 +100,7 @@ public class InstitutionServiceImpl implements InstitutionService {
                 .orElseThrow(() -> new UnauthorizedException("user with the email '" + email + "'  does not exist. Visit the website to create an account."));
 
         if (Boolean.TRUE.equals(institution.getIsVerified())) {
+            log.debug("User already verified!");
             throw new DuplicateResourceException("User already verified!");
         }
         String emailVerificationToken = UUID.randomUUID().toString();
@@ -118,7 +123,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         }
     }
     @Transactional
-    public TokenPair adminLogin(LoginRequest loginRequest) throws MessagingException {
+    public TokenPair adminLogin(final LoginRequest loginRequest) throws MessagingException {
         Optional<Institution> institution = institutionRepository.findByAdminEmail(loginRequest.getAdminEmail());
         if (institution.isEmpty()) throw new EntityNotFoundException("Institution admin email '" + loginRequest.getAdminEmail() + "' not found");
         Authentication authentication = authenticationManager.authenticate(

@@ -17,6 +17,7 @@ public class MultiTenantBankingApplication {
 		System.setProperty("DB_HOST", dotenv.get("DB_HOST"));
 		System.setProperty("DB_PORT", dotenv.get("DB_PORT"));
 		System.setProperty("SERVER_PORT", dotenv.get("SERVER_PORT"));
+		System.setProperty("SPRING_PROFILES_ACTIVE", dotenv.get("SPRING_PROFILES_ACTIVE"));
 		System.setProperty("DB_NAME", dotenv.get("DB_NAME"));
 		System.setProperty("MAIL_PORT", dotenv.get("MAIL_PORT"));
 		System.setProperty("MAIL_HOST", dotenv.get("MAIL_HOST"));

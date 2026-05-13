@@ -27,9 +27,11 @@ public class RegisterInstitutionRequest {
 
     @NotBlank(message = "Institution rcNumber should not be empty")
     @Pattern(regexp = "^RC\\s?\\d{4,10}$", message = "Invalid RC number format")
+    @Column(updatable = false)
     private String rcNumber;
 
     @NotNull(message = "Institution Type cannot be null")
+    @Column(updatable = false)
     private InstitutionType institutionType;
 
 

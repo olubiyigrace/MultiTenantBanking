@@ -2,9 +2,9 @@ spring:
   application:
     name: MultiTenantBanking
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:.env
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    active: ${SPRING_PROFILES_ACTIVE}
 
   mail:
     host: ${MAIL_HOST}
