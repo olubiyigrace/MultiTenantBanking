@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface InstitutionRepository extends JpaRepository<Institution, String> {
-    boolean existsByEmail(String email);
-    boolean existsByRcNumber(String rcNumber);
-    Optional<Institution> findByEmail(String email);
+    boolean existsByInstitutionEmail(String email);
+    boolean existsByInstitutionRcNumber(String institutionRcNumber);
+    Optional<Institution> findByInstitutionEmail(String email);
     Optional<Institution> findByAdminEmail(String AdminEmail);
 }

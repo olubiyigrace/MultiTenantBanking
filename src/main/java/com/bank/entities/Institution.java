@@ -22,16 +22,16 @@ import static jakarta.persistence.GenerationType.UUID;
 public class Institution extends AbstractEntity {
 
     @Column(nullable = false)
-    private String companyName;
+    private String institutionName;
 
     @Column(nullable = false)
-    private String companyPhone;
+    private String institutionPhone;
 
     @Column(unique = true, nullable = false)
-    private String companyRcNumber;
+    private String institutionRcNumber;
 
     @Column(nullable = false, unique = true)
-    private String companyEmail;
+    private String institutionEmail;
 
     @Builder.Default
     private String baseCurrency = "NGN";

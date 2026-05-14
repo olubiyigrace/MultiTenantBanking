@@ -39,10 +39,4 @@
 //
 //    @OneToOne(fetch = FetchType.LAZY)
 //    private User user;
-//
-//    @OneToMany(mappedBy = "memberProfile")
-//    private List<SavingsAccount> savingsAccount;
-//
-//    @OneToOne(mappedBy = "memberProfile")
-//    private LoanApplication loanApplication;
 //}

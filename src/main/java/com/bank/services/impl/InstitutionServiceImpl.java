@@ -46,13 +46,13 @@ public class InstitutionServiceImpl implements InstitutionService {
     @Override
     @Transactional
     public void registerInstitution(final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException {
-        if (institutionRepository.existsByRcNumber(registerInstitutionRequest.getCompanyRcNumber())) {
-            log.debug("Institution with the RC Number '{}' has been registered.", registerInstitutionRequest.getCompanyRcNumber());
-            throw new DuplicateResourceException("Institution with the RC Number '" + registerInstitutionRequest.getCompanyRcNumber() + "' already exists..");
+        if (institutionRepository.existsByInstitutionRcNumber(registerInstitutionRequest.getInstitutionRcNumber())) {
+            log.debug("Institution with the RC Number '{}' has been registered.", registerInstitutionRequest.getInstitutionRcNumber());
+            throw new DuplicateResourceException("Institution with the RC Number '" + registerInstitutionRequest.getInstitutionRcNumber() + "' already exists..");
         }
-        if (institutionRepository.existsByEmail(registerInstitutionRequest.getCompanyEmail())) {
-            log.debug("Institution with the email '{}' has been registered.", registerInstitutionRequest.getCompanyEmail());
-            throw new DuplicateResourceException("Institution with the email '" + registerInstitutionRequest.getCompanyEmail() + "' already exists.");
+        if (institutionRepository.existsByInstitutionEmail(registerInstitutionRequest.getInstitutionEmail())) {
+            log.debug("Institution with the email '{}' has been registered.", registerInstitutionRequest.getInstitutionEmail());
+            throw new DuplicateResourceException("Institution with the email '" + registerInstitutionRequest.getInstitutionEmail() + "' already exists.");
         }
         final Institution institution = institutionMapper.toEntity(registerInstitutionRequest);
         institution.setInstitutionStatus(InstitutionStatus.PENDING);
@@ -62,11 +62,11 @@ public class InstitutionServiceImpl implements InstitutionService {
         institutionRepository.save(institution);
 
         Map<String, Object> model = new HashMap<>();
-        model.put("name", registerInstitutionRequest.getCompanyName());
+        model.put("name", registerInstitutionRequest.getInstitutionName());
         model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?token=" + emailVerificationToken);
 
         emailService.sendVerificationEmail(
-                registerInstitutionRequest.getCompanyEmail(),
+                registerInstitutionRequest.getInstitutionEmail(),
                 "Verify your account",
                 "verification",
                 model
@@ -76,7 +76,7 @@ public class InstitutionServiceImpl implements InstitutionService {
     @Override
     @Transactional
     public void verifyEmail(final String verificationTokenFromRequest, final String email) {
-        Institution institution = institutionRepository.findByEmail(email)
+        Institution institution = institutionRepository.findByInstitutionEmail(email)
                 .orElseThrow(() -> new InvalidRequestException("Institution with the email '" + email + "' does not exist. Visit the website to register"));
         if (!passwordEncoder.matches(verificationTokenFromRequest, institution.getEmailVerificationToken())) {
             log.debug("Invalid token!");
@@ -97,7 +97,7 @@ public class InstitutionServiceImpl implements InstitutionService {
     @Override
     @Transactional
     public void resendEmailVerificationToken(final String email) {
-        Institution institution = institutionRepository.findByEmail(email)
+        Institution institution = institutionRepository.findByInstitutionEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("user with the email '" + email + "'  does not exist. Visit the website to create an account."));
 
         if (Boolean.TRUE.equals(institution.getIsVerified())) {
@@ -110,11 +110,11 @@ public class InstitutionServiceImpl implements InstitutionService {
         institutionRepository.save(institution);
 
         Map<String, Object> model = new HashMap<>();
-        model.put("companyName", institution.getCompanyName());
+        model.put("tenantName", institution.getInstitutionName());
         model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/resend-verification?token=" + emailVerificationToken);
         try {
             emailService.sendVerificationEmail(
-                    institution.getCompanyEmail(),
+                    institution.getInstitutionEmail(),
                     "Verify your account",
                     "verification",
                     model

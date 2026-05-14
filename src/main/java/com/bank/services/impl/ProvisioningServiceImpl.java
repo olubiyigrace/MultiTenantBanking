@@ -22,7 +22,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
     public void provisionInstitution(Institution institution) {
         final String schemaName = "institution" + institution.getInstitutionType();
         try {
-            log.info("Provisioning institution: {} (schema: {})", institution.getCompanyName(), schemaName);
+            log.info("Provisioning institution: {} (schema: {})", institution.getInstitutionName(), schemaName);
             createSchema(schemaName);
 
             log.info("Schema {} created successfully", schemaName);

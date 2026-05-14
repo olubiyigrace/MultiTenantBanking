@@ -1,6 +1,5 @@
 package com.bank.controllers;
 
-import com.bank.requests.LoginRequest;
 import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.services.InstitutionService;
 import com.bank.utils.ApiResponse;
@@ -40,14 +39,4 @@ public class InstitutionController {
         return ResponseEntity.ok(ApiResponse.success(true, "Resent! Check your email to complete your registration.", null));
 
     }
-//    @PostMapping("/login")
-//    public ResponseEntity<TokenPair> login(@RequestBody final LoginRequest loginRequest) throws MessagingException {
-//        TokenPair tokenPair = institutionService.adminLogin(loginRequest);
-//        return ResponseEntity.ok(tokenPair);
-//    }
-//    @PostMapping("/login")
-//    public ResponseEntity<ApiResponse<Object>> login(@RequestBody LoginRequest loginRequest) throws MessagingException {
-//        TokenPair tokenPair = userService.userLogin(loginRequest);
-//        return ResponseEntity.ok(ApiResponse.success(tokenPair));
-//    }
 }

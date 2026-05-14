@@ -39,7 +39,7 @@ A production-grade cooperative and microfinance banking backend built with Sprin
 This project is a production-grade REST API platform for managing:
 
 * Cooperative societies
-* Microfinance institutions
+* Microfinance Tenants
 * Members
 * Savings accounts
 * Loans
@@ -47,7 +47,7 @@ This project is a production-grade REST API platform for managing:
 * Interest accruals
 * Audit logs
 
-The system supports multiple institutions (multi-tenancy) while ensuring strict financial correctness, transactional integrity, auditability, and institution-level data isolation.
+The system supports multiple Tenants (multi-tenancy) while ensuring strict financial correctness, transactional integrity, auditability, and Tenant-level data isolation.
 
 ---
 
@@ -59,14 +59,14 @@ The system supports multiple institutions (multi-tenancy) while ensuring strict 
 * Role-based access control
 * Refresh tokens
 * Change password
-* Institution-scoped access
+* Tenant-scoped access
 
 ---
 
-## Institution Management
+## Tenant Management
 
-* Register institutions
-* Approve/suspend institutions
+* Register Tenants
+* Approve/suspend Tenants
 * Institution financial summaries
 * Platform-wide statistics
 

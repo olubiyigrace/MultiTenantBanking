@@ -13,22 +13,22 @@ import lombok.Setter;
 public class RegisterInstitutionRequest {
     @NotBlank(message = "Institution name should not be empty")
     @Column(updatable = false)
-    private String companyName;
+    private String institutionName;
 
     @NotBlank(message = "Institution email should not be empty")
     @Email(message = "example@email.com")
     @Column(updatable = false)
-    private String companyEmail;
+    private String institutionEmail;
 
     @NotBlank(message = "Institution phone should not be empty")
     @Pattern(regexp = "^\\+234(20|70|80|81|90|91)\\d{8}$", message = "Enter a valid phone number and ensure it starts with +234")
     @Column(updatable = false)
-    private String companyPhone;
+    private String institutionPhone;
 
     @NotBlank(message = "Institution rcNumber should not be empty")
     @Pattern(regexp = "^RC\\s?\\d{4,10}$", message = "Invalid RC number format")
     @Column(updatable = false)
-    private String companyRcNumber;
+    private String institutionRcNumber;
 
     @NotNull(message = "Institution Type cannot be null")
     @Column(updatable = false)
