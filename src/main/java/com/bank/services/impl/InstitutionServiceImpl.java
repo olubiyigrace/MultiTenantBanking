@@ -62,7 +62,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         institutionRepository.save(institution);
 
         Map<String, Object> model = new HashMap<>();
-        model.put("name", registerInstitutionRequest.getInstitutionName());
+        model.put("institutionName", registerInstitutionRequest.getInstitutionName());
         model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?token=" + emailVerificationToken);
 
         emailService.sendVerificationEmail(
