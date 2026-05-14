@@ -1,16 +1,13 @@
-package com.bank.config;
-
-//import com.bank.filters.JwtAuthenticationFilter;
+package com.bank.securities;
+//    http://localhost:3060/swagger-ui/index.html#/
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,38 +19,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-//    private final UserDetailsService userDetailsService;
-//    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-//    http://localhost:3060/swagger-ui/index.html#/
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public static final String[] WHITE_LIST_URL = {
+    public static final String[] WHITE_LIST_URLS = {
             "/api/v1/**",
             "/api/v1/auth/**",
-            "/customers/**",
-            "/api/v1/products/**",
-            "/api/v1/profiles/**",
-            "/api/v1/wallets/**",
-            "/external/**",
-            "/togglz-console", "/togglz-console/**",
-            "/api/terminals/**",
-            "/api/courses/**",
-            "/ws/**",
-            "/api/posts",
-            "/electronics/**",
-            "/activity/**",
-            "/actuator/**",
-            "/login/**",
-            "/booking/**",
-            "/login/oauth2/code/google",
-            "/api/auth/**",
-            "/api/orders/**",
-            "/api/sample/**",
-            "/api/external/**",
-            "/info",
-            "/blogs/**",
-            "/posts/**",
+            "/api-docs/**",
             "/v2/api-docs",
             "/v3/api-docs",
             "/v3/api-docs/**",
@@ -63,25 +38,12 @@ public class SecurityConfig {
             "/configuration/security",
             "/swagger-ui/**",
             "/webjars/**",
-            "/swagger-ui.html",
-            "/error"
+            "/swagger-ui.html"
     };
 
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
-    }
-
-//    @Bean
-//    public AuthenticationProvider authenticationProvider(){
-//        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
-//        authProvider.setPasswordEncoder(passwordEncoder());
-//        return authProvider;
-//    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception{
-        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
@@ -91,18 +53,19 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(
                         req -> req
-                                .requestMatchers(WHITE_LIST_URL).permitAll()
+                                .requestMatchers(WHITE_LIST_URLS).permitAll()
+                                .requestMatchers(HttpMethod.OPTIONS, "/**")
+                                .permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(
                         session -> session
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
                 );
-//                .addFilterBefore(
-//                        jwtAuthenticationFilter,
-//                        UsernamePasswordAuthenticationFilter.class
-//                )
-//                .authenticationProvider(authenticationProvider());
         return httpSecurity.build();
     }
 
@@ -112,6 +75,7 @@ public class SecurityConfig {
         corsConfiguration.setAllowedOrigins(List.of(
                 "http://localhost:63342",
                 "http://localhost:3000",
+                "http://localhost:3070",
                 "https://secsystem-emr.vercel.app",
                 "https://emr-sigma-ten.vercel.app",
                 "Postman"
@@ -128,9 +92,10 @@ public class SecurityConfig {
                 "Authorization",
                 "Content-Type"
         ));
-        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
         urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
         return urlBasedCorsConfigurationSource;
     }
+
 }

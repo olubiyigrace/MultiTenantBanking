@@ -18,8 +18,8 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register-usser")
-    public ResponseEntity<Void> createUser(@RequestBody final RegisterUserRequest registerUserRequest, @AuthenticationPrincipal final User loggedInUser){
-        userService.registerUser(registerUserRequest, loggedInUser);
+    public ResponseEntity<Void> registerUser(@RequestBody final RegisterUserRequest registerUserRequest){
+        userService.createUser(registerUserRequest);
         return ResponseEntity.ok().build();
     }
 }

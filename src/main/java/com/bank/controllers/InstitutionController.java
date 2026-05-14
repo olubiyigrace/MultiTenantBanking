@@ -4,7 +4,6 @@ import com.bank.requests.LoginRequest;
 import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.services.InstitutionService;
 import com.bank.utils.ApiResponse;
-import com.bank.utils.TokenPair;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

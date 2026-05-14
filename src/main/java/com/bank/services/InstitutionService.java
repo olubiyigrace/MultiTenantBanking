@@ -1,14 +1,19 @@
 package com.bank.services;
 
-import com.bank.requests.LoginRequest;
+
+import com.bank.common.PageResponse;
+import com.bank.entities.Institution;
 import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.responses.InstitutionResponse;
-import com.bank.utils.TokenPair;
 import jakarta.mail.MessagingException;
 
 public interface InstitutionService {
     void registerInstitution(final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException;
     void verifyEmail(final String verificationTokenFromRequest, String email);
     void resendEmailVerificationToken(final String email);
-    TokenPair adminLogin(LoginRequest loginRequest) throws MessagingException;
+    void approveInstitution(final String institutionId);
+    void activateInstitution(final String institutionId);
+    void deactivateInstitution(final String institutionId);
+    void suspendInstitution(final String institutionId);
+    PageResponse<InstitutionResponse> findAll(final int page, final int size);
 }

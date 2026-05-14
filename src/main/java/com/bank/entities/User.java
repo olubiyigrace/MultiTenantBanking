@@ -9,8 +9,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Getter
@@ -19,11 +24,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @SuperBuilder
 @Table(name = "users")
-public class User extends AbstractEntity {
+public class User extends AbstractEntity implements UserDetails {
     @Column(nullable = false, updatable = false)
     private String name;
 
-    @Column(nullable = false, updatable = true)
+    @Column(nullable = false, updatable = false)
+    private String username;
+
+    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false, updatable = false)
@@ -41,6 +49,22 @@ public class User extends AbstractEntity {
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
     private LocalDateTime deletedAt;
 
+    private Boolean enabled = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_user_institution_id"))
     private Institution institution;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(userAccountType.name()));
+    }
+
+    public String getInstitutionId(){
+        if(this.institution != null){
+            return this.institution.getId();
+        }
+        return null;
+    }
+
 }

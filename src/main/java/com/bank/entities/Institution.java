@@ -1,5 +1,6 @@
 package com.bank.entities;
 
+import com.bank.common.AbstractEntity;
 import com.bank.enums.InstitutionStatus;
 import com.bank.enums.InstitutionType;
 import jakarta.persistence.*;
@@ -18,23 +19,19 @@ import static jakarta.persistence.GenerationType.UUID;
 @NoArgsConstructor
 @SuperBuilder
 @Table(name = "institutions")
-public class Institution {
-    @Id
-    @GeneratedValue(strategy = UUID)
-    @Column(name = "id", updatable = false, nullable = false)
-    private String id;
+public class Institution extends AbstractEntity {
 
     @Column(nullable = false)
-    private String name;
+    private String companyName;
 
     @Column(nullable = false)
-    private String phone;
+    private String companyPhone;
 
     @Column(unique = true, nullable = false)
-    private String rcNumber;
+    private String companyRcNumber;
 
     @Column(nullable = false, unique = true)
-    private String email;
+    private String companyEmail;
 
     @Builder.Default
     private String baseCurrency = "NGN";
@@ -43,10 +40,13 @@ public class Institution {
     private InstitutionType institutionType;
 
     @Enumerated(STRING)
-    private InstitutionStatus status = InstitutionStatus.PENDING;
+    private InstitutionStatus institutionStatus = InstitutionStatus.PENDING;
 
     @Column(nullable = false)
     private String adminName;
+
+    @Column(nullable = false)
+    private String adminUsername;
 
     @Column(nullable = false)
     private String adminEmail;
