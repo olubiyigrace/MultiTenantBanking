@@ -67,6 +67,7 @@ public class JwtService {
                 .subject(userId)
                 .claim("institution_id", institutionId)
                 .claim("user_account_type", userAccountType)
+                .claim("tokenType", "refresh")
                 .issuedAt(now)
                 .expiration(expiration)
                 .issuer("multitenantbank-app")
@@ -120,14 +121,12 @@ public class JwtService {
         return claims;
     }
 
-    public boolean isRefreshToken(final String token){
+    public boolean isRefreshToken(String token) {
         Claims claims = getClaimsFromToken(token);
-        if(claims == null){
-            return false;
-        }
-        return "refresh".equals(claims.get("tokenType"));
-    }
+        if (claims == null) return false;
 
+        return "refresh".equals(String.valueOf(claims.get("tokenType")));
+    }
 
     private PrivateKey loadPrivateKey(final String privateKeyPath) throws Exception {
         try (final InputStream is = JwtService.class.getClassLoader()

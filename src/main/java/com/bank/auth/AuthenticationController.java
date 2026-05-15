@@ -58,7 +58,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully!", null));
     }
 
-    @PostMapping("/refresh-token")
+    @PostMapping("/refresh-tokennnnnn")
     public ResponseEntity<ApiResponse<Object>> sendRefreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest){
         LoginResponse tokenPair = authenticationService.refreshToken(refreshTokenRequest);
         return ResponseEntity.ok(ApiResponse.success(tokenPair));
