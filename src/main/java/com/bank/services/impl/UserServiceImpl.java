@@ -29,27 +29,6 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public void createUser(RegisterUserRequest registerUserRequest) {
-        final String institutionId = InstitutionContext.getCurrentInstitution();
-        log.info("Creating user for institution: {}", institutionId);
-        if(userRepository.existsByEmail(registerUserRequest.getEmail())){
-            log.debug("User with the email '{}' already exists.", registerUserRequest.getEmail());
-           throw new DuplicateResourceException("User with the email '" + registerUserRequest.getEmail() + "' already exists.");
-        }
-        if(userRepository.existsByUsername(registerUserRequest.getEmail())){
-            log.debug("User with the username '{}' already exists.", registerUserRequest.getEmail());
-            throw new DuplicateResourceException("User with the username '" + registerUserRequest.getEmail() + "' already exists.");
-        }
-        if(registerUserRequest.getUserAccountType() == UserAccountType.SUPER_ADMIN
-            ){throw new InvalidRequestException("SUPER_ADMIN cannot be selected as an account type");
-        }
-        final User newUser = userMapper.toEntity(registerUserRequest);
-        newUser.setInstitution(Institution.builder().id(institutionId).build());
-        userRepository.save(newUser);
-        log.info("User created successfully!");
-    }
-
-    @Override
     public void updateUser(String id, RegisterUserRequest registerUserRequest) {
         final String institutionId = InstitutionContext.getCurrentInstitution();
         log.info("Updating user for institution: {}", institutionId);

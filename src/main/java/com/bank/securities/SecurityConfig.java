@@ -65,6 +65,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.OPTIONS, "/**")
                                 .permitAll()
                                 .anyRequest().authenticated()
+
                 )
                 .sessionManagement(
                         session -> session

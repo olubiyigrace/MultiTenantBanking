@@ -20,12 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
-    @PostMapping("/register")
-    @PreAuthorize("hasRole('INSTITUTION_ADMIN')")
-    public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody final RegisterUserRequest registerUserRequest){
-        userService.createUser(registerUserRequest);
-        return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully!", null));
-    }
 
 //        @GetMapping
 //        @PreAuthorize("hasAnyRole('COMPANY_ADMIN', 'ADMINISTRATOR')")

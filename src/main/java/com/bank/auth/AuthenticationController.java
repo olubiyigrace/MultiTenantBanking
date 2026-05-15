@@ -26,7 +26,6 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
     private final InstitutionService institutionService;
-    private final UserService userService;
 
     @PostMapping("/register-institution")
     public ResponseEntity<ApiResponse<String>> registerInstitution(@Valid @RequestBody final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException {
@@ -35,7 +34,7 @@ public class AuthenticationController {
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<ApiResponse<String>> verifyUser(@RequestParam final String verificationTokenFromRequest, @RequestParam final String email) {
+    public ResponseEntity<ApiResponse<String>> verifyInstitution(@RequestParam final String verificationTokenFromRequest, @RequestParam final String email) {
         institutionService.verifyEmail(verificationTokenFromRequest, email);
         return ResponseEntity.ok(ApiResponse.success(true, "Registration completed!", null));
     }
@@ -54,7 +53,7 @@ public class AuthenticationController {
     @PostMapping("/register")
     @PreAuthorize("hasRole('INSTITUTION_ADMIN')")
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody final RegisterUserRequest registerUserRequest){
-        userService.createUser(registerUserRequest);
+        authenticationService.createUser(registerUserRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully!", null));
     }
 }

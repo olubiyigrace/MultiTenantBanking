@@ -7,7 +7,6 @@ import com.bank.responses.UserResponse;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService extends UserDetailsService {
-    void createUser(final RegisterUserRequest registerUserRequest);
     void updateUser(final String id, final RegisterUserRequest registerUserRequest);
     UserResponse getSingleUser(final String id);
     PageResponse<UserResponse> getAllUsers(final int page, final int size);
