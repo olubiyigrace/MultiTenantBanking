@@ -2,6 +2,7 @@ package com.bank.securities;
 
 import com.bank.config.InstitutionContext;
 import com.bank.config.InstitutionSchemaResolver;
+import com.bank.exceptions.UnauthorizedException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,15 +41,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(jwt) && jwtService.validateToken(jwt)) {
                 final String userId = jwtService.getUserIdFromToken(jwt);
                 final String institutionId = jwtService.getInstitutionIdFromToken(jwt);
-                final String institutionType = jwtService.getInstitutionTypeFromToken(jwt);
+                final String userAccountType = jwtService.getUserAccountTypeFromToken(jwt);
+
+                log.info("User Account Type: {}", userAccountType);
 
                 if (institutionId != null) {
                     InstitutionContext.setCurrentInstitution(institutionId);
                     final String schemaName = institutionSchemaResolver.resolveInstitutionSchema(institutionId);
                     InstitutionContext.setCurrentSchema(schemaName);
                 }
+                if (userAccountType == null || userAccountType.isBlank()) {
+                    log.warn("Missing userAccountType in JWT for userId={}", userId);
+                    throw new UnauthorizedException("Missing role in JWT");
+                }
 
-                final SimpleGrantedAuthority authority = new SimpleGrantedAuthority(institutionType);
+                final SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + userAccountType);
                 final UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userId,
@@ -58,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                log.debug("User authenticated for user ID:{}, institution: {}, role: {}", userId, institutionId, institutionType);
+                log.debug("User authenticated for user ID:{}, institution: {}, role: {}", userId, institutionId, userAccountType);
             }
         } catch (final Exception e) {
             log.error("Error authenticating user", e);

@@ -15,11 +15,11 @@ import org.springframework.stereotype.Service;
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtService jwtTokenService;
+    private final JwtService jwtService;
 
     @Override
     public LoginResponse login(final LoginRequest request) {
-        final Authentication authentication = this.authenticationManager.authenticate(
+        final Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
                         request.getPassword()
@@ -28,14 +28,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         final User user = (User) authentication.getPrincipal();
 
-        final String token = this.jwtTokenService.generateAccessToken(user.getInstitutionId(),
-                user.getId(),
-                user.getUserAccountType()
-                        .name());
+        final String accessToken = jwtService.generateAccessToken(
+                user.getId(),user.getInstitutionId(),
+                user.getUserAccountType().name());
+        final String refreshToken = jwtService.generateRefreshToken(user.getInstitutionId(),
+                user.getId(), user.getUserAccountType().name());
         final String tokenType = "Bearer";
 
         return LoginResponse.builder()
-                .accessToken(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .tokenType(tokenType)
                 .build();
     }

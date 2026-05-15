@@ -21,7 +21,7 @@ public class InstitutionSchemaResolver {
         }
         try {
             final String institutionRcNumber = this.jdbcTemplate.queryForObject(
-                    "SELECT institution_rc_number FROM public.institution WHERE id = ?",
+                    "SELECT institution_rc_number FROM institutions WHERE id = ?",
                     String.class,
                     institutionId);
             if (institutionRcNumber != null) {
@@ -32,7 +32,7 @@ public class InstitutionSchemaResolver {
             log.warn("Institution schema not found for institution: {}, using public schema", institutionId);
             return PUBLIC_SCHEMA;
         } catch (final Exception e) {
-            log.error("Error resolving institution schema for tenant: {}", institutionId, e);
+            log.error("Error resolving institution schema for institution: {}", institutionId, e);
             return PUBLIC_SCHEMA;
         }
     }

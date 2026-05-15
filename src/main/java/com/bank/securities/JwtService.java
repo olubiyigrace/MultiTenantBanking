@@ -2,7 +2,6 @@ package com.bank.securities;
 
 import com.bank.exceptions.UnauthorizedException;
 import com.bank.properties.JwtProperties;
-import com.bank.utils.TokenPair;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -11,7 +10,6 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -22,8 +20,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -47,20 +43,14 @@ public class JwtService {
         }
     }
 
-    public TokenPair generateTokenPair(@Nonnull final String institutionId, @Nonnull final String userId, final String institutionType){
-        String accessToken = generateAccessToken(institutionId, userId, institutionType);
-        String refreshToken = generateRefreshToken(institutionId, userId, institutionType);
-        return new TokenPair(accessToken,refreshToken);
-    }
-
-    public String generateAccessToken(@Nonnull final String institutionId, @Nonnull final String userId, final String institutionType) {
+    public String generateAccessToken( @Nonnull final String userId, @Nonnull final String institutionId, final String userAccountType) {
         final Date now = new Date();
         final Date expiration = new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration());
 
         return Jwts.builder()
                 .subject(userId)
                 .claim("institution_id", institutionId)
-                .claim("institution_type", institutionType)
+                .claim("user_account_type", userAccountType)
                 .issuedAt(now)
                 .expiration(expiration)
                 .issuer("multitenantbank-app")
@@ -69,14 +59,14 @@ public class JwtService {
 
     }
 
-    public String generateRefreshToken(@Nonnull final String institutionId, @Nonnull final String userId, final String institutionType) {
+    public String generateRefreshToken(@Nonnull final String institutionId, @Nonnull final String userId, final String userAccountType) {
         final Date now = new Date();
         final Date expiration = new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration());
 
         return Jwts.builder()
                 .subject(userId)
                 .claim("institution_id", institutionId)
-                .claim("institution_type", institutionType)
+                .claim("user_account_type", userAccountType)
                 .issuedAt(now)
                 .expiration(expiration)
                 .issuer("multitenantbank-app")
@@ -95,9 +85,9 @@ public class JwtService {
         return claims.get("institution_id", String.class);
     }
 
-    public String getInstitutionTypeFromToken(final String token) {
+    public String getUserAccountTypeFromToken(final String token) {
         final Claims claims = getClaimsFromToken(token);
-        return claims.get("institution_type", String.class);
+        return claims.get("user_account_type", String.class);
     }
 
     public boolean validateToken(final String token) {
@@ -121,11 +111,13 @@ public class JwtService {
     }
 
     private Claims getClaimsFromToken(final String token) {
-        return Jwts.parser()
+        Claims claims = Jwts.parser()
                 .verifyWith(publicKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+        System.out.println("JWT CLAIMS = " + claims);
+        return claims;
     }
 
 

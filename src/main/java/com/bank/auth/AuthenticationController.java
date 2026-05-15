@@ -3,15 +3,21 @@ package com.bank.auth;
 import com.bank.auth.requests.LoginRequest;
 import com.bank.auth.response.LoginResponse;
 import com.bank.auth.service.AuthenticationService;
+import com.bank.requests.RegisterInstitutionRequest;
+import com.bank.requests.RegisterUserRequest;
+import com.bank.services.InstitutionService;
+import com.bank.services.UserService;
+import com.bank.utils.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+//POST /auth/register-user
+//POST /auth/refresh-token
+//POST /auth/change-password
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -19,10 +25,36 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
+    private final InstitutionService institutionService;
+    private final UserService userService;
+
+    @PostMapping("/register-institution")
+    public ResponseEntity<ApiResponse<String>> registerInstitution(@Valid @RequestBody final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException {
+        institutionService.registerInstitution(registerInstitutionRequest);
+        return ResponseEntity.ok(ApiResponse.success(true, "Almost there! Check your email to complete your registration.", null));
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<ApiResponse<String>> verifyUser(@RequestParam final String verificationTokenFromRequest, @RequestParam final String email) {
+        institutionService.verifyEmail(verificationTokenFromRequest, email);
+        return ResponseEntity.ok(ApiResponse.success(true, "Registration completed!", null));
+    }
+    @GetMapping("/resend-verification")
+    public ResponseEntity<ApiResponse<String>> resendUserVerificationEmail(@RequestParam final String email) {
+        institutionService.resendEmailVerificationToken(email);
+        return ResponseEntity.ok(ApiResponse.success(true, "Resent! Check your email to complete your registration.", null));
+    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody final LoginRequest request) {
         final LoginResponse response = this.authenticationService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register")
+    @PreAuthorize("hasRole('INSTITUTION_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody final RegisterUserRequest registerUserRequest){
+        userService.createUser(registerUserRequest);
+        return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully!", null));
     }
 }

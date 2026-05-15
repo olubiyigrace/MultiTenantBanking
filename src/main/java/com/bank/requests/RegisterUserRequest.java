@@ -1,5 +1,6 @@
 package com.bank.requests;
 
+import com.bank.entities.Institution;
 import com.bank.enums.UserAccountType;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class RegisterUserRequest {
+
     @NotBlank(message = "Name should not be empty")
     @Pattern(regexp = "^[A-Za-z]+(?:[-\\s][A-Za-z]+)*(?:\\s[A-Za-z]+(?:[-\\s][A-Za-z]+)*)?\\s[A-Za-z]+(?:[-\\s][A-Za-z]+)*$",
             message = "Please enter first name, middle name(Optional), and last name separated by spaces")

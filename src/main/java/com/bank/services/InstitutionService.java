@@ -15,5 +15,5 @@ public interface InstitutionService {
     void activateInstitution(final String institutionId);
     void deactivateInstitution(final String institutionId);
     void suspendInstitution(final String institutionId);
-    PageResponse<InstitutionResponse> findAll(final int page, final int size);
+    PageResponse<InstitutionResponse> findAllInstitution(final int page, final int size);
 }

@@ -128,11 +128,10 @@ public class InstitutionServiceImpl implements InstitutionService {
     public void approveInstitution(final String institutionId){
         final Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution with the id '" + institutionId + "' does not exist"));
-        if (institution.getInstitutionStatus() != InstitutionStatus.PENDING) {
-            throw new InvalidRequestException("Institution is not in pending status");
-        }
+
         institution.setInstitutionStatus(InstitutionStatus.ACTIVE);
         institutionRepository.save(institution);
+
         try{
            provisioningService.provisionInstitution(institution);
            createAdminUser(institution);
@@ -146,7 +145,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         final Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution with the id '" + institutionId + "' does not exist"));
         if (institution.getInstitutionStatus() != InstitutionStatus.PENDING) {
-            throw new InvalidRequestException("Institution is not in pending status");
+            throw new InvalidRequestException("Institution is not pending");
         }
         institution.setInstitutionStatus(InstitutionStatus.ACTIVE);
         institutionRepository.save(institution);
@@ -157,7 +156,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         final Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution with the id '" + institutionId + "' does not exist"));
         if (institution.getInstitutionStatus() != InstitutionStatus.ACTIVE) {
-            throw new InvalidRequestException("Institution is not in pending status");
+            throw new InvalidRequestException("Institution is pending");
         }
         institution.setInstitutionStatus(InstitutionStatus.INACTIVE);
         institutionRepository.save(institution);
@@ -168,14 +167,14 @@ public class InstitutionServiceImpl implements InstitutionService {
         final Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution with the id '" + institutionId + "' does not exist"));
         if (institution.getInstitutionStatus() != InstitutionStatus.ACTIVE) {
-            throw new InvalidRequestException("Institution is not in pending status");
+            throw new InvalidRequestException("Institution is pending");
         }
         institution.setInstitutionStatus(InstitutionStatus.SUSPENDED);
         institutionRepository.save(institution);
     }
 
     @Override
-    public PageResponse<InstitutionResponse> findAll(int page, int size) {
+    public PageResponse<InstitutionResponse> findAllInstitution(int page, int size) {
         final PageRequest pageRequest = PageRequest.of(page, size);
         final Page<Institution> institutions = institutionRepository.findAll(pageRequest);
         final Page<InstitutionResponse> institutionResponse = institutions.map(institutionMapper::toResponse);

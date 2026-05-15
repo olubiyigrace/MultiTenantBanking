@@ -20,7 +20,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
     @Override
     public void provisionInstitution(Institution institution) {
-        final String schemaName = "institution" + institution.getInstitutionType();
+        final String schemaName = institution.getInstitutionName() + " _" + institution.getInstitutionRcNumber();
         try {
             log.info("Provisioning institution: {} (schema: {})", institution.getInstitutionName(), schemaName);
             createSchema(schemaName);
@@ -39,10 +39,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
     }
 
     private void dropSchema(String schemaName) {
-        final String sql = String.format("DROP SCHEMA IF EXIST %s", schemaName);
+        final String sql = String.format("DROP SCHEMA IF EXISTS %s CASCADE EXISTS", schemaName);
         jdbcTemplate.execute(sql);
     }
 
+    private void createSchema(final String schemaName) {
+        final String sql = String.format("CREATE SCHEMA IF NOT EXISTS %s", schemaName);
+        jdbcTemplate.execute(sql);
+    }
     private void runInstitutionMigration(String schemaName) {
         log.info("Running institution migration for schema: {}", schemaName);
         final Flyway institutionFlyway = Flyway.configure()
@@ -53,15 +57,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
                 .table("flyway_schema_history")
                 .validateOnMigrate(true)
                 .cleanDisabled(true)
+                .createSchemas(true)
                 .load();
         log.info("Institution flyway migration started");
         institutionFlyway.migrate();
         log.info("Institution flyway migration completed");
 
-    }
-
-    private void createSchema(final String schemaName) {
-        final String sql = String.format("CREATE SCHEMA IF NOT EXIST %s", schemaName);
-        jdbcTemplate.execute(sql);
     }
 }

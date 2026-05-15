@@ -14,12 +14,10 @@ create table institutions
     email_verification_token_expiry timestamp(6),
     email_verified_at               timestamp(6),
     institution_email               varchar(255) not null
-        constraint uk6x6an9bpgnna7mpjyuul1h1cv
             unique,
     institution_name                varchar(255) not null,
     institution_phone               varchar(255) not null,
     institution_rc_number           varchar(255) not null
-        constraint ukaqyjit5mcbqh3s6567iowatj9
             unique,
     institution_status              varchar(255)
         constraint institutions_institution_status_check
@@ -32,6 +30,7 @@ create table institutions
     is_verified                     boolean
 );
 
+
 create table users
 (
     id                varchar(255) not null
@@ -39,7 +38,6 @@ create table users
     created_at        timestamp(6) not null,
     deleted_at        timestamp(6),
     email             varchar(255) not null
-        constraint uk6dotkott2kjsp8vw4d0m25fb7
             unique,
     enabled           boolean,
     name              varchar(255) not null,
@@ -55,4 +53,7 @@ create table users
         constraint fk_user_institution_id
             references institutions
 );
+
+
+
 
