@@ -120,6 +120,14 @@ public class JwtService {
         return claims;
     }
 
+    public boolean isRefreshToken(final String token){
+        Claims claims = getClaimsFromToken(token);
+        if(claims == null){
+            return false;
+        }
+        return "refresh".equals(claims.get("tokenType"));
+    }
+
 
     private PrivateKey loadPrivateKey(final String privateKeyPath) throws Exception {
         try (final InputStream is = JwtService.class.getClassLoader()

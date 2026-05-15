@@ -34,7 +34,7 @@ public class MultiInstitutionConnectionProviderImpl implements MultiTenantConnec
         final Connection connection = getAnyConnection();
         try{
             if (institutionIdentifier != null && !institutionIdentifier.equals("public")){
-                connection.createStatement().execute("SET search path TO " + institutionIdentifier + ", public ");
+                connection.createStatement().execute("SET search_path TO " + institutionIdentifier + ", public ");
                 log.trace("Set search path to: {}", institutionIdentifier);
             }
         }catch (SQLException e){

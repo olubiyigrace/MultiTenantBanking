@@ -1,6 +1,7 @@
 package com.bank.auth.service;
 
 import com.bank.auth.requests.LoginRequest;
+import com.bank.auth.requests.RefreshTokenRequest;
 import com.bank.auth.response.LoginResponse;
 import com.bank.config.InstitutionContext;
 import com.bank.entities.Institution;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -67,7 +69,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new DuplicateResourceException("User with the username '" + registerUserRequest.getEmail() + "' already exists.");
         }
         if(registerUserRequest.getUserAccountType() == UserAccountType.SUPER_ADMIN || registerUserRequest.getUserAccountType() == UserAccountType.INSTITUTION_ADMIN
-        ){throw new InvalidRequestException("SUPER_ADMIN cannot be selected as an account type");
+        ){throw new InvalidRequestException("SUPER_ADMIN or INSTITUTION_ADMIN cannot be selected as an account type");
         }
         final User newUser = userMapper.toEntity(registerUserRequest);
         newUser.setInstitution(Institution.builder().id(institutionId).build());
@@ -75,4 +77,29 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         log.info("User created successfully!");
     }
 
+    public LoginResponse refreshToken(final RefreshTokenRequest refreshTokenRequest) {
+        final String refreshToken = refreshTokenRequest.getRefreshToken();
+        if (!jwtService.isRefreshToken(refreshToken)) {
+            log.debug("Invalid refresh token!");
+            throw new InvalidRequestException("Invalid refresh token!");
+        }
+        if (jwtService.validateToken(refreshToken)) {
+            log.debug("Refresh token has expired!");
+            throw new InvalidRequestException("Refresh token has expired!");
+        }
+        final String userId = jwtService.getUserIdFromToken(refreshToken);
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        final String accessToken = jwtService.generateAccessToken(
+                user.getId(),
+                user.getInstitutionId(),
+                user.getUserAccountType().name()
+        );
+        final String tokenType = "Bearer";
+        return new LoginResponse(
+                accessToken,
+                refreshToken,
+                tokenType
+        );
+    }
 }

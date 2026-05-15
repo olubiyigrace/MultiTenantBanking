@@ -1,6 +1,7 @@
 package com.bank.auth;
 
 import com.bank.auth.requests.LoginRequest;
+import com.bank.auth.requests.RefreshTokenRequest;
 import com.bank.auth.response.LoginResponse;
 import com.bank.auth.service.AuthenticationService;
 import com.bank.requests.RegisterInstitutionRequest;
@@ -50,10 +51,17 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/register")
+    @PostMapping("/register-user")
     @PreAuthorize("hasRole('INSTITUTION_ADMIN')")
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody final RegisterUserRequest registerUserRequest){
         authenticationService.createUser(registerUserRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully!", null));
     }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<Object>> sendRefreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest){
+        LoginResponse tokenPair = authenticationService.refreshToken(refreshTokenRequest);
+        return ResponseEntity.ok(ApiResponse.success(tokenPair));
+    }
+
 }
