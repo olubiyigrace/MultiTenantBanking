@@ -92,25 +92,12 @@ public class JwtService {
     }
 
     public boolean validateToken(final String token) {
-        try {
             Jwts.parser()
                     .verifyWith(publicKey)
                     .build()
                     .parseSignedClaims(token);
             return true;
-        } catch (final ExpiredJwtException e) {
-            throw new UnauthorizedException("Token has expired");
-        } catch (final UnsupportedOperationException e) {
-            throw new UnauthorizedException("Token is not signed");
-        } catch (final MalformedJwtException e) {
-            throw new UnauthorizedException("Token is malformed");
-        } catch (final SecurityException e) {
-            throw new UnauthorizedException("Invalid JWT Signature");
-        } catch (final IllegalArgumentException e) {
-            throw new UnauthorizedException("JWT claims string is empty");
-        }
-    }
-
+}
     private Claims getClaimsFromToken(final String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(publicKey)

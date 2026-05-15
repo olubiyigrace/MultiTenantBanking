@@ -16,8 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-//POST /auth/register-user
-//POST /auth/refresh-token
 //POST /auth/change-password
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -58,7 +56,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully!", null));
     }
 
-    @PostMapping("/refresh-tokennnnnn")
+    @PostMapping("/refresh-tokennnnn")
     public ResponseEntity<ApiResponse<Object>> sendRefreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest){
         LoginResponse tokenPair = authenticationService.refreshToken(refreshTokenRequest);
         return ResponseEntity.ok(ApiResponse.success(tokenPair));

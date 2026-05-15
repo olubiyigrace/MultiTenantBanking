@@ -77,29 +77,26 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         log.info("User created successfully!");
     }
 
-    public LoginResponse refreshToken(final RefreshTokenRequest refreshTokenRequest) {
-        final String refreshToken = refreshTokenRequest.getRefreshToken();
+    public LoginResponse refreshToken(final RefreshTokenRequest request) {
+
+        final String refreshToken = request.getRefreshToken();
         if (!jwtService.isRefreshToken(refreshToken)) {
-            log.debug("Invalid refresh token!");
-            throw new InvalidRequestException("Invalid refresh token!");
+            throw new InvalidRequestException("Invalid refresh token");
         }
-        if (jwtService.validateToken(refreshToken)) {
-            log.debug("Refresh token has expired!");
-            throw new InvalidRequestException("Refresh token has expired!");
-        }
+
+        jwtService.validateToken(refreshToken);
+
         final String userId = jwtService.getUserIdFromToken(refreshToken);
         final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        final String accessToken = jwtService.generateAccessToken(
+        final String newAccessToken = jwtService.generateAccessToken(
                 user.getId(),
                 user.getInstitutionId(),
-                user.getUserAccountType().name()
-        );
-        final String tokenType = "Bearer";
-        return new LoginResponse(
-                accessToken,
-                refreshToken,
-                tokenType
-        );
+                user.getUserAccountType().name());
+        final String newRefreshToken = jwtService.generateRefreshToken(
+                user.getInstitutionId(),
+                user.getId(),
+                user.getUserAccountType().name());
+        return new LoginResponse(newAccessToken, newRefreshToken, "Bearer");
     }
 }
