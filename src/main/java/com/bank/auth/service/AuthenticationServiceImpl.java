@@ -145,8 +145,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         Map<String, Object> model = new HashMap<>();
         model.put("name", request.getUsername());
-        model.put("resetPassword", "https://multitenantbank.com/api/v1/reset-password?token=");
-        model.put("revokeSession", "https://multitenantbank.com/api/v1/revoke-session?token=");
+        model.put("resetLink", "https://multitenantbank.com/api/v1/auth/change-password");
 
         emailService.sendVerificationEmail(
                 request.getUsername(),
