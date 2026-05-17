@@ -60,7 +60,7 @@ public class Institution extends AbstractEntity {
     @Column(nullable = false)
     private String adminPassword;
 
-    private Boolean isVerified = false;
+    private Boolean isVerified;
     private String emailVerificationToken;
     private LocalDateTime emailVerificationTokenExpiry;
     private LocalDateTime emailVerifiedAt;

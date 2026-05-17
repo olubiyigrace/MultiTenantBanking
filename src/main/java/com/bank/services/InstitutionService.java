@@ -8,9 +8,6 @@ import com.bank.responses.InstitutionResponse;
 import jakarta.mail.MessagingException;
 
 public interface InstitutionService {
-    void registerInstitution(final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException;
-    void verifyEmail(final String verificationTokenFromRequest, String email);
-    void resendEmailVerificationToken(final String email);
     void approveInstitution(final String institutionId);
     void activateInstitution(final String institutionId);
     void deactivateInstitution(final String institutionId);

@@ -1,11 +1,9 @@
 package com.bank.securities;
 
-import com.bank.exceptions.UnauthorizedException;
+import com.bank.entities.User;
 import com.bank.properties.JwtProperties;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -43,13 +41,13 @@ public class JwtService {
         }
     }
 
-    public String generateAccessToken( @Nonnull final String userId, @Nonnull final String institutionId, final String userAccountType) {
+    public String generateAccessToken(@Nonnull final String institutionId, final String userId, final String userAccountType) {
         final Date now = new Date();
         final Date expiration = new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration());
 
         return Jwts.builder()
-                .subject(userId)
-                .claim("institution_id", institutionId)
+                .subject(institutionId)
+                .claim("user_id", userId)
                 .claim("user_account_type", userAccountType)
                 .issuedAt(now)
                 .expiration(expiration)
@@ -78,12 +76,12 @@ public class JwtService {
 
     public String getUserIdFromToken(final String token) {
         final Claims claims = getClaimsFromToken(token);
-        return claims.getSubject();
+        return claims.get("user_id", String.class);
     }
 
     public String getInstitutionIdFromToken(final String token) {
         final Claims claims = getClaimsFromToken(token);
-        return claims.get("institution_id", String.class);
+        return claims.getSubject();
     }
 
     public String getUserAccountTypeFromToken(final String token) {

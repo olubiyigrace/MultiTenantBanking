@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {jakarta.persistence.EntityNotFoundException.class, UsernameNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleException(
-            final EntityNotFoundException ex,
+            final UsernameNotFoundException ex,
             final HttpServletRequest request
     ) {
 

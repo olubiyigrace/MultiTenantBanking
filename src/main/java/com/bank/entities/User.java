@@ -55,6 +55,11 @@ public class User extends AbstractEntity implements UserDetails {
     @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_user_institution_id"))
     private Institution institution;
 
+    private Boolean isVerified;
+    private String emailVerificationToken;
+    private LocalDateTime emailVerificationTokenExpiry;
+    private LocalDateTime emailVerifiedAt;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(userAccountType.name()));

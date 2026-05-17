@@ -21,15 +21,6 @@ public class AbstractEntity {
     @Column(name = "id", nullable = false, updatable = false )
     private String id;
 
-//    @LastModifiedDate
-//    @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
-//    @Column(name = "updated_at", nullable = false, updatable = false, insertable = false)
-//    private LocalDateTime updatedAt;
-//
-//    @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
-//    @Column(name = "deleted_at", nullable = false, updatable = false)
-//    private LocalDateTime deletedAt;
-
     @CreatedDate
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
     @Column(name = "created_at", nullable = false, updatable = false)

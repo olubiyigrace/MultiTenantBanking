@@ -21,6 +21,7 @@ public class UserMapper {
                 .email(registerUserRequest.getEmail())
                 .username(registerUserRequest.getEmail())
                 .userAccountType(registerUserRequest.getUserAccountType())
+                .isVerified(false)
                 .build();
     }
     public UserResponse toResponse(User user){

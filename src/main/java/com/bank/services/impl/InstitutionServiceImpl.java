@@ -43,99 +43,17 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final PasswordEncoder passwordEncoder;
     private final ProvisioningService provisioningService;
 
-    @Override
-    @Transactional
-    public void registerInstitution(final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException {
-        if (institutionRepository.existsByInstitutionRcNumber(registerInstitutionRequest.getInstitutionRcNumber())) {
-            log.debug("Institution with the RC Number '{}' has been registered.", registerInstitutionRequest.getInstitutionRcNumber());
-            throw new DuplicateResourceException("Institution with the RC Number '" + registerInstitutionRequest.getInstitutionRcNumber() + "' already exists..");
-        }
-        if (institutionRepository.existsByInstitutionEmail(registerInstitutionRequest.getInstitutionEmail())) {
-            log.debug("Institution with the email '{}' has been registered.", registerInstitutionRequest.getInstitutionEmail());
-            throw new DuplicateResourceException("Institution with the email '" + registerInstitutionRequest.getInstitutionEmail() + "' already exists.");
-        }
-        final Institution institution = institutionMapper.toEntity(registerInstitutionRequest);
-        institution.setInstitutionStatus(InstitutionStatus.PENDING);
-        String emailVerificationToken = UUID.randomUUID().toString();
-        institution.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
-        institution.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
-        institutionRepository.save(institution);
-
-        Map<String, Object> model = new HashMap<>();
-        model.put("institutionName", registerInstitutionRequest.getInstitutionName());
-        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?token=" + emailVerificationToken);
-
-        emailService.sendVerificationEmail(
-                registerInstitutionRequest.getInstitutionEmail(),
-                "Verify your account",
-                "verification",
-                model
-        );
-    }
 
     @Override
-    @Transactional
-    public void verifyEmail(final String verificationTokenFromRequest, final String email) {
-        Institution institution = institutionRepository.findByInstitutionEmail(email)
-                .orElseThrow(() -> new InvalidRequestException("Institution with the email '" + email + "' does not exist. Visit the website to register"));
-        if (!passwordEncoder.matches(verificationTokenFromRequest, institution.getEmailVerificationToken())) {
-            log.debug("Invalid token!");
-            throw new InvalidRequestException("Invalid token!");
-        }
-        if (institution.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
-            log.debug("Token has expired!");
-            throw new RuntimeException("Token has expired!");
-        }
-        institution.setEmailVerifiedAt(LocalDateTime.now());
-        institution.setIsVerified(true);
-        institution.setEmailVerifiedAt(LocalDateTime.now());
-        institution.setEmailVerificationToken(null);
-        institution.setEmailVerificationTokenExpiry(null);
-        institutionRepository.save(institution);
-    }
-
-    @Override
-    @Transactional
-    public void resendEmailVerificationToken(final String email) {
-        Institution institution = institutionRepository.findByInstitutionEmail(email)
-                .orElseThrow(() -> new UnauthorizedException("user with the email '" + email + "'  does not exist. Visit the website to create an account."));
-
-        if (Boolean.TRUE.equals(institution.getIsVerified())) {
-            log.debug("User already verified!");
-            throw new DuplicateResourceException("User already verified!");
-        }
-        String emailVerificationToken = UUID.randomUUID().toString();
-        institution.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
-        institution.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
-        institutionRepository.save(institution);
-
-        Map<String, Object> model = new HashMap<>();
-        model.put("institutionName", institution.getInstitutionName());
-        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/resend-verification?token=" + emailVerificationToken);
-        try {
-            emailService.sendVerificationEmail(
-                    institution.getInstitutionEmail(),
-                    "Verify your account",
-                    "verification",
-                    model
-            );
-        } catch (MessagingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void approveInstitution(final String institutionId){
+    public void approveInstitution(final String institutionId) {
         final Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution with the id '" + institutionId + "' does not exist"));
-
         institution.setInstitutionStatus(InstitutionStatus.ACTIVE);
         institutionRepository.save(institution);
-
-        try{
-           provisioningService.provisionInstitution(institution);
-           createAdminUser(institution);
-        } catch (final Exception e){
+        try {
+            provisioningService.provisionInstitution(institution);
+            createAdminUser(institution);
+        } catch (final Exception e) {
             rollBackInstitutionStatus(institution);
         }
     }
@@ -145,6 +63,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         final Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution with the id '" + institutionId + "' does not exist"));
         if (institution.getInstitutionStatus() != InstitutionStatus.PENDING) {
+            log.debug("Institution is not pending");
             throw new InvalidRequestException("Institution is not pending");
         }
         institution.setInstitutionStatus(InstitutionStatus.ACTIVE);
@@ -156,6 +75,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         final Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution with the id '" + institutionId + "' does not exist"));
         if (institution.getInstitutionStatus() != InstitutionStatus.ACTIVE) {
+            log.debug("Institution is pending");
             throw new InvalidRequestException("Institution is pending");
         }
         institution.setInstitutionStatus(InstitutionStatus.INACTIVE);
@@ -183,8 +103,8 @@ public class InstitutionServiceImpl implements InstitutionService {
 
     private void createAdminUser(Institution institution) {
         if (userRepository.existsByUsername(institution.getAdminUsername())){
-            log.debug("User already exists!");
-            throw new DuplicateResourceException("User already exists!");
+            log.debug("User already exists");
+            throw new DuplicateResourceException("User already exists");
         }
         final User adminUser = User.builder()
                 .username(institution.getAdminUsername())
@@ -201,5 +121,6 @@ public class InstitutionServiceImpl implements InstitutionService {
     private void rollBackInstitutionStatus(Institution institution) {
         institution.setInstitutionStatus(InstitutionStatus.PENDING);
         institutionRepository.save(institution);
+        log.debug("Institution not approved");
     }
 }
