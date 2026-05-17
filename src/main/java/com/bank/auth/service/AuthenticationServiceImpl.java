@@ -216,7 +216,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         jwtService.validateToken(refreshToken);
 
-        final String userId = jwtService.getUserIdFromToken(refreshToken);
+        String userId = jwtService.getUserIdFromRefreshToken(refreshToken);
         final User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         final String newAccessToken = jwtService.generateAccessToken(

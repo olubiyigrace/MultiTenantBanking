@@ -73,6 +73,10 @@ public class JwtService {
                 .compact();
 
     }
+    public String getUserIdFromRefreshToken(final String token) {
+        final Claims claims = getClaimsFromToken(token);
+        return claims.getSubject();
+    }
 
     public String getUserIdFromToken(final String token) {
         final Claims claims = getClaimsFromToken(token);
