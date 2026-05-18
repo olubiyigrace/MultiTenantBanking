@@ -1,13 +1,10 @@
 package com.bank.auth.controller;
 
-import com.bank.auth.requests.ChangePasswordRequest;
-import com.bank.auth.requests.LoginRequest;
-import com.bank.auth.requests.RefreshTokenRequest;
+import com.bank.auth.requests.*;
 import com.bank.auth.response.LoginResponse;
 import com.bank.auth.service.AuthenticationService;
 import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.requests.RegisterUserRequest;
-import com.bank.services.InstitutionService;
 import com.bank.utils.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
@@ -30,9 +27,9 @@ public class AuthenticationController {
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<ApiResponse<String>> verifyInstitution(@RequestParam final String verificationTokenFromRequest, @RequestParam final String email) {
+    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam final String verificationTokenFromRequest, @RequestParam final String email) {
         authenticationService.verifyEmail(verificationTokenFromRequest, email);
-        return ResponseEntity.ok(ApiResponse.success(true, "Registration completed!", null));
+        return ResponseEntity.ok(ApiResponse.success(true, "Registration completed", null));
     }
 
     @GetMapping("/resend-verification")
@@ -51,7 +48,19 @@ public class AuthenticationController {
     @PreAuthorize("hasRole('INSTITUTION_ADMIN')")
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody final RegisterUserRequest registerUserRequest) throws MessagingException {
         authenticationService.createUser(registerUserRequest);
-        return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully!", null));
+        return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully", null));
+    }
+
+    @GetMapping("/verify-user")
+    public ResponseEntity<ApiResponse<String>> verifyUser(@RequestParam final String verificationTokenFromRequest, @RequestParam final String email) {
+        authenticationService.verifyUser(verificationTokenFromRequest, email);
+        return ResponseEntity.ok(ApiResponse.success(true, "User verified", null));
+    }
+
+    @GetMapping("/resend-user-verification")
+    public ResponseEntity<ApiResponse<String>> resendUserVerification(@RequestParam final String email) {
+        authenticationService.resendUserVerificationToken(email);
+        return ResponseEntity.ok(ApiResponse.success(true, "Verification email resent.", null));
     }
 
     @PostMapping("/refresh-token")
@@ -61,9 +70,21 @@ public class AuthenticationController {
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<ApiResponse<Object>> sendNewPassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest){
+    public ResponseEntity<ApiResponse<String>> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest){
         authenticationService.changePassword(changePasswordRequest);
-        return ResponseEntity.ok(ApiResponse.success(true, "Password changed successfully!", null));
+        return ResponseEntity.ok(ApiResponse.success(true, "Password changed successfully", null));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestBody ForgotPasswordRequest request) throws MessagingException {
+        authenticationService.forgotPassword(request);
+        return ResponseEntity.ok(ApiResponse.success(true, "Check your email to reset your password", null));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request, @RequestParam String token) {
+        authenticationService.resetPasswordWithToken(token, request);
+        return ResponseEntity.ok(ApiResponse.success(true, "Password reset successful", null));
 
     }
 }

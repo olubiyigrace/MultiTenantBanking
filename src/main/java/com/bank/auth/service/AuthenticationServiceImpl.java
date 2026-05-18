@@ -1,8 +1,6 @@
 package com.bank.auth.service;
 
-import com.bank.auth.requests.ChangePasswordRequest;
-import com.bank.auth.requests.LoginRequest;
-import com.bank.auth.requests.RefreshTokenRequest;
+import com.bank.auth.requests.*;
 import com.bank.auth.response.LoginResponse;
 import com.bank.auth.util.CurrentUserUtil;
 import com.bank.config.InstitutionContext;
@@ -33,10 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -73,7 +68,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         Map<String, Object> model = new HashMap<>();
         model.put("institutionName", registerInstitutionRequest.getInstitutionName());
-        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?token=" + emailVerificationToken);
+        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?" + emailVerificationToken);
 
         emailService.sendVerificationEmail(
                 registerInstitutionRequest.getInstitutionEmail(),
@@ -112,7 +107,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (Boolean.TRUE.equals(institution.getIsVerified())) {
             log.debug("User already verified");
-            throw new DuplicateResourceException("User already verified!");
+            throw new DuplicateResourceException("User already verified");
         }
         String emailVerificationToken = UUID.randomUUID().toString();
         institution.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
@@ -121,7 +116,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         Map<String, Object> model = new HashMap<>();
         model.put("institutionName", institution.getInstitutionName());
-        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/resend-verification?token=" + emailVerificationToken);
+        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/resend-verification?" + emailVerificationToken);
         try {
             emailService.sendVerificationEmail(
                     institution.getInstitutionEmail(),
@@ -135,40 +130,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public LoginResponse login(final LoginRequest request) throws MessagingException {
-        final Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        Map<String, Object> model = new HashMap<>();
-        model.put("name", request.getUsername());
-        model.put("resetLink", "https://multitenantbank.com/api/v1/auth/change-password");
-
-        emailService.sendVerificationEmail(
-                request.getUsername(),
-                "New Login Alert!",
-                "login",
-                model
-        );
-        final User user = (User) authentication.getPrincipal();
-
-        final String accessToken = jwtService.generateAccessToken(user.getInstitutionId(), user.getId(),
-                user.getUserAccountType().name());
-        final String refreshToken = jwtService.generateRefreshToken(user.getInstitutionId(),
-                user.getId(), user.getUserAccountType().name());
-        final String tokenType = "Bearer";
-
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType(tokenType)
-                .build();
-    }
-
-    @Override
+    @Transactional
     public void createUser(RegisterUserRequest registerUserRequest) throws MessagingException {
         final String institutionId = InstitutionContext.getCurrentInstitution();
         log.info("Creating user for institution: {}", institutionId);
@@ -192,7 +154,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String emailVerificationToken = UUID.randomUUID().toString();
         user.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
         user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
-        userRepository.save(user);
 
         Map<String, Object> model = new HashMap<>();
         model.put("institutionName", registerUserRequest.getName());
@@ -206,8 +167,168 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
     }
 
-    public LoginResponse refreshToken(final RefreshTokenRequest request) {
+    @Override
+    @Transactional
+    public void verifyUser(final String verificationTokenFromRequest, final String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidRequestException("User with the email '" + email + "' does not exist. Visit the website to register"));
+        if (!passwordEncoder.matches(verificationTokenFromRequest, user.getEmailVerificationToken())) {
+            log.debug("Invalid token");
+            throw new InvalidRequestException("Invalid token");
+        }
+        if (user.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+            log.debug("Token has expired");
+            throw new RuntimeException("Token has expired");
+        }
+        user.setEmailVerifiedAt(LocalDateTime.now());
+        user.setIsVerified(true);
+        user.setEmailVerifiedAt(LocalDateTime.now());
+        user.setEmailVerificationToken("used");
+        user.setEmailVerificationTokenExpiry(null);
+        userRepository.save(user);
+    }
 
+    @Override
+    @Transactional
+    public void resendUserVerificationToken(final String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UnauthorizedException("user with the email '" + email + "'  does not exist. Visit the website to create an account."));
+
+        if (Boolean.TRUE.equals(user.getIsVerified())) {
+            log.debug("User already verified");
+            throw new DuplicateResourceException("User already verified");
+        }
+        String emailVerificationToken = UUID.randomUUID().toString();
+        user.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
+        user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("name", user.getName());
+        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/resend-verification?" + emailVerificationToken);
+        try {
+            emailService.sendVerificationEmail(
+                    user.getEmail(),
+                    "Verify your account",
+                    "userverification",
+                    model
+            );
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public LoginResponse login(final LoginRequest request) throws MessagingException {
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("Username not found"));
+
+        if (user.getIsVerified() == false) throw new InvalidRequestException("User not verified");
+
+        final Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                ));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String token = UUID.randomUUID().toString();
+        user.setResetPasswordToken(passwordEncoder.encode(token));
+        user.setResetPasswordTokenExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("name", request.getUsername());
+        model.put("resetUrl", "https://multitenantbank.com/api/v1/auth/reset-password?token=" + token);
+
+        emailService.sendVerificationEmail(
+                request.getUsername(),
+                "New Login Alert!",
+                "login",
+                model
+        );
+        final User users = (User) authentication.getPrincipal();
+        final String accessToken = jwtService.generateAccessToken(users.getInstitutionId(), users.getId(),
+                users.getUserAccountType().name());
+        final String refreshToken = jwtService.generateRefreshToken(users.getInstitutionId(),
+                users.getId(), users.getUserAccountType().name());
+        final String tokenType = "Bearer";
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType(tokenType)
+                .build();
+    }
+
+
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        User loggedInUser = currentUserUtil.getLoggedInUser();
+
+        boolean matches = passwordEncoder.matches(request.getOldPassword(), loggedInUser.getPassword());
+        if (!matches) throw new InvalidRequestException("Old password is incorrect");
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new InvalidRequestException("Passwords do not match");
+        }
+        if (passwordEncoder.matches(request.getNewPassword(), loggedInUser.getPassword())) {
+            throw new InvalidRequestException("Cannot reuse old password");
+        }
+        loggedInUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(loggedInUser);
+        log.info("password changed successfully");
+    }
+
+    @Override
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) throws MessagingException {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("Email not found"));
+
+        String token = UUID.randomUUID().toString();
+        user.setResetPasswordToken(passwordEncoder.encode(token));
+        user.setResetPasswordTokenExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("resetUrl", "https://multitenantbanking.com/api/v1/auth/reset-password?token=" + token);
+
+        emailService.sendVerificationEmail(
+                user.getEmail(),
+                "Reset Password",
+                "forgotpassword",
+                model
+        );
+        log.info("Reset link sent");
+    }
+
+    @Override
+    @Transactional
+    public void resetPasswordWithToken(String token, ResetPasswordRequest request) {
+        User user = userRepository.findAll().stream()
+                .filter(u -> u.getResetPasswordToken() != null)
+                .filter(u -> passwordEncoder.matches(token, u.getResetPasswordToken()))
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestException("Invalid token"));
+
+        if (user.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new InvalidRequestException("Token expired");
+        }
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new InvalidRequestException("Passwords do not match");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setResetPasswordToken("used");
+        user.setResetPasswordTokenExpiry(null);
+        userRepository.save(user);
+
+        log.info("password reset with token successfully");
+    }
+
+    @Override
+    @Transactional
+    public LoginResponse refreshToken(final RefreshTokenRequest request) {
         final String refreshToken = request.getRefreshToken();
         if (!jwtService.isRefreshToken(refreshToken)) {
             log.debug("Invalid refresh token");
@@ -229,25 +350,4 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return new LoginResponse(newAccessToken, newRefreshToken, "Bearer");
     }
 
-    public void changePassword(ChangePasswordRequest request) {
-        User loggedInUser = currentUserUtil.getLoggedInUser();
-
-        boolean matches = passwordEncoder.matches(request.getOldPassword(), loggedInUser.getPassword());
-        if (!matches) throw new InvalidRequestException("password does not match");
-
-        boolean confirm = Objects.equals(request.getNewPassword(), request.getConfirmPassword());
-        if (!confirm) {
-            throw new InvalidRequestException("Passwords do not match");
-        }
-
-        String confirmNewEncodedPass = passwordEncoder.encode(request.getConfirmPassword());
-        String oldEncodePass = loggedInUser.getPassword();
-        if (Objects.equals(confirmNewEncodedPass, oldEncodePass))
-            throw new InvalidRequestException("cannot use old password");
-
-
-        loggedInUser.setPassword(confirmNewEncodedPass);
-        userRepository.save(loggedInUser);
-        log.info("password changed successfully");
-    }
 }

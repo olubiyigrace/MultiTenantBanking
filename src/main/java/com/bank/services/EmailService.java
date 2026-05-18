@@ -40,4 +40,19 @@ public class EmailService {
         helper.setText(htmlContent, true);
         emailSender.send(message);
     }
+
+//    public void sendToken(String to, String accountNumber) {
+//
+//        SimpleMailMessage message = new SimpleMailMessage();
+//        message.setTo(to);
+//        message.setSubject("Your Account Number is Ready!");
+//        message.setText(
+//                "Congratulations!\n\n" +
+//                        "Your account number has been successfully created.\n\n" +
+//                        "Your StatiaPay Account Number is: " + accountNumber + "\n\n" +
+//                        "Keep it safe."
+//        );
+//
+//        emailSender.send(message);
+//    }
 }

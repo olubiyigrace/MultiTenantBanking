@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ChangePasswordRequest {
+public class ResetPasswordRequest {
     @NotBlank(message = "Password should not be empty")
     @Size(min = 8, max = 20, message = "Password must be between 8 and 20 characters")
     @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*+=])(?=\\S+$).{8,}$",
@@ -21,11 +21,6 @@ public class ChangePasswordRequest {
     @Size(min = 8, max = 20, message = "Password must be between 8 and 20 characters")
     @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*+=])(?=\\S+$).{8,}$",
             message = "Password must contain at least one uppercase, one lowercase, one digit, a character and no whitespace")
-    private String oldPassword;
-
-    @NotBlank(message = "Password should not be empty")
-    @Size(min = 8, max = 20, message = "Password must be between 8 and 20 characters")
-    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*+=])(?=\\S+$).{8,}$",
-            message = "Password must contain at least one uppercase, one lowercase, one digit, a character and no whitespace")
     private String confirmPassword;
+
 }

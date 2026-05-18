@@ -39,10 +39,12 @@ create table users
     enabled           boolean,
     name              varchar(255) not null,
     nin               varchar(255) not null,
+    reset_password_token               varchar(255) not null,
     password          varchar(255) not null,
     email_verification_token        varchar(255),
     email_verification_token_expiry timestamp(6),
     email_verified_at               timestamp(6),
+    reset_password_token_expiry               timestamp(6),
     phone             varchar(255) not null,
 
     user_account_type varchar(255)
@@ -56,7 +58,7 @@ create table users
         ('ACCOUNTANT'::character varying)::text,
         ('MEMBER'::character varying)::text
         ]
-    )),
+        )),
     username          varchar(255) not null,
     institution_id    varchar(255),
     is_verified       boolean,

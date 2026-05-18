@@ -60,6 +60,12 @@ public class User extends AbstractEntity implements UserDetails {
     private LocalDateTime emailVerificationTokenExpiry;
     private LocalDateTime emailVerifiedAt;
 
+    @Column(nullable = true)
+    private String resetPasswordToken;
+
+    @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
+    private LocalDateTime resetPasswordTokenExpiry;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(userAccountType.name()));
