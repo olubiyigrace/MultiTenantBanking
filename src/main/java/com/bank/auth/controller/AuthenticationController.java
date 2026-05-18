@@ -85,6 +85,5 @@ public class AuthenticationController {
     public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request, @RequestParam String token) {
         authenticationService.resetPasswordWithToken(token, request);
         return ResponseEntity.ok(ApiResponse.success(true, "Password reset successful", null));
-
     }
 }
