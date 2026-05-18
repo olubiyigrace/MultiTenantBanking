@@ -26,13 +26,13 @@ public class AuthenticationController {
         return ResponseEntity.ok(ApiResponse.success(true, "Almost there! Check your email to complete your registration.", null));
     }
 
-    @GetMapping("/verify")
+    @GetMapping("/verify-institution")
     public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam final String verificationTokenFromRequest, @RequestParam final String email) {
         authenticationService.verifyEmail(verificationTokenFromRequest, email);
         return ResponseEntity.ok(ApiResponse.success(true, "Registration completed", null));
     }
 
-    @GetMapping("/resend-verification")
+    @GetMapping("/resend-institution-verification")
     public ResponseEntity<ApiResponse<String>> resendUserVerificationEmail(@RequestParam final String email) {
         authenticationService.resendEmailVerificationToken(email);
         return ResponseEntity.ok(ApiResponse.success(true, "Resent! Check your email to complete your registration.", null));
