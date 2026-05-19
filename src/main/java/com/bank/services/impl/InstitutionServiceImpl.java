@@ -39,8 +39,6 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final InstitutionRepository institutionRepository;
     private final UserRepository userRepository;
     private final InstitutionMapper institutionMapper;
-    private final EmailService emailService;
-    private final PasswordEncoder passwordEncoder;
     private final ProvisioningService provisioningService;
 
 
