@@ -60,7 +60,6 @@ public class User extends AbstractEntity implements UserDetails {
     private LocalDateTime emailVerificationTokenExpiry;
     private LocalDateTime emailVerifiedAt;
 
-    @Column(nullable = true)
     private String resetPasswordToken;
 
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")

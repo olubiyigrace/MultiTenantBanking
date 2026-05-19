@@ -307,7 +307,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Transactional
     public void resetPasswordWithToken(String token, ResetPasswordRequest request) {
         User user = userRepository.findAll().stream()
-                .filter(u -> u.getResetPasswordToken() != null)
+                .filter(u -> u.getResetPasswordToken() == null)
                 .filter(u -> passwordEncoder.matches(token, u.getResetPasswordToken()))
                 .findFirst()
                 .orElseThrow(() -> new InvalidRequestException("Invalid token"));

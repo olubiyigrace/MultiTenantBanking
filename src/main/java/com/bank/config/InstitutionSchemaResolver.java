@@ -20,12 +20,12 @@ public class InstitutionSchemaResolver {
             return PUBLIC_SCHEMA;
         }
         try {
-            final String institutionRcNumber = this.jdbcTemplate.queryForObject(
-                    "SELECT institution_rc_number FROM institutions WHERE id = ?",
+            final String institutionName= jdbcTemplate.queryForObject(
+                    "SELECT institution_name FROM institutions WHERE id = ?",
                     String.class,
                     institutionId);
-            if (institutionRcNumber != null) {
-                final String schemaName = "institution_" + institutionRcNumber.toLowerCase();
+            if (institutionName != null) {
+                final String schemaName = institutionName.toLowerCase();
                 log.debug("Resolved Institution schema: {} for institution: {}", schemaName, institutionId);
                 return schemaName;
             }

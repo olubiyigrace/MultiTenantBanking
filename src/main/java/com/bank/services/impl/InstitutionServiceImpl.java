@@ -40,6 +40,7 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final UserRepository userRepository;
     private final InstitutionMapper institutionMapper;
     private final ProvisioningService provisioningService;
+    private final PasswordEncoder passwordEncoder;
 
 
     @Override
@@ -52,8 +53,10 @@ public class InstitutionServiceImpl implements InstitutionService {
             provisioningService.provisionInstitution(institution);
             createAdminUser(institution);
         } catch (final Exception e) {
-            rollBackInstitutionStatus(institution);
-        }
+                log.error("Institution approval failed", e);
+                rollBackInstitutionStatus(institution);
+                throw e;
+            }
     }
 
     @Override
@@ -99,6 +102,11 @@ public class InstitutionServiceImpl implements InstitutionService {
         return PageResponse.of(institutionResponse);
     }
 
+    private void rollBackInstitutionStatus(Institution institution) {
+        institution.setInstitutionStatus(InstitutionStatus.PENDING);
+        institutionRepository.save(institution);
+        log.debug("Institution not approved");
+    }
     private void createAdminUser(Institution institution) {
         if (userRepository.existsByUsername(institution.getAdminUsername())){
             log.debug("User already exists");
@@ -108,17 +116,14 @@ public class InstitutionServiceImpl implements InstitutionService {
                 .username(institution.getAdminUsername())
                 .email(institution.getAdminEmail())
                 .name(institution.getAdminName())
-                .password(institution.getAdminPassword())
+                .nin(institution.getAdminNin())
+                .phone(institution.getAdminPhone())
+//                .resetPasswordToken("used")
+                .password(passwordEncoder.encode(institution.getAdminPassword()))
                 .userAccountType(UserAccountType.INSTITUTION_ADMIN)
                 .institution(institution)
                 .build();
         userRepository.save(adminUser);
         log.info("Admin user created successfully");
-    }
-
-    private void rollBackInstitutionStatus(Institution institution) {
-        institution.setInstitutionStatus(InstitutionStatus.PENDING);
-        institutionRepository.save(institution);
-        log.debug("Institution not approved");
     }
 }

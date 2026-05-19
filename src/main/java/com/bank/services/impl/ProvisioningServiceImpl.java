@@ -20,9 +20,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
     @Override
     public void provisionInstitution(Institution institution) {
-        final String schemaName = institution.getInstitutionName();
+        final String schemaName = institution.getInstitutionName().toLowerCase();
         try {
-            log.info("Provisioning institution: {} (schema: {})", institution.getInstitutionName(), schemaName);
+            log.info("Provisioning institution: {} (schema: {})", institution.getInstitutionName().toLowerCase(), schemaName);
             createSchema(schemaName);
 
             log.info("Schema {} created successfully", schemaName);
