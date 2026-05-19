@@ -118,7 +118,6 @@ public class InstitutionServiceImpl implements InstitutionService {
                 .name(institution.getAdminName())
                 .nin(institution.getAdminNin())
                 .phone(institution.getAdminPhone())
-//                .resetPasswordToken("used")
                 .password(passwordEncoder.encode(institution.getAdminPassword()))
                 .userAccountType(UserAccountType.INSTITUTION_ADMIN)
                 .institution(institution)

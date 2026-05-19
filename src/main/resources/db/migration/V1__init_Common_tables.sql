@@ -39,7 +39,7 @@ create table users
     enabled           boolean,
     name              varchar(255) not null,
     nin               varchar(255) not null,
-    reset_password_token               varchar(255) not null,
+    reset_password_token               varchar(255),
     password          varchar(255) not null,
     email_verification_token        varchar(255),
     email_verification_token_expiry timestamp(6),
