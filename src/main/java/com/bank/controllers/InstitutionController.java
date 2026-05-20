@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Institution", description = "Institution API")
 @PreAuthorize("hasRole('SUPER_ADMIN')")
 public class InstitutionController {
-
     private final InstitutionService institutionService;
 
     @PostMapping("/approve/{institution-id}")
@@ -46,7 +45,7 @@ public class InstitutionController {
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<InstitutionResponse>> findAllInstitution(
+    public ResponseEntity<PageResponse<InstitutionResponse>> getAllInstitution(
             @RequestParam(name = "page", defaultValue = "0") final int page,
             @RequestParam(name = "size", defaultValue = "10") final int size) {
         return ResponseEntity.ok(institutionService.findAllInstitution(page, size));

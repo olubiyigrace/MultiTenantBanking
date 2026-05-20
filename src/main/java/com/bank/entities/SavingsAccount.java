@@ -29,7 +29,7 @@ public class SavingsAccount extends AbstractEntity {
     private LocalDateTime maturityDate;
 
     @Version
-    private Long version;
+    private Integer version;
 
     @Column(unique = true)
     private String accountNumber;
@@ -44,5 +44,6 @@ public class SavingsAccount extends AbstractEntity {
     private Institution institution;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_profile_id", foreignKey = @ForeignKey(name = "fk_savings_account_member_profile_id"))
     private MemberProfile memberProfile;
 }

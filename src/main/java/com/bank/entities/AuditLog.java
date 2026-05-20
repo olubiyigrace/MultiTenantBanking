@@ -18,9 +18,11 @@ import java.util.UUID;
 public class AuditLog extends AbstractEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_audit_log_institution_id"))
     private Institution institution;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_audit_log_user_id"))
     private User user;
 
     private String entityType;

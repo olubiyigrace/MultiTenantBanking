@@ -23,20 +23,23 @@ import java.util.UUID;
 @Table(name = "loan_applications")
 public class LoanApplication extends AbstractEntity {
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_loan_application_institution_id"))
     private Institution institution;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_profile_id", foreignKey = @ForeignKey(name = "fk_loan_application_member_profile_id"))
     private MemberProfile memberProfile;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_product_id", foreignKey = @ForeignKey(name = "fk_loan_application_loan_product_id"))
     private LoanProduct loanProduct;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_officer_id", foreignKey = @ForeignKey(name = "fk_loan_application_loan_officer_id"))
+    private User user;
 
     @Enumerated(EnumType.STRING)
     private LoanApplicationStatus loanStatus;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "loan_officer")
-    private User user;
 
     private BigDecimal requestedAmount;
     private BigDecimal approvedAmount;

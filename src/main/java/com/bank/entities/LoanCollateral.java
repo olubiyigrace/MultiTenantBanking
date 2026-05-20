@@ -23,5 +23,6 @@ public class LoanCollateral extends AbstractEntity {
     private String documentUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_application_id", foreignKey = @ForeignKey(name = "fk_loan_collateral_loan_application_id"))
     private LoanApplication loanApplication;
 }

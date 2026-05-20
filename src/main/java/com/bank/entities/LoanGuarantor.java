@@ -21,9 +21,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @SuperBuilder
 @Table(name = "loan_guarantors")
-public class LoanGuarantors extends AbstractEntity {
+public class LoanGuarantor extends AbstractEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_application_id", foreignKey = @ForeignKey(name = "fk_loan_guarantor_loan_application_id"))
     private LoanApplication loanApplication;
 
     private UUID guarantorMemberId;

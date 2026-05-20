@@ -6,7 +6,6 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -18,9 +17,10 @@ import java.util.UUID;
 public class SavingsInterestAccrual {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private String id;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "savings_account_id", foreignKey = @ForeignKey(name = "fk_savings_interest_accrual_savings_account_id"))
     private SavingsAccount savingsAccount;
 
     private LocalDate periodStart;

@@ -27,6 +27,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
             log.info("Schema {} created successfully", schemaName);
             runInstitutionMigration(schemaName);
+            initializeDefaultData(schemaName, institution);
         } catch (final Exception e){
             log.error("Error provisioning institution: {}", institution.getInstitutionType(), e);
             try {
@@ -50,7 +51,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
     private void runInstitutionMigration(String schemaName) {
         log.info("Running institution migration for schema: {}", schemaName);
         final Flyway institutionFlyway = Flyway.configure()
-                .dataSource(dataSource)
+                .dataSource(this.dataSource)
                 .schemas(schemaName)
                 .locations("classpath:db/migration/institution")
                 .baselineOnMigrate(true)
@@ -62,6 +63,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
         log.info("Institution flyway migration started");
         institutionFlyway.migrate();
         log.info("Institution flyway migration completed");
-
+    }
+    private void initializeDefaultData(final String schemaName, final Institution institution) {
+        log.info("Initializing default data for institution: {}", institution.getInstitutionName());
     }
 }

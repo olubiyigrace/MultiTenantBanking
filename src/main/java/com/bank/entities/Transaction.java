@@ -37,12 +37,13 @@ public class Transaction extends AbstractEntity {
     private TransactionStatus transactionStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "performed_by_user_id")
+    @JoinColumn(name = "performed_by_user_id", foreignKey = @ForeignKey(name = "fk_transaction_performed_by_user_id"))
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Institution institution;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "savings_account_id", foreignKey = @ForeignKey(name = "fk_transaction_savings_account_id"))
     private SavingsAccount savingsAccount;
 }

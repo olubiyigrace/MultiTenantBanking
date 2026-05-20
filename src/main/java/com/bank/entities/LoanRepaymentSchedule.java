@@ -19,10 +19,7 @@ import java.util.UUID;
 public class LoanRepaymentSchedule {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private LoanApplication loanApplication;
+    private String id;
 
     private Integer installmentNumber;
     private BigDecimal principalDue;
@@ -39,4 +36,8 @@ public class LoanRepaymentSchedule {
 
     @Enumerated(EnumType.STRING)
     private LoanRepaymentStatus loanRepaymentStatus;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_application_id", foreignKey = @ForeignKey(name = "fk_loan_repayment_schedule_loan_application_id"))
+    private LoanApplication loanApplication;
 }

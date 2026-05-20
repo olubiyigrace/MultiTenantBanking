@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -22,7 +23,7 @@ public class MemberProfile extends AbstractEntity {
     private String bvn;
     private String address;
     private String employmentStatus;
-    private Double monthlyIncome;
+    private BigDecimal monthlyIncome;
     private String nextOfKinName;
     private String nextOfKinPhone;
     private LocalDate dateOfBirth;
@@ -37,5 +38,6 @@ public class MemberProfile extends AbstractEntity {
     private Institution institution;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_member_profile_user_id"))
     private User user;
 }

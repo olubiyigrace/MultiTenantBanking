@@ -22,13 +22,25 @@ create table institutions
     institution_status              varchar(255)
         constraint institutions_institution_status_check
             check ((institution_status)::text = ANY
-        (ARRAY [('PENDING'::character varying)::text, ('ACTIVE'::character varying)::text, ('INACTIVE'::character varying)::text, ('SUSPENDED'::character varying)::text])),
+        (ARRAY [('PENDING'::character varying)::text,
+                ('ACTIVE'::character varying)::text,
+                ('INACTIVE'::character varying)::text,
+                ('SUSPENDED'::character varying)::text])),
     institution_type                varchar(255)
         constraint institutions_institution_type_check
             check ((institution_type)::text = ANY
-                   (ARRAY [('COOPERATIVE'::character varying)::text, ('MICROFINANCE'::character varying)::text])),
+                   (ARRAY [('COOPERATIVE'::character varying)::text,
+                   ('MICROFINANCE'::character varying)::text])),
     is_verified                     boolean
 );
+
+
+
+
+
+
+
+
 
 create table users
 (
