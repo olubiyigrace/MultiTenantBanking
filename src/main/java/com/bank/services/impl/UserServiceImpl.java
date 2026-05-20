@@ -2,12 +2,10 @@ package com.bank.services.impl;
 
 import com.bank.common.PageResponse;
 import com.bank.config.InstitutionContext;
-import com.bank.entities.Institution;
 import com.bank.exceptions.InvalidRequestException;
 import com.bank.requests.RegisterUserRequest;
 import com.bank.entities.User;
 import com.bank.enums.UserAccountType;
-import com.bank.exceptions.DuplicateResourceException;
 import com.bank.mapper.UserMapper;
 import com.bank.repositories.UserRepository;
 import com.bank.responses.UserResponse;
@@ -65,7 +63,7 @@ public class UserServiceImpl implements UserService {
         final String institutionId = InstitutionContext.getCurrentInstitution();
         log.info("Getting all user for institution: {}", institutionId);
         final PageRequest pageRequest = PageRequest.of(page, size);
-        final Page<User> userPage = userRepository.findAllByInstitutionId(institutionId, pageRequest);
+        final Page<User> userPage = userRepository.findAllByInstitution_Id(institutionId, pageRequest);
         final Page<UserResponse> userResponse = userPage.map(userMapper::toResponse);
         return PageResponse.of(userResponse);
     }

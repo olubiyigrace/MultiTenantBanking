@@ -50,7 +50,7 @@ public class User extends AbstractEntity implements UserDetails {
     private LocalDateTime deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "institution", foreignKey = @ForeignKey(name = "fk_user_institution_id"))
+    @JoinColumn(name = "institution", foreignKey = @ForeignKey(name = "fk_user_institution"))
     private Institution institution;
 
     private Boolean enabled = false;
