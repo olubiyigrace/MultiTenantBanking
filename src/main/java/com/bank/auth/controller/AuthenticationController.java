@@ -8,6 +8,7 @@ import com.bank.requests.RegisterUserRequest;
 import com.bank.utils.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -85,5 +86,11 @@ public class AuthenticationController {
     public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request, @RequestParam String token) {
         authenticationService.resetPasswordWithToken(token, request);
         return ResponseEntity.ok(ApiResponse.success(true, "Password reset successful", null));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout(HttpServletRequest request) {
+        authenticationService.logout(request);
+        return ResponseEntity.ok(ApiResponse.success(true, "Logout successful", null));
     }
 }

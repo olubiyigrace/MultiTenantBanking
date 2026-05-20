@@ -72,10 +72,25 @@ create table users
         ]
         )),
     username          varchar(255) not null,
-    institution    varchar(255),
+    institution       varchar(255),
     is_verified       boolean,
 
     constraint fk_user_institution_id
         foreign key (institution)
         references institutions(id)
+);
+
+
+
+
+
+create table logout_tokens
+(
+    token             VARCHAR(1000) primary key,
+    expiry_date       timestamp not null,
+    user_id             varchar(255),
+
+    constraint fk_logout_token_user_id
+        foreign key (user_id)
+        references users(id)
 );

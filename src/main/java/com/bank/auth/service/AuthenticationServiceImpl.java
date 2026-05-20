@@ -11,6 +11,8 @@ import com.bank.enums.UserAccountType;
 import com.bank.exceptions.DuplicateResourceException;
 import com.bank.exceptions.InvalidRequestException;
 import com.bank.exceptions.UnauthorizedException;
+import com.bank.logout.LogoutToken;
+import com.bank.logout.LogoutTokenRepository;
 import com.bank.mapper.InstitutionMapper;
 import com.bank.mapper.UserMapper;
 import com.bank.repositories.InstitutionRepository;
@@ -19,9 +21,11 @@ import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.requests.RegisterUserRequest;
 import com.bank.securities.JwtService;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +34,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -46,6 +51,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final com.bank.services.EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final CurrentUserUtil currentUserUtil;
+    private final LogoutTokenRepository logoutTokenRepository;
 
 
     @Override
@@ -134,16 +140,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public void createUser(RegisterUserRequest registerUserRequest) throws MessagingException {
         final String institutionId = InstitutionContext.getCurrentInstitution();
         log.info("Creating user for institution: {}", institutionId);
-        if(userRepository.existsByEmail(registerUserRequest.getEmail())){
+        if (userRepository.existsByEmail(registerUserRequest.getEmail())) {
             log.debug("User with the email '{}' already exists.", registerUserRequest.getEmail());
             throw new DuplicateResourceException("User with the email '" + registerUserRequest.getEmail() + "' already exists.");
         }
-        if(userRepository.existsByUsername(registerUserRequest.getEmail())){
+        if (userRepository.existsByUsername(registerUserRequest.getEmail())) {
             log.debug("User with the username '{}' already exists.", registerUserRequest.getEmail());
             throw new DuplicateResourceException("User with the username '" + registerUserRequest.getEmail() + "' already exists.");
         }
-        if(registerUserRequest.getUserAccountType() == UserAccountType.SUPER_ADMIN || registerUserRequest.getUserAccountType() == UserAccountType.INSTITUTION_ADMIN
-        ){throw new InvalidRequestException("SUPER_ADMIN or INSTITUTION_ADMIN cannot be selected as an account type");
+        if (registerUserRequest.getUserAccountType() == UserAccountType.SUPER_ADMIN || registerUserRequest.getUserAccountType() == UserAccountType.INSTITUTION_ADMIN
+        ) {
+            throw new InvalidRequestException("SUPER_ADMIN or INSTITUTION_ADMIN cannot be selected as an account type");
         }
         final User newUser = userMapper.toEntity(registerUserRequest);
         newUser.setInstitution(Institution.builder().id(institutionId).build());
@@ -247,6 +254,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 "login",
                 model
         );
+
         final User users = (User) authentication.getPrincipal();
         final String accessToken = jwtService.generateAccessToken(users.getInstitutionId(), users.getId(),
                 users.getUserAccountType().name());
@@ -350,4 +358,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return new LoginResponse(newAccessToken, newRefreshToken, "Bearer");
     }
 
+    @Override
+    @Transactional
+    public void logout(HttpServletRequest request) {
+
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new InvalidRequestException("Invalid authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        Instant expiryDate = jwtService.extractExpiration(token).toInstant();
+        LogoutToken logoutToken = LogoutToken.builder()
+                .token(token)
+                .expiryDate(expiryDate)
+                .build();
+
+        logoutTokenRepository.save(logoutToken);
+    }
 }

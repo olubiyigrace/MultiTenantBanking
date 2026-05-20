@@ -5,6 +5,7 @@ import com.bank.auth.response.LoginResponse;
 import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.requests.RegisterUserRequest;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 
 public interface AuthenticationService {
     void registerInstitution(final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException;
@@ -18,4 +19,5 @@ public interface AuthenticationService {
     void changePassword(ChangePasswordRequest request);
     void forgotPassword(ForgotPasswordRequest request) throws MessagingException;
     void resetPasswordWithToken(String token, ResetPasswordRequest request);
+    void logout(HttpServletRequest request);
 }
