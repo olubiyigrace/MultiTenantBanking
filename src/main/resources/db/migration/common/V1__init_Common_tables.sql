@@ -72,10 +72,10 @@ create table users
         ]
         )),
     username          varchar(255) not null,
-    institution_id    varchar(255),
+    institution    varchar(255),
     is_verified       boolean,
 
     constraint fk_user_institution_id
-        foreign key (institution_id)
+        foreign key (institution)
         references institutions(id)
 );
