@@ -47,7 +47,6 @@ public class InstitutionServiceImpl implements InstitutionService {
     public void approveInstitution(final String institutionId) {
         final Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution with the id '" + institutionId + "' does not exist"));
-        institution.setInstitutionStatus(InstitutionStatus.ACTIVE);
         institutionRepository.save(institution);
         try {
             provisioningService.provisionInstitution(institution);
@@ -118,7 +117,7 @@ public class InstitutionServiceImpl implements InstitutionService {
                 .name(institution.getAdminName())
                 .nin(institution.getAdminNin())
                 .phone(institution.getAdminPhone())
-                .password(passwordEncoder.encode(institution.getAdminPassword()))
+                .password(institution.getAdminPassword())
                 .userAccountType(UserAccountType.INSTITUTION_ADMIN)
                 .institution(institution)
                 .build();

@@ -29,7 +29,7 @@ public class AuthenticationController {
     @GetMapping("/verify-institution")
     public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam final String verificationTokenFromRequest, @RequestParam final String email) {
         authenticationService.verifyEmail(verificationTokenFromRequest, email);
-        return ResponseEntity.ok(ApiResponse.success(true, "Registration completed", null));
+        return ResponseEntity.ok(ApiResponse.success(true, "Institution registered successfully", null));
     }
 
     @GetMapping("/resend-institution-verification")
@@ -48,19 +48,19 @@ public class AuthenticationController {
     @PreAuthorize("hasRole('INSTITUTION_ADMIN')")
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody final RegisterUserRequest registerUserRequest) throws MessagingException {
         authenticationService.createUser(registerUserRequest);
-        return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully", null));
+        return ResponseEntity.ok(ApiResponse.success(true, "Almost there! Check your email to complete your registration.", null));
     }
 
     @GetMapping("/verify-user")
     public ResponseEntity<ApiResponse<String>> verifyUser(@RequestParam final String verificationTokenFromRequest, @RequestParam final String email) {
         authenticationService.verifyUser(verificationTokenFromRequest, email);
-        return ResponseEntity.ok(ApiResponse.success(true, "User verified", null));
+        return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully", null));
     }
 
     @GetMapping("/resend-user-verification")
     public ResponseEntity<ApiResponse<String>> resendUserVerification(@RequestParam final String email) {
         authenticationService.resendUserVerificationToken(email);
-        return ResponseEntity.ok(ApiResponse.success(true, "Verification email resent.", null));
+        return ResponseEntity.ok(ApiResponse.success(true, "Resent! Check your email to complete your registration.", null));
     }
 
     @PostMapping("/refresh-token")
