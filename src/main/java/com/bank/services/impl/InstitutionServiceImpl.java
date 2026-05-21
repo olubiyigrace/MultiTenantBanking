@@ -158,44 +158,41 @@ public class InstitutionServiceImpl implements InstitutionService {
     }
 
     @Override
-    public TotalDepositsStatisticsResponse getDepositsStatistics() {
+    public TotalSavingsStatisticsResponse getSavingsStatistics() {
         List<Institution> institutions = institutionRepository.findAll();
-        List<TotalDepositResponse> perInstitution = new ArrayList<>();
-        BigDecimal totalDepositsAcrossAll = BigDecimal.ZERO;
+        List<TotalSavingsResponse> perInstitution = new ArrayList<>();
+        BigDecimal totalSavingsAcrossAll = BigDecimal.ZERO;
 
         for (Institution institution : institutions) {
             String schema = institution.getInstitutionName().toLowerCase();
-            BigDecimal deposits = getInstitutionDeposits(schema);
-            totalDepositsAcrossAll = totalDepositsAcrossAll.add(deposits);
+            BigDecimal savings = getInstitutionSavings(schema);
+            totalSavingsAcrossAll = totalSavingsAcrossAll.add(savings);
 
             perInstitution.add(
-                    TotalDepositResponse.builder()
+                    TotalSavingsResponse.builder()
                             .institutionId(institution.getId())
                             .institutionName(schema)
-                            .totalDeposits(deposits)
+                            .totalSavings(savings)
                             .build()
             );
         }
 
-        return TotalDepositsStatisticsResponse.builder()
-                .totalDepositsAcrossAllInstitutions(totalDepositsAcrossAll)
+        return TotalSavingsStatisticsResponse.builder()
+                .totalSavingsAcrossAllInstitutions(totalSavingsAcrossAll)
                 .institutions(perInstitution)
                 .build();
     }
 
-    private BigDecimal getInstitutionDeposits(String schema) {
+    private BigDecimal getInstitutionSavings(String schema) {
         try {
             String sql = """
             SELECT COALESCE(SUM(balance), 0)
             FROM %s.savings_accounts
             """.formatted(schema);
-
-            BigDecimal total =
-                    jdbcTemplate.queryForObject(sql, BigDecimal.class);
-
+            BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
             return total != null ? total : BigDecimal.ZERO;
-
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return BigDecimal.ZERO;
         }
     }

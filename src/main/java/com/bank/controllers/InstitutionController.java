@@ -1,26 +1,17 @@
 package com.bank.controllers;
 
-import com.bank.auth.requests.RefreshTokenRequest;
-import com.bank.auth.response.LoginResponse;
 import com.bank.common.PageResponse;
-import com.bank.entities.Institution;
-import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.responses.InstitutionResponse;
-import com.bank.responses.TotalDepositsStatisticsResponse;
-import com.bank.responses.TotalMemberResponse;
+import com.bank.responses.TotalSavingsStatisticsResponse;
 import com.bank.responses.TotalMembersStatisticsResponse;
 import com.bank.services.InstitutionService;
 import com.bank.utils.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/institutions")
@@ -66,9 +57,9 @@ public class InstitutionController {
         return ResponseEntity.ok(institutionService.getMembersStatistics());
     }
 
-    @GetMapping("/total-deposits")
-    public ResponseEntity<TotalDepositsStatisticsResponse> getDepositsStatistics()  {
-        return ResponseEntity.ok(institutionService.getDepositsStatistics());
+    @GetMapping("/total-savings")
+    public ResponseEntity<TotalSavingsStatisticsResponse> getSavingsStatistics()  {
+        return ResponseEntity.ok(institutionService.getSavingsStatistics());
     }
 
 //    @GetMapping("/loan-outstanding")

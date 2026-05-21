@@ -10,9 +10,9 @@ import java.util.List;
 @Data
 @Builder
 @AllArgsConstructor
-public class TotalDepositsStatisticsResponse {
+public class TotalSavingsStatisticsResponse {
 
-    private BigDecimal totalDepositsAcrossAllInstitutions;
+    private BigDecimal totalSavingsAcrossAllInstitutions;
 
-    private List<TotalDepositResponse> institutions;
+    private List<TotalSavingsResponse> institutions;
 }

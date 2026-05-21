@@ -9,8 +9,8 @@ import java.math.BigDecimal;
 @Data
 @Builder
 @AllArgsConstructor
-public class TotalDepositResponse {
+public class TotalSavingsResponse {
     private String institutionId;
     private String institutionName;
-    private BigDecimal totalDeposits;
+    private BigDecimal totalSavings;
 }
