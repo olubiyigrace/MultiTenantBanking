@@ -1,18 +1,21 @@
 package com.bank.services.impl;
 
+import com.bank.auth.requests.RegisterUserRequest;
+import com.bank.auth.response.UserResponse;
 import com.bank.common.PageResponse;
 import com.bank.config.InstitutionContext;
-import com.bank.exceptions.InvalidRequestException;
-import com.bank.auth.requests.RegisterUserRequest;
+import com.bank.entities.Institution;
+import com.bank.entities.MemberProfile;
 import com.bank.entities.User;
 import com.bank.enums.UserAccountType;
-import com.bank.auth.mapper.UserMapper;
-import com.bank.auth.repository.UserRepository;
-import com.bank.auth.response.UserResponse;
+import com.bank.exceptions.InvalidRequestException;
 import com.bank.mapper.MemberMapper;
 import com.bank.repositories.MemberRepository;
+import com.bank.requests.MemberRequest;
 import com.bank.services.MemberService;
+import com.sun.jdi.request.DuplicateRequestException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -21,6 +24,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,15 +33,53 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final MemberMapper memberMapper;
 
+    @Transactional
+    @Override
+    public void createMember( MemberRequest memberRequest) {
+        Optional<MemberProfile> member = memberRepository.findMemberProfileByBvn(memberRequest.getBvn());
+        if(member.isPresent()) {
+            log.debug("member profile already exists");
+            throw new DuplicateRequestException("member profile already exists");
+        }
+        MemberProfile newMember = memberMapper.toEntity(memberRequest);
+        String memberNumber = generateMemberNumber(institution);
+        newMember.setInstitution(institution);
+        newMember.setMemberNumber(memberNumber);
 
+    }
 
+    private String generateMemberNumber(Institution institution) {
+        MemberProfile lastMember = memberRepository.findLastMemberByInstitution(institution.getId()).orElse(null);
+        if (lastMember == null) {
+            return "M0000000000001";
+        }
+        String lastMemberNumber = lastMember.getMemberNumber();
 
+        int numericPart = Integer.parseInt(
+                lastMemberNumber.substring(1)
+        );
 
+        int nextNumber = numericPart + 1;
 
+        String generatedNumber = String.format(
+                "M%04d",
+                nextNumber
+        );
 
+        boolean exists = memberRepository
+                .existsByMemberNumberAndInstitution(
+                        generatedNumber,
+                        institution
+                );
 
+        if (exists) {
+            throw new RuntimeException(
+                    "Generated member number already exists"
+            );
+        }
 
-
+        return generatedNumber;
+    }
 
 
 
