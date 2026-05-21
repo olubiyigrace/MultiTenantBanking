@@ -129,7 +129,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         for (Institution institution : institutions) {
             String schema = institution.getInstitutionName().toLowerCase();
             Long members = countMembers(schema);
-            totalMembersAcrossAll = members;
+            totalMembersAcrossAll += members;
 
             perInstitution.add(
                     TotalMemberResponse.builder()
