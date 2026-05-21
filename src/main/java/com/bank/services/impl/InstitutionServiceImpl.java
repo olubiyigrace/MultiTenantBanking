@@ -3,7 +3,7 @@ package com.bank.services.impl;
 import com.bank.common.PageResponse;
 import com.bank.entities.User;
 import com.bank.enums.UserAccountType;
-import com.bank.repositories.UserRepository;
+import com.bank.auth.repository.UserRepository;
 import com.bank.entities.Institution;
 import com.bank.enums.InstitutionStatus;
 import com.bank.exceptions.DuplicateResourceException;

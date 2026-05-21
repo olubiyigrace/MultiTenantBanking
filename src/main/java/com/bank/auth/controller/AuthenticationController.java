@@ -4,7 +4,7 @@ import com.bank.auth.requests.*;
 import com.bank.auth.response.LoginResponse;
 import com.bank.auth.service.AuthenticationService;
 import com.bank.requests.RegisterInstitutionRequest;
-import com.bank.requests.RegisterUserRequest;
+import com.bank.auth.requests.RegisterUserRequest;
 import com.bank.utils.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;

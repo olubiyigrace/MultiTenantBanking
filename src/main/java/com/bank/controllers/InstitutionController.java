@@ -72,8 +72,8 @@ public class InstitutionController {
 
     @GetMapping("/total-loan-disbursed")
     public ResponseEntity<TotalLoansDisbursedStatisticsResponse> getLoansDisbursedStatistics(
-            @RequestParam(value = "month", required = false) java.time.Month month,
-            @RequestParam(value = "year", required = false) java.time.Year year) {
+            @RequestParam(value = "month", required = false) final java.time.Month month,
+            @RequestParam(value = "year", required = false) final java.time.Year year) {
         return ResponseEntity.ok(institutionService.getLoansDisbursedStatistics(month, year));
     }
 

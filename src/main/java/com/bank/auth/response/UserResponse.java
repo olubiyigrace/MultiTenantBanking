@@ -1,4 +1,4 @@
-package com.bank.responses;
+package com.bank.auth.response;
 
 import com.bank.enums.UserAccountType;
 import lombok.AllArgsConstructor;

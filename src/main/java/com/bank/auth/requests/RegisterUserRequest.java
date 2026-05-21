@@ -1,6 +1,5 @@
-package com.bank.requests;
+package com.bank.auth.requests;
 
-import com.bank.entities.Institution;
 import com.bank.enums.UserAccountType;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;

@@ -3,13 +3,13 @@ package com.bank.services.impl;
 import com.bank.common.PageResponse;
 import com.bank.config.InstitutionContext;
 import com.bank.exceptions.InvalidRequestException;
-import com.bank.requests.RegisterUserRequest;
+import com.bank.auth.requests.RegisterUserRequest;
 import com.bank.entities.User;
 import com.bank.enums.UserAccountType;
 import com.bank.mapper.UserMapper;
-import com.bank.repositories.UserRepository;
-import com.bank.responses.UserResponse;
-import com.bank.services.UserService;
+import com.bank.auth.repository.UserRepository;
+import com.bank.auth.response.UserResponse;
+import com.bank.services.MemberService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserServiceImpl implements UserService {
+public class MemberServiceImpl implements MemberService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 

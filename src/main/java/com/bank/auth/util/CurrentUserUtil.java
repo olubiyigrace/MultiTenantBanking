@@ -1,7 +1,7 @@
 package com.bank.auth.util;
 
 import com.bank.entities.User;
-import com.bank.repositories.UserRepository;
+import com.bank.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

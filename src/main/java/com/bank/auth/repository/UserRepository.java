@@ -1,4 +1,4 @@
-package com.bank.repositories;
+package com.bank.auth.repository;
 
 import com.bank.entities.User;
 import org.springframework.data.domain.Page;

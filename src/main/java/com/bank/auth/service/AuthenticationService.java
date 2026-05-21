@@ -3,7 +3,7 @@ package com.bank.auth.service;
 import com.bank.auth.requests.*;
 import com.bank.auth.response.LoginResponse;
 import com.bank.requests.RegisterInstitutionRequest;
-import com.bank.requests.RegisterUserRequest;
+import com.bank.auth.requests.RegisterUserRequest;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 

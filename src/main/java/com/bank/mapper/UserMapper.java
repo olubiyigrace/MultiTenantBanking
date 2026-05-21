@@ -1,8 +1,8 @@
 package com.bank.mapper;
 
-import com.bank.requests.RegisterUserRequest;
+import com.bank.auth.requests.RegisterUserRequest;
 import com.bank.entities.User;
-import com.bank.responses.UserResponse;
+import com.bank.auth.response.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;

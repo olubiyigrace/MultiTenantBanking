@@ -1,12 +1,11 @@
 package com.bank.services;
 
 import com.bank.common.PageResponse;
-import com.bank.requests.RegisterUserRequest;
-import com.bank.entities.User;
-import com.bank.responses.UserResponse;
+import com.bank.auth.requests.RegisterUserRequest;
+import com.bank.auth.response.UserResponse;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-public interface UserService extends UserDetailsService {
+public interface MemberService extends UserDetailsService {
     void updateUser(final String id, final RegisterUserRequest registerUserRequest);
     UserResponse getSingleUser(final String id);
     PageResponse<UserResponse> getAllUsers(final int page, final int size);
