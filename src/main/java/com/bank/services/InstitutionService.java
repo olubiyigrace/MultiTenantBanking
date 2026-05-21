@@ -5,6 +5,7 @@ import com.bank.common.PageResponse;
 import com.bank.entities.Institution;
 import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.responses.InstitutionResponse;
+import com.bank.responses.TotalDepositsStatisticsResponse;
 import com.bank.responses.TotalMemberResponse;
 import com.bank.responses.TotalMembersStatisticsResponse;
 import jakarta.mail.MessagingException;
@@ -18,7 +19,6 @@ public interface InstitutionService {
     void deactivateInstitution(final String institutionId);
     void suspendInstitution(final String institutionId);
     PageResponse<InstitutionResponse> findAllInstitution(final int page, final int size);
-//    List<TotalMemberResponse> getTotalMembersPerInstitution();
-//    BigDecimal getTotalDepositsAcrossInstitutions();
     TotalMembersStatisticsResponse getMembersStatistics();
+    TotalDepositsStatisticsResponse getDepositsStatistics();
 }
