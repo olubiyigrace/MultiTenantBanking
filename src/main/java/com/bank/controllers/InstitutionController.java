@@ -63,8 +63,8 @@ public class InstitutionController {
         return ResponseEntity.ok(institutionService.getTotalMembersPerInstitution());
     }
 
-//    @GetMapping("/deposits/{institution-id}")
-//    @GetMapping("/loan-outstanding/{institution-id}")
-//    @GetMapping("/savings-balance/{institution-id}")
-//    @GetMapping("/loan-disbursed-per-month/{institution-id}")
+//    @GetMapping("/deposits")
+//    @GetMapping("/loan-outstanding")
+//    @GetMapping("/savings-balance")
+//    @GetMapping("/loan-disbursed-per-month")
 }
