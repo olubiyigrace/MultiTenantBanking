@@ -11,6 +11,7 @@ import com.bank.exceptions.InvalidRequestException;
 import com.bank.repositories.InstitutionRepository;
 import com.bank.responses.InstitutionResponse;
 import com.bank.responses.TotalMemberResponse;
+import com.bank.responses.TotalMembersStatisticsResponse;
 import com.bank.services.InstitutionService;
 import com.bank.mapper.InstitutionMapper;
 import com.bank.services.ProvisioningService;
@@ -23,7 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -46,10 +47,10 @@ public class InstitutionServiceImpl implements InstitutionService {
             provisioningService.provisionInstitution(institution);
             createAdminUser(institution);
         } catch (final Exception e) {
-                log.error("Institution approval failed", e);
-                rollBackInstitutionStatus(institution);
-                throw e;
-            }
+            log.error("Institution approval failed", e);
+            rollBackInstitutionStatus(institution);
+            throw e;
+        }
     }
 
     @Override
@@ -100,8 +101,9 @@ public class InstitutionServiceImpl implements InstitutionService {
         institutionRepository.save(institution);
         log.debug("Institution not approved");
     }
+
     private void createAdminUser(Institution institution) {
-        if (userRepository.existsByUsername(institution.getAdminUsername())){
+        if (userRepository.existsByUsername(institution.getAdminUsername())) {
             log.debug("User already exists");
             throw new DuplicateResourceException("User already exists");
         }
@@ -119,33 +121,89 @@ public class InstitutionServiceImpl implements InstitutionService {
         log.info("Admin user created successfully");
     }
 
-        public List<TotalMemberResponse> getTotalMembersPerInstitution() {
-            List<Institution> institutions = institutionRepository.findAll();
-            List<TotalMemberResponse> responses = new ArrayList<>();
+    public TotalMembersStatisticsResponse getMembersStatistics() {
+        List<Institution> institutions = institutionRepository.findAll();
+        List<TotalMemberResponse> perInstitution = new ArrayList<>();
+        long totalMembersAcrossAll = 0L;
 
-            for (Institution institution : institutions) {
-                Long totalMembers = countMembers(institution.getInstitutionName().toLowerCase());
-                responses.add(
-                        TotalMemberResponse.builder()
-                                .institutionId(institution.getId())
-                                .institutionName(institution.getInstitutionName().toLowerCase())
-                                .totalMembers(totalMembers)
-                                .build()
-                );
-            } return responses;
+        for (Institution institution : institutions) {
+            String schema = institution.getInstitutionName().toLowerCase();
+            Long members = countMembers(schema);
+            totalMembersAcrossAll = members;
+
+            perInstitution.add(
+                    TotalMemberResponse.builder()
+                            .institutionId(institution.getId())
+                            .institutionName(schema)
+                            .totalMembers(members)
+                            .build());
         }
+        return TotalMembersStatisticsResponse.builder()
+                .totalInstitutionMembers(totalMembersAcrossAll)
+                .institutions(perInstitution)
+                .build();
+    }
 
-        private Long countMembers(String schemaName) {
-            try {
-                String sql = """
-                    SELECT COUNT(*)
-                    FROM %s.member_profiles
-                    """.formatted(schemaName);
-                Long count = jdbcTemplate.queryForObject(sql, Long.class);
-                return count != null ? count : 0L;
-            } catch (Exception e) {
-                return 0L;
-            }
+    private Long countMembers(String schema) {
+        try {
+            String sql = """
+            SELECT COUNT(*)
+            FROM %s.member_profiles
+            """.formatted(schema);
+
+            Long count = jdbcTemplate.queryForObject(sql, Long.class);
+            return count != null ? count : 0L;
+        }catch (Exception e) {
+            return 0L;
         }
     }
+
+//    public DepositsStatsResponse getDepositsStatistics() {
+//
+//        List<Institution> institutions = institutionRepository.findAll();
+//
+//        List<InstitutionDepositResponse> perInstitution = new ArrayList<>();
+//
+//        BigDecimal totalDepositsAcrossAll = BigDecimal.ZERO;
+//
+//        for (Institution institution : institutions) {
+//
+//            String schema = institution.getInstitutionName().toLowerCase();
+//
+//            BigDecimal deposits = getInstitutionDeposits(schema);
+//
+//            totalDepositsAcrossAll = totalDepositsAcrossAll.add(deposits);
+//
+//            perInstitution.add(
+//                    InstitutionDepositResponse.builder()
+//                            .institutionId(institution.getId())
+//                            .institutionName(schema)
+//                            .totalDeposits(deposits)
+//                            .build()
+//            );
+//        }
+//
+//        return DepositsStatsResponse.builder()
+//                .totalDepositsAcrossAllInstitutions(totalDepositsAcrossAll)
+//                .institutions(perInstitution)
+//                .build();
+//    }
+//
+//    private BigDecimal getInstitutionDeposits(String schema) {
+//        try {
+//            String sql = """
+//            SELECT COALESCE(SUM(balance), 0)
+//            FROM %s.savings_accounts
+//            """.formatted(schema);
+//
+//            BigDecimal total =
+//                    jdbcTemplate.queryForObject(sql, BigDecimal.class);
+//
+//            return total != null ? total : BigDecimal.ZERO;
+//
+//        } catch (Exception e) {
+//            return BigDecimal.ZERO;
+//        }
+//    }
+}
 

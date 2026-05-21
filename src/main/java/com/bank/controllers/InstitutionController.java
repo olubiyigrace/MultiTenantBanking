@@ -7,6 +7,7 @@ import com.bank.entities.Institution;
 import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.responses.InstitutionResponse;
 import com.bank.responses.TotalMemberResponse;
+import com.bank.responses.TotalMembersStatisticsResponse;
 import com.bank.services.InstitutionService;
 import com.bank.utils.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -59,9 +61,14 @@ public class InstitutionController {
     }
 
     @GetMapping("/members-count")
-    public ResponseEntity<List<TotalMemberResponse>> getInstitutionMemberCounts() {
-        return ResponseEntity.ok(institutionService.getTotalMembersPerInstitution());
+    public ResponseEntity<TotalMembersStatisticsResponse> getMembersStatistics() {
+        return ResponseEntity.ok(institutionService.getMembersStatistics());
     }
+//
+//    @GetMapping("/deposits")
+//    public ResponseEntity<BigDecimal> getInstitutionTotalDeposits() {
+//        return ResponseEntity.ok(institutionService.getTotalDepositsAcrossInstitutions());
+//    }
 
 //    @GetMapping("/deposits")
 //    @GetMapping("/loan-outstanding")
