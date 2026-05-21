@@ -178,7 +178,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         }
 
         return TotalSavingsStatisticsResponse.builder()
-                .totalSavingsAcrossAllInstitutions(totalSavingsAcrossAll)
+                .totalInstitutionsSavings(totalSavingsAcrossAll)
                 .institutions(perInstitution)
                 .build();
     }

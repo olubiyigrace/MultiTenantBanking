@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TotalSavingsStatisticsResponse {
 
-    private BigDecimal totalSavingsAcrossAllInstitutions;
+    private BigDecimal totalInstitutionsSavings;
 
     private List<TotalSavingsResponse> institutions;
 }
