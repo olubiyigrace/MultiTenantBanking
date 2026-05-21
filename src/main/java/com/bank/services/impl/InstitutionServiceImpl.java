@@ -172,13 +172,13 @@ public class InstitutionServiceImpl implements InstitutionService {
                     TotalSavingsResponse.builder()
                             .institutionId(institution.getId())
                             .institutionName(schema)
-                            .totalSavings(savings)
+                            .totalSavingsBalance(savings)
                             .build()
             );
         }
 
         return TotalSavingsStatisticsResponse.builder()
-                .totalInstitutionsSavings(totalSavingsAcrossAll)
+                .totalInstitutionsSavingsBalance(totalSavingsAcrossAll)
                 .institutions(perInstitution)
                 .build();
     }
@@ -188,6 +188,86 @@ public class InstitutionServiceImpl implements InstitutionService {
             String sql = """
             SELECT COALESCE(SUM(balance), 0)
             FROM %s.savings_accounts
+            """.formatted(schema);
+            BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
+            return total != null ? total : BigDecimal.ZERO;
+        }
+        catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @Override
+    public TotalLoansOutstandingStatisticsResponse getLoansOutstandingStatistics() {
+        List<Institution> institutions = institutionRepository.findAll();
+        List<TotalLoansOutstandingResponse> perInstitution = new ArrayList<>();
+        BigDecimal totalLoansOutstandingAcrossAll = BigDecimal.ZERO;
+
+        for (Institution institution : institutions) {
+            String schema = institution.getInstitutionName().toLowerCase();
+            BigDecimal loansOutstanding = getInstitutionLoansOutstanding(schema);
+            totalLoansOutstandingAcrossAll = totalLoansOutstandingAcrossAll.add(loansOutstanding);
+
+            perInstitution.add(
+                    TotalLoansOutstandingResponse.builder()
+                            .institutionId(institution.getId())
+                            .institutionName(schema)
+                            .totalLoansOutstanding(loansOutstanding)
+                            .build()
+            );
+        }
+
+        return TotalLoansOutstandingStatisticsResponse.builder()
+                .totalInstitutionsLoansOutstanding(totalLoansOutstandingAcrossAll)
+                .institutions(perInstitution)
+                .build();
+    }
+
+    private BigDecimal getInstitutionLoansOutstanding(String schema) {
+        try {
+            String sql = """
+            SELECT COALESCE(SUM(balance_remaining), 0)
+            FROM %s.loan_repayment_schedule
+            """.formatted(schema);
+            BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
+            return total != null ? total : BigDecimal.ZERO;
+        }
+        catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @Override
+    public TotalDepositsStatisticsResponse getDepositsStatistics() {
+        List<Institution> institutions = institutionRepository.findAll();
+        List<TotalDepositsResponse> perInstitution = new ArrayList<>();
+        BigDecimal totalDepositsAcrossAll = BigDecimal.ZERO;
+
+        for (Institution institution : institutions) {
+            String schema = institution.getInstitutionName().toLowerCase();
+            BigDecimal deposits = getInstitutionDeposits(schema);
+            totalDepositsAcrossAll = totalDepositsAcrossAll.add(deposits);
+
+            perInstitution.add(
+                    TotalDepositsResponse.builder()
+                            .institutionId(institution.getId())
+                            .institutionName(schema)
+                            .totalDeposits(deposits)
+                            .build()
+            );
+        }
+
+        return TotalDepositsStatisticsResponse.builder()
+                .totalInstitutionsDeposits(totalDepositsAcrossAll)
+                .institutions(perInstitution)
+                .build();
+    }
+
+    private BigDecimal getInstitutionDeposits(String schema) {
+        try {
+            String sql = """
+            SELECT COALESCE(SUM(transaction_type.DEPOSIT), 0)
+            FROM %s.transactions
             """.formatted(schema);
             BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
             return total != null ? total : BigDecimal.ZERO;

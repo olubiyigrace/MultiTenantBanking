@@ -8,9 +8,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-@Builder
 @AllArgsConstructor
-public class TotalSavingsStatisticsResponse {
-    private BigDecimal totalInstitutionsSavingsBalance;
-    private List<TotalSavingsResponse> institutions;
+@Builder
+public class TotalLoansOutstandingStatisticsResponse {
+    private BigDecimal totalInstitutionsLoansOutstanding;
+    private List<TotalLoansOutstandingResponse> institutions;
 }
+

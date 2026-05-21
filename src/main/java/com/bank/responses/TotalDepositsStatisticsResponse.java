@@ -7,10 +7,11 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
+
 @Data
-@Builder
 @AllArgsConstructor
-public class TotalSavingsStatisticsResponse {
-    private BigDecimal totalInstitutionsSavingsBalance;
-    private List<TotalSavingsResponse> institutions;
+@Builder
+public class TotalDepositsStatisticsResponse {
+    private BigDecimal totalInstitutionsDeposits;
+    private List<TotalDepositsResponse> institutions;
 }
