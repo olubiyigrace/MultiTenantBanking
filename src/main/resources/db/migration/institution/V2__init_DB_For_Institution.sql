@@ -1,36 +1,3 @@
--- create table users
--- (
---     id                varchar(255) not null primary key,
---     created_at        timestamp(6) not null,
---     deleted_at        timestamp(6),
---     email             varchar(255) not null unique,
---     enabled           boolean,
---     name              varchar(255) not null,
---     nin               varchar(255) not null,
---     reset_password_token               varchar(255),
---     password          varchar(255) not null,
---     email_verification_token        varchar(255),
---     email_verification_token_expiry timestamp(6),
---     email_verified_at               timestamp(6),
---     reset_password_token_expiry               timestamp(6),
---     phone             varchar(255) not null,
---
---     user_account_type varchar(255)
---         constraint users_user_account_type_check
---             check (
---                 (user_account_type)::text = ANY (
---         ARRAY[
---         ('SUPER_ADMIN'::character varying)::text,
---         ('INSTITUTION_ADMIN'::character varying)::text,
---         ('LOAN_OFFICER'::character varying)::text,
---         ('ACCOUNTANT'::character varying)::text,
---         ('MEMBER'::character varying)::text
---         ]
---         )),
---     username          varchar(255) not null,
---     is_verified       boolean
--- );
-
 create table member_profiles
 (
     id                          varchar(255) not null primary key,
@@ -52,10 +19,14 @@ create table member_profiles
         ('SUSPENDED'::character varying)::text,
         ('EXITED'::character varying)::text
         ]
-        ))
---     user_id                      varchar(255) not null,
---     constraint fk_member_profile_user_id
---         foreign key (user_id) references users(id)
+        )),
+         institution_id       varchar(255),
+    constraint fk_member_profile_institution_id
+        foreign key (institution_id)
+        references institutions(id),
+    user_id                      varchar(255),
+    constraint fk_member_profile_user_id
+        foreign key (user_id) references users(id)
 );
 
 
@@ -74,7 +45,11 @@ create table loan_products
     requires_guarantor     boolean,
     requires_collateral    boolean,
     interest_type          varchar(255),
-    is_active              boolean
+    is_active              boolean,
+    institution_id       varchar(255),
+    constraint fk_loan_product_institution_id
+        foreign key (institution_id)
+            references institutions(id),
         constraint loan_products_interest_type_check
             check (
                 (interest_type)::text = ANY (
@@ -97,10 +72,13 @@ create table audit_logs
     ip_address     varchar(255) not null,
     new_value      varchar(255) not null,
     old_value      varchar(255) not null
---     user_id        varchar(255) not null,
---
---     constraint fk_audit_log_user_id
---         foreign key (user_id) references users(id)
+    user_id        varchar(255) not null,
+    institution_id       varchar(255),
+    constraint fk_audit_log_institution_id
+        foreign key (institution_id)
+            references institutions(id),
+    constraint fk_audit_log_user_id
+        foreign key (user_id) references users(id)
 );
 
 
@@ -144,6 +122,10 @@ create table loan_applications
     member_profile_id      varchar(255) not null,
     loan_product_id        varchar(255) not null,
     loan_officer_id        varchar(255) not null,
+    institution_id            varchar(255),
+    constraint fk_loan_application_institution_id
+        foreign key (institution_id)
+        references institutions(id),
 
     constraint fk_loan_application_member_profile_id
         foreign key (member_profile_id) references member_profiles(id),
@@ -259,6 +241,10 @@ create table savings_accounts
         ('FIXED'::character varying)::text
         ]
         )),
+             institution_id       varchar(255),
+    constraint fk_savings_account_institution_id
+        foreign key (institution_id)
+        references institutions(id),
     member_profile_id                varchar(255) not null,
     constraint fk_savings_account_member_profile_id
         foreign key (member_profile_id) references member_profiles(id)
@@ -321,6 +307,10 @@ create table transactions
         ]
         )),
     performed_by_user_id         varchar(255) not null,
+              institution_id       varchar(255),
+    constraint fk_transaction_institution_id
+        foreign key (institution_id)
+        references institutions(id),
     savings_account_id           varchar(255) not null,
     constraint fk_transaction_performed_by_user_id
         foreign key (performed_by_user_id) references users(id),

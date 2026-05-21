@@ -34,5 +34,6 @@ public class LoanProduct extends AbstractEntity {
     private InterestType interestType;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_loan_product_institution_id"))
     private Institution institution;
 }

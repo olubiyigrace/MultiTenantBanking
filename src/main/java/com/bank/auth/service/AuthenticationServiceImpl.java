@@ -254,7 +254,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 "login",
                 model
         );
-
         final User users = (User) authentication.getPrincipal();
         final String accessToken = jwtService.generateAccessToken(users.getInstitutionId(), users.getId(),
                 users.getUserAccountType().name());

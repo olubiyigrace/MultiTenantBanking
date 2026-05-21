@@ -34,10 +34,11 @@ public class MemberProfile extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     private ProfileStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Institution institution;
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_member_profile_user_id"))
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_member_profile_institution_id"))
+    private Institution institution;
 }

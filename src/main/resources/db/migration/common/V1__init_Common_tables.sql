@@ -72,16 +72,13 @@ create table users
         ]
         )),
     username          varchar(255) not null,
-    institution       varchar(255),
+    institution_id       varchar(255),
     is_verified       boolean,
 
     constraint fk_user_institution_id
-        foreign key (institution)
+        foreign key (institution_id)
         references institutions(id)
 );
-
-
-
 
 
 create table logout_tokens

@@ -41,6 +41,7 @@ public class Transaction extends AbstractEntity {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_transaction_institution_id"))
     private Institution institution;
 
     @ManyToOne(fetch = FetchType.LAZY)
