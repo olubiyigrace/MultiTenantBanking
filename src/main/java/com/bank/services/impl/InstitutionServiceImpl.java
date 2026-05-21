@@ -4,33 +4,27 @@ import com.bank.common.PageResponse;
 import com.bank.entities.User;
 import com.bank.enums.UserAccountType;
 import com.bank.repositories.UserRepository;
-import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.entities.Institution;
 import com.bank.enums.InstitutionStatus;
 import com.bank.exceptions.DuplicateResourceException;
 import com.bank.exceptions.InvalidRequestException;
-import com.bank.exceptions.UnauthorizedException;
 import com.bank.repositories.InstitutionRepository;
 import com.bank.responses.InstitutionResponse;
-import com.bank.services.EmailService;
+import com.bank.responses.TotalMemberResponse;
 import com.bank.services.InstitutionService;
 import com.bank.mapper.InstitutionMapper;
 import com.bank.services.ProvisioningService;
-import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -40,7 +34,7 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final UserRepository userRepository;
     private final InstitutionMapper institutionMapper;
     private final ProvisioningService provisioningService;
-    private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
 
     @Override
@@ -124,4 +118,34 @@ public class InstitutionServiceImpl implements InstitutionService {
         userRepository.save(adminUser);
         log.info("Admin user created successfully");
     }
-}
+
+        public List<TotalMemberResponse> getTotalMembersPerInstitution() {
+            List<Institution> institutions = institutionRepository.findAll();
+            List<TotalMemberResponse> responses = new ArrayList<>();
+
+            for (Institution institution : institutions) {
+                Long totalMembers = countMembers(institution.getInstitutionName().toLowerCase());
+                responses.add(
+                        TotalMemberResponse.builder()
+                                .institutionId(institution.getId())
+                                .institutionName(institution.getInstitutionName().toLowerCase())
+                                .totalMembers(totalMembers)
+                                .build()
+                );
+            } return responses;
+        }
+
+        private Long countMembers(String schemaName) {
+            try {
+                String sql = """
+                    SELECT COUNT(*)
+                    FROM %s.member_profiles
+                    """.formatted(schemaName);
+                Long count = jdbcTemplate.queryForObject(sql, Long.class);
+                return count != null ? count : 0L;
+            } catch (Exception e) {
+                return 0L;
+            }
+        }
+    }
+

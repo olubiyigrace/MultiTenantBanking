@@ -1,16 +1,23 @@
 package com.bank.controllers;
 
+import com.bank.auth.requests.RefreshTokenRequest;
+import com.bank.auth.response.LoginResponse;
 import com.bank.common.PageResponse;
+import com.bank.entities.Institution;
 import com.bank.requests.RegisterInstitutionRequest;
 import com.bank.responses.InstitutionResponse;
+import com.bank.responses.TotalMemberResponse;
 import com.bank.services.InstitutionService;
 import com.bank.utils.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/institutions")
@@ -50,4 +57,14 @@ public class InstitutionController {
             @RequestParam(name = "size", defaultValue = "10") final int size) {
         return ResponseEntity.ok(institutionService.findAllInstitution(page, size));
     }
+
+    @GetMapping("/members-count")
+    public ResponseEntity<List<TotalMemberResponse>> getInstitutionMemberCounts() {
+        return ResponseEntity.ok(institutionService.getTotalMembersPerInstitution());
+    }
+
+//    @GetMapping("/deposits/{institution-id}")
+//    @GetMapping("/loan-outstanding/{institution-id}")
+//    @GetMapping("/savings-balance/{institution-id}")
+//    @GetMapping("/loan-disbursed-per-month/{institution-id}")
 }
