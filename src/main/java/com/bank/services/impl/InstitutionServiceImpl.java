@@ -276,5 +276,45 @@ public class InstitutionServiceImpl implements InstitutionService {
             return BigDecimal.ZERO;
         }
     }
+
+    @Override
+    public TotalLoansDisbursedStatisticsResponse getLoansDisbursedStatistics() {
+        List<Institution> institutions = institutionRepository.findAll();
+        List<TotalLoansDisbursedResponse> perInstitution = new ArrayList<>();
+        BigDecimal totalLoansDisbursedAcrossAll = BigDecimal.ZERO;
+
+        for (Institution institution : institutions) {
+            String schema = institution.getInstitutionName().toLowerCase();
+            BigDecimal loansDisbursed = getInstitutionLoansDisbursed(schema);
+            totalLoansDisbursedAcrossAll = totalLoansDisbursedAcrossAll.add(loansDisbursed);
+
+            perInstitution.add(
+                    TotalLoansDisbursedResponse.builder()
+                            .institutionId(institution.getId())
+                            .institutionName(schema)
+                            .totalLoansDisbursed(loansDisbursed)
+                            .build()
+            );
+        }
+
+        return TotalLoansDisbursedStatisticsResponse.builder()
+                .totalInstitutionsLoansDisbursed(totalLoansDisbursedAcrossAll)
+                .institutions(perInstitution)
+                .build();
+    }
+
+    private BigDecimal getInstitutionLoansDisbursed(String schema) {
+        try {
+            String sql = """
+            SELECT COALESCE(SUM(approved_amount), 0)
+            FROM %s.loan_applications
+            """.formatted(schema);
+            BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
+            return total != null ? total : BigDecimal.ZERO;
+        }
+        catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
+    }
 }
 

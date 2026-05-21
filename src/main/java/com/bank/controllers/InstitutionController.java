@@ -69,5 +69,10 @@ public class InstitutionController {
     public ResponseEntity<TotalDepositsStatisticsResponse> getDepositsStatistics()  {
         return ResponseEntity.ok(institutionService.getDepositsStatistics());
     }
-//    @GetMapping("/loan-disbursed-per-month")
+
+    @GetMapping("/total-loan-disbursed-per-month")
+    public ResponseEntity<TotalLoansDisbursedStatisticsResponse> getLoansDisbursedStatistics()  {
+        return ResponseEntity.ok(institutionService.getLoansDisbursedStatistics());
+    }
+
 }
