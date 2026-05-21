@@ -176,7 +176,6 @@ public class InstitutionServiceImpl implements InstitutionService {
                             .build()
             );
         }
-
         return TotalSavingsStatisticsResponse.builder()
                 .totalInstitutionsSavingsBalance(totalSavingsAcrossAll)
                 .institutions(perInstitution)
@@ -216,7 +215,6 @@ public class InstitutionServiceImpl implements InstitutionService {
                             .build()
             );
         }
-
         return TotalLoansOutstandingStatisticsResponse.builder()
                 .totalInstitutionsLoansOutstanding(totalLoansOutstandingAcrossAll)
                 .institutions(perInstitution)
@@ -278,14 +276,14 @@ public class InstitutionServiceImpl implements InstitutionService {
     }
 
     @Override
-    public TotalLoansDisbursedStatisticsResponse getLoansDisbursedStatistics() {
+    public TotalLoansDisbursedStatisticsResponse getLoansDisbursedStatistics(java.time.Month month, java.time.Year year) {
         List<Institution> institutions = institutionRepository.findAll();
         List<TotalLoansDisbursedResponse> perInstitution = new ArrayList<>();
         BigDecimal totalLoansDisbursedAcrossAll = BigDecimal.ZERO;
 
         for (Institution institution : institutions) {
             String schema = institution.getInstitutionName().toLowerCase();
-            BigDecimal loansDisbursed = getInstitutionLoansDisbursed(schema);
+            BigDecimal loansDisbursed = getInstitutionLoansDisbursed(schema, month, year);
             totalLoansDisbursedAcrossAll = totalLoansDisbursedAcrossAll.add(loansDisbursed);
 
             perInstitution.add(
@@ -296,20 +294,28 @@ public class InstitutionServiceImpl implements InstitutionService {
                             .build()
             );
         }
-
         return TotalLoansDisbursedStatisticsResponse.builder()
                 .totalInstitutionsLoansDisbursed(totalLoansDisbursedAcrossAll)
                 .institutions(perInstitution)
                 .build();
     }
 
-    private BigDecimal getInstitutionLoansDisbursed(String schema) {
+    private BigDecimal getInstitutionLoansDisbursed(String schema, java.time.Month month, java.time.Year year) {
         try {
-            String sql = """
-            SELECT COALESCE(SUM(approved_amount), 0)
-            FROM %s.loan_applications
-            """.formatted(schema);
-            BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
+            StringBuilder sqlBuilder = new StringBuilder(
+                    "SELECT COALESCE(SUM(approved_amount), 0) FROM %s.loan_applications WHERE 1=1 ".formatted(schema)
+            );
+            List<Object> params = new ArrayList<>();
+
+            if (year != null) {
+                sqlBuilder.append("AND EXTRACT(YEAR FROM created_at) = ? ");
+                params.add(year);
+            }
+            if (month != null) {
+                sqlBuilder.append("AND EXTRACT(MONTH FROM created_at) = ? ");
+                params.add(month);
+            }
+            BigDecimal total = jdbcTemplate.queryForObject(sqlBuilder.toString(), BigDecimal.class, params.toArray());
             return total != null ? total : BigDecimal.ZERO;
         }
         catch (Exception e) {

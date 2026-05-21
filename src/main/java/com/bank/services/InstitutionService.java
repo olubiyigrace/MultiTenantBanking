@@ -14,5 +14,5 @@ public interface InstitutionService {
     TotalSavingsStatisticsResponse getSavingsStatistics();
     TotalLoansOutstandingStatisticsResponse getLoansOutstandingStatistics();
     TotalDepositsStatisticsResponse getDepositsStatistics();
-    TotalLoansDisbursedStatisticsResponse getLoansDisbursedStatistics();
+    TotalLoansDisbursedStatisticsResponse getLoansDisbursedStatistics(java.time.Month month, java.time.Year year);
 }

@@ -71,8 +71,10 @@ public class InstitutionController {
     }
 
     @GetMapping("/total-loan-disbursed-per-month")
-    public ResponseEntity<TotalLoansDisbursedStatisticsResponse> getLoansDisbursedStatistics()  {
-        return ResponseEntity.ok(institutionService.getLoansDisbursedStatistics());
+    public ResponseEntity<TotalLoansDisbursedStatisticsResponse> getLoansDisbursedStatistics(
+            @RequestParam(value = "month", required = false) java.time.Month month,
+            @RequestParam(value = "year", required = false) java.time.Year year) {
+        return ResponseEntity.ok(institutionService.getLoansDisbursedStatistics(month, year));
     }
 
 }
