@@ -306,7 +306,6 @@ public class InstitutionServiceImpl implements InstitutionService {
                     "SELECT COALESCE(SUM(approved_amount), 0) FROM %s.loan_applications WHERE 1=1 ".formatted(schema)
             );
             List<Object> params = new ArrayList<>();
-
             if (year != null) {
                 sqlBuilder.append("AND EXTRACT(YEAR FROM created_at) = ? ");
                 params.add(year);
