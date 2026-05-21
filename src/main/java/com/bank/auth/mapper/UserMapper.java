@@ -1,4 +1,4 @@
-package com.bank.mapper;
+package com.bank.auth.mapper;
 
 import com.bank.auth.requests.RegisterUserRequest;
 import com.bank.entities.User;

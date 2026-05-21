@@ -6,9 +6,11 @@ import com.bank.exceptions.InvalidRequestException;
 import com.bank.auth.requests.RegisterUserRequest;
 import com.bank.entities.User;
 import com.bank.enums.UserAccountType;
-import com.bank.mapper.UserMapper;
+import com.bank.auth.mapper.UserMapper;
 import com.bank.auth.repository.UserRepository;
 import com.bank.auth.response.UserResponse;
+import com.bank.mapper.MemberMapper;
+import com.bank.repositories.MemberRepository;
 import com.bank.services.MemberService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +25,37 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class MemberServiceImpl implements MemberService {
-    private final UserRepository userRepository;
-    private final UserMapper userMapper;
+    private final MemberRepository memberRepository;
+    private final MemberMapper memberMapper;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @Override
     public void updateUser(String id, RegisterUserRequest registerUserRequest) {

@@ -14,7 +14,7 @@ import com.bank.exceptions.UnauthorizedException;
 import com.bank.logout.LogoutToken;
 import com.bank.logout.LogoutTokenRepository;
 import com.bank.mapper.InstitutionMapper;
-import com.bank.mapper.UserMapper;
+import com.bank.auth.mapper.UserMapper;
 import com.bank.repositories.InstitutionRepository;
 import com.bank.auth.repository.UserRepository;
 import com.bank.requests.RegisterInstitutionRequest;
