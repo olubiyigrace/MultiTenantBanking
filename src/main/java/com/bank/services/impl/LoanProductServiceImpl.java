@@ -29,15 +29,23 @@ public class LoanProductServiceImpl implements LoanProductService {
         Optional<LoanProduct> existingLoanProduct = loanProductRepository.findLoanProductByName(loanProductRequest.getName());
         if (existingLoanProduct.isPresent()){
             log.debug("Loan product already exists");
-            throw new DuplicateRequestException("Loan product already exist");
+            throw new DuplicateRequestException("Loan product already exists");
         }
         LoanProduct newLoanProduct = loanProductMapper.toEntity(loanProductRequest);
         loanProductRepository.save(newLoanProduct);
+        log.debug("Loan product created");
+
     }
 
     @Override
     public LoanProductResponse getSingle(String id) {
-        return null;
+        Optional<LoanProduct> existingLoanProduct = loanProductRepository.findById(id);
+        if (existingLoanProduct.isEmpty()){
+            log.debug("Loan product does not exist");
+            throw new DuplicateRequestException("Loan product does not exist");
+        }
+        LoanProduct foundLoanProduct = existingLoanProduct.get();
+        return loanProductMapper.toResponse(foundLoanProduct);
     }
 
     @Override
@@ -51,11 +59,24 @@ public class LoanProductServiceImpl implements LoanProductService {
 
     @Override
     public void update(String id, LoanProductRequest loanProductRequest) {
-
+        Optional<LoanProduct> existingLoanProduct = loanProductRepository.findById(id);
+        if (existingLoanProduct.isEmpty()){
+            throw new DuplicateRequestException("Loan product does not exist");
+        }
+        LoanProduct foundLoanProduct = existingLoanProduct.get();
+        loanProductRepository.save(foundLoanProduct);
+        log.debug("Loan product updated");
     }
 
     @Override
     public void delete(String id) {
-
+        Optional<LoanProduct> existingLoanProduct = loanProductRepository.findById(id);
+        if (existingLoanProduct.isEmpty()) {
+            log.debug("Loan product not found");
+            throw new DuplicateRequestException("Loan product does not exist");
+        }
+            LoanProduct foundLoanProduct = existingLoanProduct.get();
+            loanProductRepository.delete(foundLoanProduct);
+            log.debug("Loan product deleted");
     }
 }
