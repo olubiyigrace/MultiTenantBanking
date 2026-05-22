@@ -1,6 +1,10 @@
 package com.bank.controllers;
 
+import com.bank.common.PageResponse;
+import com.bank.enums.ProfileStatus;
 import com.bank.requests.MemberRequest;
+import com.bank.responses.LoanProductResponse;
+import com.bank.responses.MemberResponse;
 import com.bank.services.MemberService;
 import com.bank.utils.ApiResponse;
 import jakarta.validation.Valid;
@@ -22,9 +26,16 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(true, "Member registered successfully!", null));
     }
 
-
-
-
+    @PreAuthorize("hasRole('INSTITUTION_ADMIN')")
+    @GetMapping("/get-all")
+    public ResponseEntity<ApiResponse<PageResponse<MemberResponse>>> getMembers(
+            @RequestParam ProfileStatus profileStatus,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10")  int size) {
+        return ResponseEntity.ok(ApiResponse.success(true, "Members retrieved successfully",
+                memberService.getAllMembers(profileStatus, page, size)));
+    }
+}
 
 
 
@@ -73,4 +84,4 @@ public class MemberController {
 //        memberService.disableUser(id);
 //        return ResponseEntity.ok(ApiResponse.success(true, "User disabled successfully", null));
 //    }
-}
+

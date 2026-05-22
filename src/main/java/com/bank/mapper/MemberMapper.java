@@ -1,10 +1,12 @@
 package com.bank.mapper;
 
+import com.bank.auth.response.UserResponse;
 import com.bank.entities.MemberProfile;
 import com.bank.entities.User;
 import com.bank.enums.SavingsAccountType;
 import com.bank.enums.UserAccountType;
 import com.bank.requests.MemberRequest;
+import com.bank.responses.MemberResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,28 @@ public class MemberMapper {
                         .phone(memberRequest.getRegisterUserRequest().getPhone())
                         .nin(memberRequest.getRegisterUserRequest().getNin())
                         .email(memberRequest.getRegisterUserRequest().getEmail())
+                        .userAccountType(UserAccountType.MEMBER)
+                        .build())
+                .build();
+    }
+
+    public MemberResponse toResponse(MemberProfile memberProfile){
+        return MemberResponse.builder()
+                .id(memberProfile.getId())
+                .profileStatus(memberProfile.getProfileStatus())
+                .bvn(memberProfile.getBvn())
+                .address(memberProfile.getAddress())
+                .employmentStatus(memberProfile.getEmploymentStatus())
+                .monthlyIncome(memberProfile.getMonthlyIncome())
+                .nextOfKinName(memberProfile.getNextOfKinName())
+                .nextOfKinPhone(memberProfile.getNextOfKinPhone())
+                .dateOfBirth(memberProfile.getDateOfBirth())
+                .userResponse(UserResponse.builder()
+                        .id(memberProfile.getUser().getId())
+                        .name(memberProfile.getUser().getName())
+                        .email(memberProfile.getUser().getEmail())
+                        .phone(memberProfile.getUser().getPhone())
+                        .nin(memberProfile.getUser().getNin())
                         .userAccountType(UserAccountType.MEMBER)
                         .build())
                 .build();

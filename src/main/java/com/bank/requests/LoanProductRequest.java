@@ -20,30 +20,13 @@ public class LoanProductRequest {
     @NotBlank(message = "Product description should not be empty")
     private String description;
 
-    @NotBlank(message = "Minimum amount should not be empty")
     private BigDecimal minAmount;
-
-    @NotBlank(message = "Maximum amount should not be empty")
     private BigDecimal maxAmount;
-
-    @NotBlank(message = "Interest rate percentage should not be empty")
     private BigDecimal interestRatePercent;
-
-    @NotBlank(message = "Maximum tenure months should not be empty")
     private Integer maxTenureMonths;
-
-    @NotBlank(message = "State whether it requires a guarantor or not")
-    private Boolean requiresGuarantor;
-
-    @NotBlank(message = "State whether it requires collateral or not")
-    private Boolean requiresCollateral;
-
-    @NotBlank(message = "Processing fee percentage should not be empty")
     private BigDecimal processingFeePercent;
-
-    @NotBlank(message = "State whether loan product is active")
-    private Boolean isActive;
-
-    @NotBlank(message = "Interest type is required")
     private InterestType interestType;
+    private Boolean requiresGuarantor;
+    private Boolean requiresCollateral;
+    private Boolean isActive;
 }

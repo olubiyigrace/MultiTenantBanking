@@ -51,8 +51,8 @@ public class LoanProductServiceImpl implements LoanProductService {
     @Override
     public PageResponse<LoanProductResponse> getAll(int page, int size) {
         final PageRequest pageRequest = PageRequest.of(page, size);
-        final Page<LoanProduct> institutions = loanProductRepository.findAll(pageRequest);
-        final Page<LoanProductResponse> loanProductResponse = institutions.map(loanProductMapper::toResponse);
+        final Page<LoanProduct> loanProducts = loanProductRepository.findAll(pageRequest);
+        final Page<LoanProductResponse> loanProductResponse = loanProducts.map(loanProductMapper::toResponse);
         return PageResponse.of(loanProductResponse);
     }
 

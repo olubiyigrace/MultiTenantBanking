@@ -1,16 +1,21 @@
 package com.bank.services.impl;
 
 import com.bank.auth.repository.UserRepository;
+import com.bank.common.PageResponse;
 import com.bank.entities.MemberProfile;
 import com.bank.entities.User;
+import com.bank.enums.ProfileStatus;
 import com.bank.mapper.MemberMapper;
 import com.bank.repositories.MemberRepository;
 import com.bank.requests.MemberRequest;
+import com.bank.responses.MemberResponse;
 import com.bank.services.MemberService;
 import com.sun.jdi.request.DuplicateRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -45,6 +50,22 @@ public class MemberServiceImpl implements MemberService {
         newMember.setUser(savedUser);
         newMember.setMemberNumber(generateMemberNumber());
         memberRepository.save(newMember);
+    }
+
+    @Override
+    public PageResponse<MemberResponse> getAllMembers(ProfileStatus profileStatus, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+
+        Page<MemberProfile> memberProfiles;
+        if (profileStatus != null) {
+            memberProfiles =
+                    memberRepository.findByProfileStatus(profileStatus, pageRequest);
+        } else {
+            memberProfiles =
+                    memberRepository.findAll(pageRequest);
+        }
+        Page<MemberResponse> memberResponses = memberProfiles.map(memberMapper::toResponse);
+        return PageResponse.of(memberResponses);
     }
 
     private String generateMemberNumber() {
