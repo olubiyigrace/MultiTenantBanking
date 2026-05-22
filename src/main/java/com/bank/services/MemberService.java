@@ -2,11 +2,12 @@ package com.bank.services;
 
 
 import com.bank.auth.requests.RegisterUserRequest;
+import com.bank.requests.CreateFullMemberRequest;
 import com.bank.requests.MemberRequest;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface MemberService extends UserDetailsService {
-    void createMember(MemberRequest memberRequest, RegisterUserRequest registerUserRequest);
+    void createMember(CreateFullMemberRequest createFullMemberRequest) ;
 
 
 

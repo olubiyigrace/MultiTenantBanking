@@ -7,6 +7,7 @@ import com.bank.entities.MemberProfile;
 import com.bank.entities.User;
 import com.bank.mapper.MemberMapper;
 import com.bank.repositories.MemberRepository;
+import com.bank.requests.CreateFullMemberRequest;
 import com.bank.requests.MemberRequest;
 import com.bank.services.MemberService;
 import com.sun.jdi.request.DuplicateRequestException;
@@ -31,23 +32,21 @@ public class MemberServiceImpl implements MemberService {
 
     @Transactional
     @Override
-    public void createMember(MemberRequest memberRequest, RegisterUserRequest registerUserRequest) {
-        Optional<User> user = userRepository.findByEmail(registerUserRequest.getEmail());
+    public void createMember(CreateFullMemberRequest createFullMemberRequest) {
+        Optional<User> user = userRepository.findByEmail(createFullMemberRequest.getRegisterUserRequest().getEmail());
         if(user.isPresent()){
             log.debug("User already exists");
             throw new DuplicateRequestException("User already exists");
         }
-        User newUser = userMapper.toEntity(registerUserRequest);
+        User newUser = userMapper.toEntity(createFullMemberRequest.getRegisterUserRequest());
         userRepository.save(newUser);
 
-        boolean memberExists = memberRepository.existsByUser(newUser);
-        if (memberExists) {
-            log.debug("Member profile already exists for user");
+        MemberProfile newMember = memberMapper.toEntity(createFullMemberRequest.getMemberRequest());
+        newMember.setUser(newUser);
+        if (memberRepository.existsByUser(newUser)) {
             throw new DuplicateRequestException("Member profile already exists for user");
         }
-        MemberProfile newMember = memberMapper.toEntity(memberRequest);
-        String memberNumber = generateMemberNumber();
-        newMember.setMemberNumber(memberNumber);
+        newMember.setMemberNumber(generateMemberNumber());
         memberRepository.save(newMember);
     }
 
