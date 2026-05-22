@@ -5,7 +5,6 @@ import com.bank.requests.LoanProductRequest;
 import com.bank.responses.LoanProductResponse;
 import com.bank.services.LoanProductService;
 import com.bank.utils.ApiResponse;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

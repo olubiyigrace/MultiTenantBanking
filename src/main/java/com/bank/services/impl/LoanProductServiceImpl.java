@@ -2,6 +2,7 @@ package com.bank.services.impl;
 
 import com.bank.common.PageResponse;
 import com.bank.entities.LoanProduct;
+import com.bank.exceptions.InvalidRequestException;
 import com.bank.mapper.LoanProductMapper;
 import com.bank.repositories.LoanProductRepository;
 import com.bank.requests.LoanProductRequest;
@@ -31,10 +32,14 @@ public class LoanProductServiceImpl implements LoanProductService {
             log.debug("Loan product already exists");
             throw new DuplicateRequestException("Loan product already exists");
         }
+        if (loanProductRequest.getMinAmount() != null && loanProductRequest.getMaxAmount() != null
+                && loanProductRequest.getMaxAmount().compareTo(loanProductRequest.getMinAmount()) < 0) {
+            log.debug("Maximum amount cannot be less than minimum amount");
+            throw new InvalidRequestException("Maximum amount cannot be less than minimum amount");
+        }
         LoanProduct newLoanProduct = loanProductMapper.toEntity(loanProductRequest);
         loanProductRepository.save(newLoanProduct);
         log.debug("Loan product created");
-
     }
 
     @Override
