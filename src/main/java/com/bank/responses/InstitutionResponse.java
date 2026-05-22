@@ -25,6 +25,4 @@ public class InstitutionResponse {
     private String adminEmail;
     private String adminPhone;
     private String adminNin;
-
-
 }

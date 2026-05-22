@@ -1,7 +1,5 @@
 package com.bank.controllers;
 
-import com.bank.auth.requests.RegisterUserRequest;
-import com.bank.requests.CreateFullMemberRequest;
 import com.bank.requests.MemberRequest;
 import com.bank.services.MemberService;
 import com.bank.utils.ApiResponse;
@@ -18,11 +16,10 @@ public class MemberController {
     private final MemberService memberService;
 
     @PreAuthorize("hasRole('LOAN_OFFICER')")
-    @PostMapping("/registers")
-    public ResponseEntity<ApiResponse<Void>> register(@RequestBody CreateFullMemberRequest createFullMemberRequest){
-        memberService.createMember(createFullMemberRequest);
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody MemberRequest memberRequest){
+        memberService.createMember(memberRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "Member registered successfully!", null));
-
     }
 
 

@@ -1,13 +1,10 @@
 package com.bank.services.impl;
 
-import com.bank.auth.mapper.UserMapper;
 import com.bank.auth.repository.UserRepository;
-import com.bank.auth.requests.RegisterUserRequest;
 import com.bank.entities.MemberProfile;
 import com.bank.entities.User;
 import com.bank.mapper.MemberMapper;
 import com.bank.repositories.MemberRepository;
-import com.bank.requests.CreateFullMemberRequest;
 import com.bank.requests.MemberRequest;
 import com.bank.services.MemberService;
 import com.sun.jdi.request.DuplicateRequestException;
@@ -28,24 +25,24 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final MemberMapper memberMapper;
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
 
     @Transactional
     @Override
-    public void createMember(CreateFullMemberRequest createFullMemberRequest) {
-        Optional<User> user = userRepository.findByEmail(createFullMemberRequest.getRegisterUserRequest().getEmail());
-        if(user.isPresent()){
+    public void createMember(MemberRequest memberRequest) {
+        Optional<MemberProfile> findMemberProfile = memberRepository.findByBvn(memberRequest.getBvn());
+        if(findMemberProfile.isPresent()){
+            log.debug("Member already exists");
+            throw new DuplicateRequestException("Member already exists");
+        }
+        Optional<User> findUser = userRepository.findByEmail(memberRequest.getRegisterUserRequest().getEmail());
+        if(findUser.isPresent()){
             log.debug("User already exists");
             throw new DuplicateRequestException("User already exists");
         }
-        User newUser = userMapper.toEntity(createFullMemberRequest.getRegisterUserRequest());
-        userRepository.save(newUser);
 
-        MemberProfile newMember = memberMapper.toEntity(createFullMemberRequest.getMemberRequest());
-        newMember.setUser(newUser);
-        if (memberRepository.existsByUser(newUser)) {
-            throw new DuplicateRequestException("Member profile already exists for user");
-        }
+        MemberProfile newMember = memberMapper.toEntity(memberRequest);
+        User savedUser = userRepository.save(newMember.getUser());
+        newMember.setUser(savedUser);
         newMember.setMemberNumber(generateMemberNumber());
         memberRepository.save(newMember);
     }

@@ -3,7 +3,7 @@ package com.bank.securities;
 import com.bank.config.InstitutionContext;
 import com.bank.config.InstitutionSchemaResolver;
 import com.bank.exceptions.UnauthorizedException;
-import com.bank.logout.LogoutTokenRepository;
+import com.bank.auth.logout.LogoutTokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

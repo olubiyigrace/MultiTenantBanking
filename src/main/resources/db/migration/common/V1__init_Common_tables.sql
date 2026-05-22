@@ -48,7 +48,6 @@ create table users
     created_at        timestamp(6) not null,
     deleted_at        timestamp(6),
     email             varchar(255) not null unique,
-    enabled           boolean,
     name              varchar(255) not null,
     nin               varchar(255) not null,
     reset_password_token               varchar(255),
@@ -58,7 +57,6 @@ create table users
     email_verified_at               timestamp(6),
     reset_password_token_expiry               timestamp(6),
     phone             varchar(255) not null,
-
     user_account_type varchar(255)
         constraint users_user_account_type_check
             check (
@@ -74,7 +72,6 @@ create table users
     username          varchar(255) not null,
     institution_id       varchar(255),
     is_verified       boolean,
-
     constraint fk_user_institution_id
         foreign key (institution_id)
         references institutions(id)
@@ -86,8 +83,51 @@ create table logout_tokens
     token             VARCHAR(1000) primary key,
     expiry_date       timestamp not null,
     user_id             varchar(255),
-
     constraint fk_logout_token_user_id
         foreign key (user_id)
         references users(id)
+);
+
+
+
+create table member_profiles
+(
+    id                          varchar(255) not null primary key,
+    created_at                  timestamp(6) not null,
+    member_number               varchar(255) not null unique,
+    bvn                         varchar(255) not null unique,
+    employment_status           varchar(255) not null,
+    next_of_kin_name            varchar(255) not null,
+    next_of_kin_phone           varchar(50) not null,
+    monthly_income              numeric(38,2) not null,
+    address                     text not null,
+    date_of_birth               date not null,
+    savings_account_type        varchar(255)
+        constraint member_profiles_savings_account_type_check
+            check (
+                (savings_account_type)::text = ANY (
+        ARRAY[
+        ('REGULAR'::character varying)::text,
+        ('TARGET'::character varying)::text,
+        ('FIXED'::character varying)::text
+        ]
+        )),
+    profile_status              varchar(255)
+        constraint member_profiles_profile_status_check
+            check (
+                (profile_status)::text = ANY (
+        ARRAY[
+        ('ACTIVE'::character varying)::text,
+        ('SUSPENDED'::character varying)::text,
+        ('EXITED'::character varying)::text
+        ]
+        )),
+         institution_id       varchar(255),
+    constraint fk_member_profile_institution_id
+        foreign key (institution_id)
+        references institutions(id),
+    user_id                      varchar(255) unique not null,
+    constraint fk_member_profile_user_id
+        foreign key (user_id)
+         references users(id)
 );

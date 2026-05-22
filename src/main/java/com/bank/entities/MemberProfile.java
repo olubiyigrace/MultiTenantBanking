@@ -2,6 +2,8 @@ package com.bank.entities;
 
 import com.bank.common.AbstractEntity;
 import com.bank.enums.ProfileStatus;
+import com.bank.enums.SavingsAccountType;
+import com.bank.enums.UserAccountType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,19 +22,35 @@ import java.time.LocalDate;
 @SuperBuilder
 @Table(name = "member_profiles")
 public class MemberProfile extends AbstractEntity {
+    @Enumerated(EnumType.STRING)
+    private SavingsAccountType savingsAccountType = SavingsAccountType.REGULAR;
+
+    @Column(nullable = false, unique = true)
     private String bvn;
+
+    @Column(nullable = false)
     private String address;
+
+    @Column(nullable = false)
     private String employmentStatus;
+
+    @Column(nullable = false)
     private BigDecimal monthlyIncome;
+
+    @Column(nullable = false)
     private String nextOfKinName;
+
+    @Column(nullable = false)
     private String nextOfKinPhone;
+
+    @Column(nullable = false)
     private LocalDate dateOfBirth;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String memberNumber;
 
     @Enumerated(EnumType.STRING)
-    private ProfileStatus status;
+    private ProfileStatus profileStatus;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_member_profile_user_id"))

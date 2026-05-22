@@ -1,4 +1,4 @@
-package com.bank.logout;
+package com.bank.auth.logout;
 
 import com.bank.entities.User;
 import jakarta.persistence.*;

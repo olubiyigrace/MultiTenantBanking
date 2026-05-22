@@ -10,5 +10,4 @@ public interface InstitutionRepository extends JpaRepository<Institution, String
     boolean existsByInstitutionRcNumber(String institutionRcNumber);
     Optional<Institution> findByInstitutionEmail(String email);
     Optional<Institution> findById(String institutionId);
-    Optional<Institution> findByAdminEmail(String AdminEmail);
 }

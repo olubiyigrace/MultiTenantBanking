@@ -53,8 +53,6 @@ public class User extends AbstractEntity implements UserDetails {
     @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_user_institution_id"))
     private Institution institution;
 
-    private Boolean enabled = false;
-
     private Boolean isVerified;
     private String emailVerificationToken;
     private LocalDateTime emailVerificationTokenExpiry;
@@ -64,6 +62,9 @@ public class User extends AbstractEntity implements UserDetails {
 
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
     private LocalDateTime resetPasswordTokenExpiry;
+
+    @OneToOne(mappedBy = "user")
+    private MemberProfile memberProfile;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
