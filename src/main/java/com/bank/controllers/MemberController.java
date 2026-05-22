@@ -4,6 +4,7 @@ import com.bank.auth.requests.RegisterUserRequest;
 import com.bank.requests.MemberRequest;
 import com.bank.services.MemberService;
 import com.bank.utils.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,7 +18,7 @@ public class MemberController {
 
     @PreAuthorize("hasRole('LOAN_OFFICER')")
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<Void>> register(MemberRequest memberRequest, RegisterUserRequest registerUserRequest){
+    public ResponseEntity<ApiResponse<Void>> register(@RequestBody MemberRequest memberRequest, @Valid @RequestBody RegisterUserRequest registerUserRequest){
         memberService.createMember(memberRequest, registerUserRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "Member registered successfully!", null));
 

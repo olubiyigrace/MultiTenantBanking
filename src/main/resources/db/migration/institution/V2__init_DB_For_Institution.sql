@@ -71,7 +71,7 @@ create table audit_logs
     entity_type    varchar(255) not null,
     ip_address     varchar(255) not null,
     new_value      varchar(255) not null,
-    old_value      varchar(255) not null
+    old_value      varchar(255) not null,
     user_id        varchar(255) not null,
     institution_id       varchar(255),
     constraint fk_audit_log_institution_id
@@ -124,9 +124,7 @@ create table loan_applications
     loan_officer_id        varchar(255) not null,
     institution_id            varchar(255),
     constraint fk_loan_application_institution_id
-        foreign key (institution_id)
-        references institutions(id),
-
+        foreign key (institution_id) references institutions(id),
     constraint fk_loan_application_member_profile_id
         foreign key (member_profile_id) references member_profiles(id),
     constraint fk_loan_application_loan_product_id

@@ -3,34 +3,22 @@ package com.bank.services.impl;
 import com.bank.auth.mapper.UserMapper;
 import com.bank.auth.repository.UserRepository;
 import com.bank.auth.requests.RegisterUserRequest;
-import com.bank.config.InstitutionContext;
-import com.bank.entities.Institution;
 import com.bank.entities.MemberProfile;
 import com.bank.entities.User;
-import com.bank.enums.UserAccountType;
-import com.bank.exceptions.DuplicateResourceException;
-import com.bank.exceptions.InvalidRequestException;
-import com.bank.exceptions.UnauthorizedException;
 import com.bank.mapper.MemberMapper;
 import com.bank.repositories.MemberRepository;
 import com.bank.requests.MemberRequest;
-import com.bank.services.EmailService;
 import com.bank.services.MemberService;
 import com.sun.jdi.request.DuplicateRequestException;
-import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
