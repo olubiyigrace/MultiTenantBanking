@@ -24,10 +24,13 @@ public class MemberRequest {
     @Column(updatable = false)
     private String bvn;
 
+    @NotBlank(message = "Address should not be empty")
     private String address;
 
+    @NotBlank(message = "Employment status should not be empty")
     private String employmentStatus;
 
+    @NotNull(message = "Date of Birth cannot be null")
     private BigDecimal monthlyIncome;
 
     @NotBlank(message = "Name should not be empty")
