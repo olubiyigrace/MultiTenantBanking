@@ -35,13 +35,6 @@ create table institutions
 );
 
 
-
-
-
-
-
-
-
 create table users
 (
     id                varchar(255) not null primary key,
@@ -130,4 +123,46 @@ create table member_profiles
     constraint fk_member_profile_user_id
         foreign key (user_id)
          references users(id)
+);
+
+
+
+
+
+create table savings_accounts
+(
+    id                            varchar(255) not null primary key,
+    created_at                    timestamp(6) not null,
+    maturity_date                 date,
+    account_number                varchar(255) not null,
+    member_id                     varchar(255) not null,
+    version                       integer not null,
+    balance                       numeric(38,2) not null,
+    minimum_balance               numeric(38,2) not null,
+    interest_rate_percent         numeric(5,2) not null,
+    target_amount                 numeric(38,2),
+    savings_status                varchar(255)
+        constraint savings_accounts_savings_status_check
+            check (
+                (savings_status)::text = ANY (
+        ARRAY[
+        ('ACTIVE'::character varying)::text,
+        ('FROZEN'::character varying)::text,
+        ('CLOSED'::character varying)::text
+        ]
+        )),
+    savings_account_type            varchar(255)
+        constraint savings_accounts_savings_account_type_check
+            check (
+                (savings_account_type)::text = ANY (
+        ARRAY[
+        ('REGULAR'::character varying)::text,
+        ('TARGET'::character varying)::text,
+        ('FIXED'::character varying)::text
+        ]
+        )),
+             institution_id       varchar(255),
+    constraint fk_savings_account_institution_id
+        foreign key (institution_id)
+        references institutions(id)
 );

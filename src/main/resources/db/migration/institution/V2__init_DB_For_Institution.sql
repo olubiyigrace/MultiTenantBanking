@@ -173,51 +173,6 @@ create table loan_collaterals
 
 
 
-
-
-create table savings_accounts
-(
-    id                            varchar(255) not null primary key,
-    created_at                    timestamp(6) not null,
-    maturity_date                 timestamp(6) not null,
-    account_number                varchar(255) not null,
-    version                       integer not null,
-    balance                       numeric(38,2) not null,
-    minimum_balance               numeric(38,2) not null,
-    interest_rate_percent         numeric(5,2) not null,
-    target_amount                 numeric(38,2) not null,
-    savings_status                varchar(255)
-        constraint savings_accounts_savings_status_check
-            check (
-                (savings_status)::text = ANY (
-        ARRAY[
-        ('ACTIVE'::character varying)::text,
-        ('FROZEN'::character varying)::text,
-        ('CLOSED'::character varying)::text
-        ]
-        )),
-    savings_account_type            varchar(255)
-        constraint savings_accounts_savings_account_type_check
-            check (
-                (savings_account_type)::text = ANY (
-        ARRAY[
-        ('REGULAR'::character varying)::text,
-        ('TARGET'::character varying)::text,
-        ('FIXED'::character varying)::text
-        ]
-        )),
-             institution_id       varchar(255),
-    constraint fk_savings_account_institution_id
-        foreign key (institution_id)
-        references institutions(id),
-    member_profile_id                varchar(255) not null,
-    constraint fk_savings_account_member_profile_id
-        foreign key (member_profile_id) references member_profiles(id)
-);
-
-
-
-
 create table savings_interest_accruals
 (
     id                            varchar(255) not null primary key,
