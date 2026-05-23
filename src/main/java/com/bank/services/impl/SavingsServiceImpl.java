@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,51 +30,45 @@ public class SavingsServiceImpl implements SavingsService {
     @Override
     public void create(SavingsAccountRequest savingsAccountRequest) {
         log.info("Creating savings account");
-        Optional<MemberProfile> confirmMember = memberRepository.findById(savingsAccountRequest.getMember_id());
-        if (confirmMember.isEmpty()) {
-            log.debug("Member does not exist");
-            throw new InvalidRequestException("Member does not exist");
-        }
+        MemberProfile member = memberRepository.findById(savingsAccountRequest.getMember_id())
+                .orElseThrow(() -> {
+                    log.debug("Member does not exist");
+                    return new InvalidRequestException("Member does not exist");
+                });
 
-        MemberProfile confirmAccountType = memberRepository.findBySavingsAccountType(savingsAccountRequest.getSavingsAccountType());
-        if (confirmAccountType.getSavingsAccountType() == SavingsAccountType.REGULAR) {
+        boolean exists = savingsRepository.existsByMemberIdAndSavingsAccountType(
+                        member.getId(), savingsAccountRequest.getSavingsAccountType());
+        if (exists) {
             log.debug("Savings account type already exists for member");
             throw new DuplicateRequestException("Savings account type already exists for member");
         }
 
-        Optional<SavingsAccount> confirmSavingsAccount = savingsRepository.findById(savingsAccountRequest.getMember_id());
-        if (confirmSavingsAccount.equals(SavingsAccountType.FIXED)) {
-            log.debug("Savings account type already exists for member");
-            throw new DuplicateRequestException("Savings account type already exists for member");
+        if (savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.TARGET
+                && savingsAccountRequest.getTargetAmount() == null) {
+            log.debug("Target amount is required for TARGET savings account");
+            throw new InvalidRequestException("Target amount is required for TARGET savings account");
         }
-        if (confirmSavingsAccount.equals(SavingsAccountType.TARGET)) {
-            log.debug("Savings account type already exists for member");
-            throw new DuplicateRequestException("Savings account type already exists for member");
+        if (savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.FIXED
+                && savingsAccountRequest.getMaturityDate() == null) {
+            log.debug("Maturity date is required for FIXED savings account");
+            throw new InvalidRequestException("Maturity date is required for FIXED savings account");
         }
 
-        if (savingsAccountRequest.getMaturityDate() == null &&
-                savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.TARGET) {
-            log.debug("Maturity date is required for TARGET savings account");
-            throw new InvalidRequestException("Maturity date is required for TARGET savings account");
-        }
-        if (savingsAccountRequest.getTargetAmount() == null &&
-                savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.FIXED) {
-            log.debug("Target amount is required for FIXED savings account");
-            throw new InvalidRequestException("Target amount is required for FIXED savings account");
-        }
         SavingsAccount newSavingsAccount = savingsMapper.toEntity(savingsAccountRequest);
-        if(newSavingsAccount.getSavingsAccountType() == SavingsAccountType.FIXED){
-            newSavingsAccount.setMinimumBalance(BigDecimal.valueOf(50_000));
+        switch (newSavingsAccount.getSavingsAccountType()) {
+            case TARGET -> newSavingsAccount.setMinimumBalance(BigDecimal.valueOf(5_000));
+            case FIXED -> newSavingsAccount.setMinimumBalance(BigDecimal.valueOf(50_000));
         }
-        System.out.println("okay");
-        if(newSavingsAccount.getSavingsAccountType() == SavingsAccountType.TARGET){
-            newSavingsAccount.setMinimumBalance(BigDecimal.valueOf(5000));
+        if (newSavingsAccount.getBalance().compareTo(newSavingsAccount.getMinimumBalance()) < 0) {
+            log.debug("Balance cannot be less than minimum balance");
+            throw new InvalidRequestException("Balance cannot be less than minimum balance");
         }
         newSavingsAccount.setAccountNumber(generateAccountNumber());
+        newSavingsAccount.setInterestRatePercent(BigDecimal.valueOf(4.50));
         newSavingsAccount.setSavingsStatus(SavingsStatus.ACTIVE);
         savingsRepository.save(newSavingsAccount);
 
-        log.info("Savings account created");
+        log.info("Savings account created successfully");
     }
     private String generateAccountNumber () {
         SecureRandom random = new SecureRandom();

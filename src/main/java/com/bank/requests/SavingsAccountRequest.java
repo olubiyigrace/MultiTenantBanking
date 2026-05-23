@@ -19,11 +19,6 @@ public class SavingsAccountRequest {
     @DecimalMin(value = "0.0")
     private BigDecimal balance;
 
-    @NotNull(message = "Interest rate percent is required")
-    @DecimalMin(value = "0.0", message = "Interest rate cannot be negative")
-    @DecimalMax(value = "100.0", message = "Interest rate cannot exceed 100%")
-    private BigDecimal interestRatePercent;
-
     @PositiveOrZero(message = "Target amount cannot be negative")
     @Digits(integer = 15, fraction = 2, message = "Target amount must be a valid monetary amount")
     private final BigDecimal targetAmount;
@@ -37,9 +32,6 @@ public class SavingsAccountRequest {
 
     @NotNull(message = "Member profile ID is required")
     private String member_id;
-
-    @NotNull(message = "Minimum balance is required")
-    private BigDecimal minimumBalance;
 
 }
 

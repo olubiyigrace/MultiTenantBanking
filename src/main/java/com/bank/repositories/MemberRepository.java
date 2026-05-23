@@ -17,5 +17,4 @@ public interface MemberRepository extends JpaRepository<MemberProfile, String> {
 
     @Query("SELECT m FROM MemberProfile m JOIN FETCH m.user WHERE m.profileStatus = :profileStatus")
     Page<MemberProfile> findByProfileStatus(ProfileStatus profileStatus, Pageable pageable);
-    MemberProfile findBySavingsAccountType(SavingsAccountType savingsAccountType);
 }

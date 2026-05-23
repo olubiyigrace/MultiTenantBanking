@@ -9,12 +9,10 @@ public class SavingsMapper {
     public SavingsAccount toEntity(SavingsAccountRequest savingsAccountRequest){
         return SavingsAccount.builder()
                 .balance(savingsAccountRequest.getBalance())
-                .interestRatePercent(savingsAccountRequest.getInterestRatePercent())
                 .targetAmount(savingsAccountRequest.getTargetAmount())
                 .maturityDate(savingsAccountRequest.getMaturityDate())
                 .savingsAccountType(savingsAccountRequest.getSavingsAccountType())
                 .memberId(savingsAccountRequest.getMember_id())
-                .minimumBalance(savingsAccountRequest.getMinimumBalance())
                 .build();
     }
 }
