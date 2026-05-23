@@ -2,6 +2,8 @@ package com.bank.services.impl;
 
 import com.bank.auth.repository.UserRepository;
 import com.bank.common.PageResponse;
+import com.bank.config.InstitutionContext;
+import com.bank.entities.Institution;
 import com.bank.entities.MemberProfile;
 import com.bank.entities.User;
 import com.bank.enums.ProfileStatus;
@@ -34,6 +36,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     @Override
     public void createMember(MemberRequest memberRequest) {
+        final String institutionId = InstitutionContext.getCurrentInstitution();
         Optional<MemberProfile> findMemberProfile = memberRepository.findByBvn(memberRequest.getBvn());
         if(findMemberProfile.isPresent()){
             log.debug("Member already exists");
@@ -44,11 +47,11 @@ public class MemberServiceImpl implements MemberService {
             log.debug("User already exists");
             throw new DuplicateRequestException("User already exists");
         }
-
         MemberProfile newMember = memberMapper.toEntity(memberRequest);
         User savedUser = userRepository.save(newMember.getUser());
         newMember.setUser(savedUser);
         newMember.setMemberNumber(generateMemberNumber());
+        newMember.setInstitution(Institution.builder().id(institutionId).build());
         memberRepository.save(newMember);
     }
 
@@ -58,11 +61,9 @@ public class MemberServiceImpl implements MemberService {
 
         Page<MemberProfile> memberProfiles;
         if (profileStatus != null) {
-            memberProfiles =
-                    memberRepository.findByProfileStatus(profileStatus, pageRequest);
+            memberProfiles = memberRepository.findByProfileStatus(profileStatus, pageRequest);
         } else {
-            memberProfiles =
-                    memberRepository.findAll(pageRequest);
+            memberProfiles = memberRepository.findAll(pageRequest);
         }
         Page<MemberResponse> memberResponses = memberProfiles.map(memberMapper::toResponse);
         return PageResponse.of(memberResponses);

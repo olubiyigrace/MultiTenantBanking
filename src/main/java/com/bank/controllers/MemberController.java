@@ -3,7 +3,6 @@ package com.bank.controllers;
 import com.bank.common.PageResponse;
 import com.bank.enums.ProfileStatus;
 import com.bank.requests.MemberRequest;
-import com.bank.responses.LoanProductResponse;
 import com.bank.responses.MemberResponse;
 import com.bank.services.MemberService;
 import com.bank.utils.ApiResponse;

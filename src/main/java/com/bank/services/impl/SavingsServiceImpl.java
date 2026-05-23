@@ -1,5 +1,7 @@
 package com.bank.services.impl;
 
+import com.bank.config.InstitutionContext;
+import com.bank.entities.Institution;
 import com.bank.entities.MemberProfile;
 import com.bank.entities.SavingsAccount;
 import com.bank.enums.SavingsAccountType;
@@ -29,6 +31,7 @@ public class SavingsServiceImpl implements SavingsService {
 
     @Override
     public void create(SavingsAccountRequest savingsAccountRequest) {
+        final String institutionId = InstitutionContext.getCurrentInstitution();
         log.info("Creating savings account");
         MemberProfile member = memberRepository.findById(savingsAccountRequest.getMember_id())
                 .orElseThrow(() -> {
@@ -66,6 +69,7 @@ public class SavingsServiceImpl implements SavingsService {
         newSavingsAccount.setAccountNumber(generateAccountNumber());
         newSavingsAccount.setInterestRatePercent(BigDecimal.valueOf(4.50));
         newSavingsAccount.setSavingsStatus(SavingsStatus.ACTIVE);
+        newSavingsAccount.setInstitution(Institution.builder().id(institutionId).build());
         savingsRepository.save(newSavingsAccount);
 
         log.info("Savings account created successfully");

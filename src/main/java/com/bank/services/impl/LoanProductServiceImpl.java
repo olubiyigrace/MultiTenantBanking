@@ -1,6 +1,8 @@
 package com.bank.services.impl;
 
 import com.bank.common.PageResponse;
+import com.bank.config.InstitutionContext;
+import com.bank.entities.Institution;
 import com.bank.entities.LoanProduct;
 import com.bank.exceptions.InvalidRequestException;
 import com.bank.mapper.LoanProductMapper;
@@ -27,6 +29,7 @@ public class LoanProductServiceImpl implements LoanProductService {
 
     @Override
     public void create(LoanProductRequest loanProductRequest) {
+        final String institutionId = InstitutionContext.getCurrentInstitution();
         Optional<LoanProduct> existingLoanProduct = loanProductRepository.findLoanProductByName(loanProductRequest.getName());
         if (existingLoanProduct.isPresent()){
             log.debug("Loan product already exists");
@@ -38,6 +41,7 @@ public class LoanProductServiceImpl implements LoanProductService {
             throw new InvalidRequestException("Maximum amount cannot be less than minimum amount");
         }
         LoanProduct newLoanProduct = loanProductMapper.toEntity(loanProductRequest);
+        newLoanProduct.setInstitution(Institution.builder().id(institutionId).build());
         loanProductRepository.save(newLoanProduct);
         log.debug("Loan product created");
     }
