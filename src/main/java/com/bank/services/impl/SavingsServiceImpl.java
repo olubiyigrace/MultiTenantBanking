@@ -68,12 +68,69 @@ public class SavingsServiceImpl implements SavingsService {
         }
         newSavingsAccount.setAccountNumber(generateAccountNumber());
         newSavingsAccount.setInterestRatePercent(BigDecimal.valueOf(4.50));
-        newSavingsAccount.setSavingsStatus(SavingsStatus.ACTIVE);
         newSavingsAccount.setInstitution(Institution.builder().id(institutionId).build());
         savingsRepository.save(newSavingsAccount);
 
         log.info("Savings account created successfully");
     }
+
+    @Override
+    public void activateAccount(String savingsId){
+        log.info("Activating savings account");
+        SavingsAccount existingAccount = savingsRepository.findById(savingsId).orElseThrow(() ->
+                new InvalidRequestException("Savings account does not exist"));
+        if (existingAccount.getSavingsStatus() == SavingsStatus.CLOSED) {
+            log.debug("Closed account cannot be reactivated");
+            throw new InvalidRequestException("Closed account cannot be reactivated");
+        }
+        if(existingAccount.getSavingsStatus() == SavingsStatus.ACTIVE){
+            log.debug("Savings account already activated");
+            throw new DuplicateRequestException("Savings account already activated");
+        }
+        existingAccount.setSavingsStatus(SavingsStatus.ACTIVE);
+        savingsRepository.save(existingAccount);
+
+        log.info("Savings account activated");
+    }
+
+    @Override
+    public void freezeAccount(String savingsId){
+        log.info("Freezing savings account");
+        SavingsAccount existingAccount = savingsRepository.findById(savingsId).orElseThrow(() ->
+                new InvalidRequestException("Savings account does not exist"));
+        if (existingAccount.getSavingsStatus() == SavingsStatus.CLOSED) {
+            log.debug("Closed account cannot be frozen");
+            throw new InvalidRequestException("Closed account cannot be frozen");
+        }
+        if(existingAccount.getSavingsStatus() == SavingsStatus.FROZEN){
+            log.debug("Savings account already frozen");
+            throw new DuplicateRequestException("Savings account already frozen");
+        }
+        existingAccount.setSavingsStatus(SavingsStatus.FROZEN);
+        savingsRepository.save(existingAccount);
+
+        log.info("Savings account frozen");
+    }
+
+    @Override
+    public void closeAccount(String savingsId){
+        log.info("Closing savings account");
+        SavingsAccount existingAccount = savingsRepository.findById(savingsId).orElseThrow(() ->
+                new InvalidRequestException("Savings account does not exist"));
+        if(existingAccount.getSavingsStatus() == SavingsStatus.CLOSED){
+            log.debug("Savings account already closed");
+            throw new DuplicateRequestException("Savings account already closed");
+        }
+        if (existingAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
+            log.info("Account with balance cannot be closed");
+            throw new InvalidRequestException("Account with balance cannot be closed");
+        }
+        existingAccount.setSavingsStatus(SavingsStatus.CLOSED);
+        savingsRepository.save(existingAccount);
+
+        log.info("Savings account closed");
+    }
+
     private String generateAccountNumber () {
         SecureRandom random = new SecureRandom();
         StringBuilder accountNumber = new StringBuilder();
