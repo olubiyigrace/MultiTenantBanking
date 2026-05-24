@@ -254,7 +254,6 @@ public class InstitutionServiceImpl implements InstitutionService {
                             .build()
             );
         }
-
         return TotalDepositsStatisticsResponse.builder()
                 .totalInstitutionsDeposits(totalDepositsAcrossAll)
                 .institutions(perInstitution)
@@ -269,8 +268,7 @@ public class InstitutionServiceImpl implements InstitutionService {
             """.formatted(schema);
             BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
             return total != null ? total : BigDecimal.ZERO;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return BigDecimal.ZERO;
         }
     }

@@ -2,6 +2,7 @@ package com.bank.services;
 
 import com.bank.requests.SavingsAccountRequest;
 import com.bank.responses.TotalLoansOutstandingResponse;
+import com.bank.responses.TotalLoansOverdueResponse;
 import com.bank.responses.TotalSavingsResponse;
 
 public interface SavingsService {
@@ -11,4 +12,5 @@ public interface SavingsService {
     void closeAccount(String savingsId);
     TotalSavingsResponse getTotalSavings();
     TotalLoansOutstandingResponse getTotalLoansOutstanding();
+    TotalLoansOverdueResponse getTotalLoansOverdue();
 }

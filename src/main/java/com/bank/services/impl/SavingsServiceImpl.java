@@ -13,6 +13,7 @@ import com.bank.repositories.MemberRepository;
 import com.bank.repositories.SavingsRepository;
 import com.bank.requests.SavingsAccountRequest;
 import com.bank.responses.TotalLoansOutstandingResponse;
+import com.bank.responses.TotalLoansOverdueResponse;
 import com.bank.responses.TotalSavingsResponse;
 import com.bank.services.SavingsService;
 import com.sun.jdi.request.DuplicateRequestException;
@@ -148,7 +149,7 @@ public class SavingsServiceImpl implements SavingsService {
 
     @Override
     public TotalSavingsResponse getTotalSavings() {
-        log.info("Fetching total savings");
+        log.info("Getting total savings");
         String institutionId = InstitutionContext.getCurrentInstitution();
 
         Institution institution = institutionRepository.findById(institutionId)
@@ -181,7 +182,7 @@ public class SavingsServiceImpl implements SavingsService {
 
     @Override
     public TotalLoansOutstandingResponse getTotalLoansOutstanding() {
-        log.info("Fetching total savings");
+        log.info("Getting total loans outstanding");
         String institutionId = InstitutionContext.getCurrentInstitution();
         Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new InvalidRequestException("Institution does not exist"));
@@ -201,6 +202,38 @@ public class SavingsServiceImpl implements SavingsService {
         try {
             String sql = """
             SELECT COALESCE(SUM(balance_remaining), 0)
+            FROM %s.loan_repayment_schedule
+            """.formatted(schema);
+            BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
+            return total != null ? total : BigDecimal.ZERO;
+        } catch (Exception e) {
+            log.error("Error calculating total loans outstanding", e);
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @Override
+    public TotalLoansOverdueResponse getTotalLoansOverdue() {
+        log.info("Getting total loans overdue");
+        String institutionId = InstitutionContext.getCurrentInstitution();
+        Institution institution = institutionRepository.findById(institutionId)
+                .orElseThrow(() -> new InvalidRequestException("Institution does not exist"));
+
+        String schema = institution.getInstitutionName().toLowerCase();
+        BigDecimal loansOverdue = getTotalLoansOverdue(schema);
+
+        return TotalLoansOverdueResponse.builder()
+                .institutionId(institution.getId())
+                .institutionName(schema)
+                .totalLoansOutstanding(loansOverdue)
+                .build();
+
+    }
+
+    private BigDecimal getTotalLoansOverdue(String schema) {
+        try {
+            String sql = """
+            SELECT COALESCE(SUM(loan_repayment_status.OVERDUE), 0)
             FROM %s.loan_repayment_schedule
             """.formatted(schema);
             BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);

@@ -2,6 +2,7 @@ package com.bank.controllers;
 
 import com.bank.requests.SavingsAccountRequest;
 import com.bank.responses.TotalLoansOutstandingResponse;
+import com.bank.responses.TotalLoansOverdueResponse;
 import com.bank.responses.TotalSavingsResponse;
 import com.bank.services.SavingsService;
 import com.bank.utils.ApiResponse;
@@ -44,7 +45,7 @@ public class SavingsController {
         return ResponseEntity.ok(ApiResponse.success(true, "Savings account closed successfully", null));
     }
 
-    @PreAuthorize("hasRole('LOAN_OFFICER')")
+    @PreAuthorize("hasRole('INSTITUTION_ADMIN')")
     @GetMapping("/summary")
     public ResponseEntity<TotalSavingsResponse> getSavingsSummary() {
         return ResponseEntity.ok(savingsService.getTotalSavings());
@@ -55,4 +56,12 @@ public class SavingsController {
     public ResponseEntity<TotalLoansOutstandingResponse> getTotalLoansOutstanding() {
         return ResponseEntity.ok(savingsService.getTotalLoansOutstanding());
     }
+
+    @PreAuthorize("hasRole('INSTITUTION_ADMIN')")
+    @GetMapping("/overdue-loans")
+    public ResponseEntity<TotalLoansOverdueResponse> getTotalLoansOverdue() {
+        return ResponseEntity.ok(savingsService.getTotalLoansOverdue());
+    }
+
+
 }
