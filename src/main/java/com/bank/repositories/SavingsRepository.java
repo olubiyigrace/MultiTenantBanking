@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SavingsRepository extends JpaRepository<SavingsAccount, String> {
     boolean existsByMemberIdAndSavingsAccountType(String id,SavingsAccountType savingsAccountType);
+
 }

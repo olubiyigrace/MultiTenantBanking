@@ -8,17 +8,22 @@ import com.bank.enums.SavingsAccountType;
 import com.bank.enums.SavingsStatus;
 import com.bank.exceptions.InvalidRequestException;
 import com.bank.mapper.SavingsMapper;
+import com.bank.repositories.InstitutionRepository;
 import com.bank.repositories.MemberRepository;
 import com.bank.repositories.SavingsRepository;
 import com.bank.requests.SavingsAccountRequest;
+import com.bank.responses.TotalLoansOutstandingResponse;
+import com.bank.responses.TotalSavingsResponse;
 import com.bank.services.SavingsService;
 import com.sun.jdi.request.DuplicateRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +32,8 @@ public class SavingsServiceImpl implements SavingsService {
     private final SavingsRepository savingsRepository;
     private final SavingsMapper savingsMapper;
     private final MemberRepository memberRepository;
-
+    private final JdbcTemplate jdbcTemplate;
+    private final InstitutionRepository institutionRepository;
 
     @Override
     public void create(SavingsAccountRequest savingsAccountRequest) {
@@ -40,7 +46,7 @@ public class SavingsServiceImpl implements SavingsService {
                 });
 
         boolean exists = savingsRepository.existsByMemberIdAndSavingsAccountType(
-                        member.getId(), savingsAccountRequest.getSavingsAccountType());
+                member.getId(), savingsAccountRequest.getSavingsAccountType());
         if (exists) {
             log.debug("Savings account type already exists for member");
             throw new DuplicateRequestException("Savings account type already exists for member");
@@ -74,8 +80,17 @@ public class SavingsServiceImpl implements SavingsService {
         log.info("Savings account created successfully");
     }
 
+    private String generateAccountNumber() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder accountNumber = new StringBuilder();
+        for (int i = 0; i < 9; i++) {
+            accountNumber.append(random.nextInt(10));
+        }
+        return accountNumber.toString();
+    }
+
     @Override
-    public void activateAccount(String savingsId){
+    public void activateAccount(String savingsId) {
         log.info("Activating savings account");
         SavingsAccount existingAccount = savingsRepository.findById(savingsId).orElseThrow(() ->
                 new InvalidRequestException("Savings account does not exist"));
@@ -83,7 +98,7 @@ public class SavingsServiceImpl implements SavingsService {
             log.debug("Closed account cannot be reactivated");
             throw new InvalidRequestException("Closed account cannot be reactivated");
         }
-        if(existingAccount.getSavingsStatus() == SavingsStatus.ACTIVE){
+        if (existingAccount.getSavingsStatus() == SavingsStatus.ACTIVE) {
             log.debug("Savings account already activated");
             throw new DuplicateRequestException("Savings account already activated");
         }
@@ -94,7 +109,7 @@ public class SavingsServiceImpl implements SavingsService {
     }
 
     @Override
-    public void freezeAccount(String savingsId){
+    public void freezeAccount(String savingsId) {
         log.info("Freezing savings account");
         SavingsAccount existingAccount = savingsRepository.findById(savingsId).orElseThrow(() ->
                 new InvalidRequestException("Savings account does not exist"));
@@ -102,7 +117,7 @@ public class SavingsServiceImpl implements SavingsService {
             log.debug("Closed account cannot be frozen");
             throw new InvalidRequestException("Closed account cannot be frozen");
         }
-        if(existingAccount.getSavingsStatus() == SavingsStatus.FROZEN){
+        if (existingAccount.getSavingsStatus() == SavingsStatus.FROZEN) {
             log.debug("Savings account already frozen");
             throw new DuplicateRequestException("Savings account already frozen");
         }
@@ -113,11 +128,11 @@ public class SavingsServiceImpl implements SavingsService {
     }
 
     @Override
-    public void closeAccount(String savingsId){
+    public void closeAccount(String savingsId) {
         log.info("Closing savings account");
         SavingsAccount existingAccount = savingsRepository.findById(savingsId).orElseThrow(() ->
                 new InvalidRequestException("Savings account does not exist"));
-        if(existingAccount.getSavingsStatus() == SavingsStatus.CLOSED){
+        if (existingAccount.getSavingsStatus() == SavingsStatus.CLOSED) {
             log.debug("Savings account already closed");
             throw new DuplicateRequestException("Savings account already closed");
         }
@@ -131,13 +146,73 @@ public class SavingsServiceImpl implements SavingsService {
         log.info("Savings account closed");
     }
 
-    private String generateAccountNumber () {
-        SecureRandom random = new SecureRandom();
-        StringBuilder accountNumber = new StringBuilder();
-        for (int i = 0; i < 9; i++) {
-            accountNumber.append(random.nextInt(10));
+    @Override
+    public TotalSavingsResponse getTotalSavings() {
+        log.info("Fetching total savings");
+        String institutionId = InstitutionContext.getCurrentInstitution();
+
+        Institution institution = institutionRepository.findById(institutionId)
+                .orElseThrow(() -> new InvalidRequestException("Institution does not exist"));
+
+        BigDecimal totalSavings = calculateTotalSavings();
+
+        return TotalSavingsResponse.builder()
+                .institutionId(institution.getId())
+                .institutionName(institution.getInstitutionName())
+                .totalSavingsBalance(totalSavings)
+                .build();
+    }
+
+    private BigDecimal calculateTotalSavings() {
+        try {
+            String sql =
+                    """
+                            SELECT COALESCE(SUM(balance), 0)
+                            FROM savings_accounts
+                            WHERE savings_status != 'CLOSED'
+                            """;
+            BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
+            return total != null ? total : BigDecimal.ZERO;
+        } catch (Exception e) {
+            log.error("Error calculating total savings", e);
+            return BigDecimal.ZERO;
         }
-        return accountNumber.toString();
+    }
+
+    @Override
+    public TotalLoansOutstandingResponse getTotalLoansOutstanding() {
+        log.info("Fetching total savings");
+        String institutionId = InstitutionContext.getCurrentInstitution();
+        Institution institution = institutionRepository.findById(institutionId)
+                .orElseThrow(() -> new InvalidRequestException("Institution does not exist"));
+
+            String schema = institution.getInstitutionName().toLowerCase();
+            BigDecimal loansOutstanding = getTotalLoansOutstanding(schema);
+
+                    return TotalLoansOutstandingResponse.builder()
+                            .institutionId(institution.getId())
+                            .institutionName(schema)
+                            .totalLoansOutstanding(loansOutstanding)
+                            .build();
+
+    }
+
+    private BigDecimal getTotalLoansOutstanding(String schema) {
+        try {
+            String sql = """
+            SELECT COALESCE(SUM(balance_remaining), 0)
+            FROM %s.loan_repayment_schedule
+            """.formatted(schema);
+            BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
+            return total != null ? total : BigDecimal.ZERO;
+        } catch (Exception e) {
+            log.error("Error calculating total loans outstanding", e);
+            return BigDecimal.ZERO;
+        }
     }
 }
+
+
+
+
 
