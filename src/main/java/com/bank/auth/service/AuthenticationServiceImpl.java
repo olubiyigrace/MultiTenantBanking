@@ -128,7 +128,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             emailService.sendVerificationEmail(
                     institution.getInstitutionEmail(),
                     "Verify your account",
-                    "verification",
+                    "institutionverification",
                     model
             );
         } catch (MessagingException e) {
