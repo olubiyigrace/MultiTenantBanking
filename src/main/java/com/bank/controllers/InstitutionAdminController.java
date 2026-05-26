@@ -94,21 +94,21 @@ public class InstitutionAdminController {
                 memberService.getAllMembers(profileStatus, page, size)));
     }
 
-    @PostMapping("/activate")
+    @PostMapping("/activate-savings-account")
     public ResponseEntity<ApiResponse<String>> activate(@RequestParam String savingsId) {
         savingsService.activateAccount(savingsId);
         return ResponseEntity.ok(ApiResponse.success(true, "Savings account activated successfully",
                 null));
     }
 
-    @PostMapping("/freeze")
+    @PostMapping("/freeze-savings-account")
     public ResponseEntity<ApiResponse<String>> freeze(@RequestParam String savingsId) {
         savingsService.freezeAccount(savingsId);
         return ResponseEntity.ok(ApiResponse.success(true, "Savings account frozen successfully",
                 null));
     }
 
-    @PostMapping("/close")
+    @PostMapping("/close-savings-account")
     public ResponseEntity<ApiResponse<String>> close(@RequestParam String savingsId) {
         savingsService.closeAccount(savingsId);
         return ResponseEntity.ok(ApiResponse.success(true, "Savings account closed successfully",

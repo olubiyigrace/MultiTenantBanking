@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberController {
     private final LoanApplicationService loanApplicationService;
 
-    @PostMapping("/create-application")
+    @PostMapping("/create-loan-application")
     public ResponseEntity<ApiResponse<String>> create(LoanApplicationRequest loanApplicationRequest){
         loanApplicationService.createApplication(loanApplicationRequest);
         return ResponseEntity.ok(ApiResponse.success(true,"Loan application created successfully", null));

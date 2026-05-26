@@ -4,14 +4,12 @@ import com.bank.auth.requests.*;
 import com.bank.auth.response.LoginResponse;
 import com.bank.auth.service.AuthenticationService;
 import com.bank.requests.RegisterInstitutionRequest;
-import com.bank.auth.requests.RegisterUserRequest;
 import com.bank.utils.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

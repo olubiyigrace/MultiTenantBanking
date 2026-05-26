@@ -48,10 +48,12 @@ public class MemberServiceImpl implements MemberService {
             throw new DuplicateRequestException("User already exists");
         }
         MemberProfile newMember = memberMapper.toEntity(memberRequest);
+        newMember.setMemberNumber(generateMemberNumber());
+        Institution institution = Institution.builder().id(institutionId).build();
+        newMember.setInstitution(institution);
+        newMember.getUser().setInstitution(institution);
         User savedUser = userRepository.save(newMember.getUser());
         newMember.setUser(savedUser);
-        newMember.setMemberNumber(generateMemberNumber());
-        newMember.setInstitution(Institution.builder().id(institutionId).build());
         memberRepository.save(newMember);
     }
 

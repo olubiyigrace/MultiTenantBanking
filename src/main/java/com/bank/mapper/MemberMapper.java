@@ -1,8 +1,10 @@
 package com.bank.mapper;
 
 import com.bank.auth.response.UserResponse;
+import com.bank.entities.Institution;
 import com.bank.entities.MemberProfile;
 import com.bank.entities.User;
+import com.bank.enums.ProfileStatus;
 import com.bank.enums.SavingsAccountType;
 import com.bank.enums.UserAccountType;
 import com.bank.requests.MemberRequest;
@@ -28,6 +30,7 @@ public class MemberMapper {
                 .nextOfKinPhone(memberRequest.getNextOfKinPhone())
                 .dateOfBirth(memberRequest.getDateOfBirth())
                 .createdAt(LocalDateTime.now())
+                .profileStatus(ProfileStatus.ACTIVE)
                 .savingsAccountType(SavingsAccountType.REGULAR)
                 .user(User.builder()
                         .name(memberRequest.getRegisterUserRequest().getName())
@@ -35,6 +38,7 @@ public class MemberMapper {
                         .password(passwordEncoder.encode(memberRequest.getRegisterUserRequest().getPassword()))
                         .phone(memberRequest.getRegisterUserRequest().getPhone())
                         .nin(memberRequest.getRegisterUserRequest().getNin())
+                        .isVerified(false)
                         .email(memberRequest.getRegisterUserRequest().getEmail())
                         .userAccountType(UserAccountType.MEMBER)
                         .build())
