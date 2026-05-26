@@ -1,5 +1,7 @@
 package com.bank.services.impl;
 
+import com.bank.auth.mapper.UserMapper;
+import com.bank.auth.response.UserResponse;
 import com.bank.responses.PageResponse;
 import com.bank.entities.User;
 import com.bank.enums.UserAccountType;
@@ -42,6 +44,7 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserMapper userMapper;
 
     @Override
     public void approveInstitution(final String institutionId) throws MessagingException {
@@ -55,6 +58,14 @@ public class InstitutionServiceImpl implements InstitutionService {
             rollBackInstitutionStatus(institution);
             throw e;
         }
+    }
+
+    @Override
+    public PageResponse<UserResponse> getAllUsers(int page, int size) {
+        final PageRequest pageRequest = PageRequest.of(page, size);
+        final Page<User> users = userRepository.findAll(pageRequest);
+        final Page<UserResponse> userResponses = users.map(userMapper::toResponse);
+        return PageResponse.of(userResponses);
     }
 
     private void createAdminUser(Institution institution) throws MessagingException {
@@ -81,7 +92,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         adminUser.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
 
         Map<String, Object> model = new HashMap<>();
-        model.put("institutionName", institution.getAdminName());
+        model.put("name", institution.getAdminName());
         model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?token=" + emailVerificationToken);
 
         emailService.sendVerificationEmail(

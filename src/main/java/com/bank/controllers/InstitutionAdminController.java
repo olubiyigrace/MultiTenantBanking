@@ -1,11 +1,13 @@
 package com.bank.controllers;
 
 import com.bank.auth.requests.RegisterUserRequest;
+import com.bank.auth.response.UserResponse;
 import com.bank.auth.service.AuthenticationService;
 import com.bank.responses.PageResponse;
 import com.bank.enums.ProfileStatus;
 import com.bank.requests.LoanProductRequest;
 import com.bank.responses.*;
+import com.bank.services.InstitutionService;
 import com.bank.services.LoanProductService;
 import com.bank.services.MemberService;
 import com.bank.services.SavingsService;
@@ -29,11 +31,19 @@ public class InstitutionAdminController {
     private final MemberService memberService;
     private final SavingsService savingsService;
     private final AuthenticationService authenticationService;
+    private final InstitutionService institutionService;
 
     @PostMapping("/register-user")
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody final RegisterUserRequest registerUserRequest) throws MessagingException {
         authenticationService.createUser(registerUserRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "Almost there! Check your email to complete your registration.", null));
+    }
+
+    @GetMapping("/all-users")
+    public ResponseEntity<PageResponse<UserResponse>> getAllUsers(
+            @RequestParam(name = "page", defaultValue = "0") final int page,
+            @RequestParam(name = "size", defaultValue = "10") final int size) {
+        return ResponseEntity.ok(institutionService.getAllUsers(page, size));
     }
 
     @PostMapping("/create-products")
@@ -67,7 +77,7 @@ public class InstitutionAdminController {
         return ResponseEntity.ok(ApiResponse.success(true, "Loan product deleted successfully", null));
     }
 
-    @GetMapping("/get-all")
+    @GetMapping("/all-members")
     public ResponseEntity<ApiResponse<PageResponse<MemberResponse>>> getMembers(
             @RequestParam ProfileStatus profileStatus,
             @RequestParam(defaultValue = "0") int page,
