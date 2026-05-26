@@ -12,6 +12,7 @@ import com.bank.repositories.InstitutionRepository;
 import com.bank.repositories.MemberRepository;
 import com.bank.repositories.SavingsRepository;
 import com.bank.requests.SavingsAccountRequest;
+import com.bank.responses.TotalInterestCollectedResponse;
 import com.bank.responses.TotalLoansOutstandingResponse;
 import com.bank.responses.TotalLoansOverdueResponse;
 import com.bank.responses.TotalSavingsResponse;
@@ -24,6 +25,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.time.Month;
+import java.time.Year;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Service
@@ -40,14 +45,14 @@ public class SavingsServiceImpl implements SavingsService {
     public void create(SavingsAccountRequest savingsAccountRequest) {
         final String institutionId = InstitutionContext.getCurrentInstitution();
         log.info("Creating savings account");
-        MemberProfile member = memberRepository.findById(savingsAccountRequest.getMember_id())
+        MemberProfile existingMember = memberRepository.findById(savingsAccountRequest.getMemberId())
                 .orElseThrow(() -> {
                     log.debug("Member does not exist");
                     return new InvalidRequestException("Member does not exist");
                 });
 
         boolean exists = savingsRepository.existsByMemberIdAndSavingsAccountType(
-                member.getId(), savingsAccountRequest.getSavingsAccountType());
+                existingMember.getId(), savingsAccountRequest.getSavingsAccountType());
         if (exists) {
             log.debug("Savings account type already exists for member");
             throw new DuplicateRequestException("Savings account type already exists for member");
@@ -225,7 +230,7 @@ public class SavingsServiceImpl implements SavingsService {
         return TotalLoansOverdueResponse.builder()
                 .institutionId(institution.getId())
                 .institutionName(schema)
-                .totalLoansOutstanding(loansOverdue)
+                .totalLoansOverdue(loansOverdue)
                 .build();
 
     }
@@ -240,6 +245,46 @@ public class SavingsServiceImpl implements SavingsService {
             return total != null ? total : BigDecimal.ZERO;
         } catch (Exception e) {
             log.error("Error calculating total loans outstanding", e);
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @Override
+    public TotalInterestCollectedResponse getTotalInterestCollected(Month month, Year year) {
+        log.info("Getting total interest for the month");
+        String institutionId = InstitutionContext.getCurrentInstitution();
+        Institution institution = institutionRepository.findById(institutionId)
+                .orElseThrow(() -> new InvalidRequestException("Institution does not exist"));
+
+        String schema = institution.getInstitutionName().toLowerCase();
+        BigDecimal interestCollected = getTotalInterest(schema, month, year);
+
+        return TotalInterestCollectedResponse.builder()
+                .institutionId(institution.getId())
+                .institutionName(schema)
+                .interestCollected(interestCollected)
+                .build();
+
+    }
+
+    private BigDecimal getTotalInterest(String schema, Month month, Year year) {
+        try {
+            StringBuilder sqlBuilder = new StringBuilder(
+                    "SELECT COALESCE(SUM(total_interest), 0) FROM %s.loan_applications WHERE 1=1 ".formatted(schema)
+            );
+            List<Object> params = new ArrayList<>();
+            if (year != null) {
+                sqlBuilder.append("AND EXTRACT(YEAR FROM created_at) = ? ");
+                params.add(year);
+            }
+            if (month != null) {
+                sqlBuilder.append("AND EXTRACT(MONTH FROM created_at) = ? ");
+                params.add(month);
+            }
+            BigDecimal total = jdbcTemplate.queryForObject(sqlBuilder.toString(), BigDecimal.class, params.toArray());
+            return total != null ? total : BigDecimal.ZERO;
+        }
+        catch (Exception e) {
             return BigDecimal.ZERO;
         }
     }

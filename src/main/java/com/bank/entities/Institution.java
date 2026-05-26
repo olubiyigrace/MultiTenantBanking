@@ -36,10 +36,10 @@ public class Institution extends AbstractEntity {
     @Builder.Default
     private String baseCurrency = "NGN";
 
-    @Enumerated(STRING)
+    @Enumerated(EnumType.STRING)
     private InstitutionType institutionType;
 
-    @Enumerated(STRING)
+    @Enumerated(EnumType.STRING)
     private InstitutionStatus institutionStatus = InstitutionStatus.PENDING;
 
     @Column(nullable = false)
@@ -60,7 +60,9 @@ public class Institution extends AbstractEntity {
     @Column(nullable = false)
     private String adminPassword;
 
-    private Boolean isVerified;
+    @Builder.Default
+    private Boolean isVerified = false;
+
     private String emailVerificationToken;
     private LocalDateTime emailVerificationTokenExpiry;
     private LocalDateTime emailVerifiedAt;

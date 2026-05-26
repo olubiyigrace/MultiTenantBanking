@@ -15,12 +15,8 @@ public class CurrentInstitutionIdentifierResolverImpl implements CurrentTenantId
 
     @Override
     public String resolveCurrentTenantIdentifier() {
-        final String schema = InstitutionContext.getCurrentSchema();
-        log.trace("Resolving Current institution schema identifier: {}", schema);
-        if (schema == null) {
-            return "public";
-        }
-        return schema;
+        String institutionId = InstitutionContext.getCurrentInstitution();
+        return institutionId != null ? institutionId : "public";
     }
 
     @Override

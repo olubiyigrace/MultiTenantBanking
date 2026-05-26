@@ -1,5 +1,7 @@
 package com.bank.auth.service;
 
+import com.bank.auth.UserSession;
+import com.bank.auth.repository.UserSessionRepository;
 import com.bank.auth.requests.*;
 import com.bank.auth.response.LoginResponse;
 import com.bank.auth.util.CurrentUserUtil;
@@ -41,6 +43,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -52,10 +55,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final CurrentUserUtil currentUserUtil;
     private final LogoutTokenRepository logoutTokenRepository;
+    private final UserSessionRepository userSessionRepository;
 
 
     @Override
-    @Transactional
     public void registerInstitution(final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException {
         if (institutionRepository.existsByInstitutionRcNumber(registerInstitutionRequest.getInstitutionRcNumber())) {
             log.debug("Institution with the RC Number '{}' has been registered.", registerInstitutionRequest.getInstitutionRcNumber());
@@ -85,7 +88,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
     public void verifyEmail(final String verificationTokenFromRequest, final String email) {
         Institution institution = institutionRepository.findByInstitutionEmail(email)
                 .orElseThrow(() -> new InvalidRequestException("Institution with the email '" + email + "' does not exist. Visit the website to register"));
@@ -106,14 +108,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
-    public void resendEmailVerificationToken(final String email) {
+    public void reverifyInstitutionEmail(final String email) {
         Institution institution = institutionRepository.findByInstitutionEmail(email)
-                .orElseThrow(() -> new UnauthorizedException("user with the email '" + email + "'  does not exist. Visit the website to create an account."));
+                .orElseThrow(() -> new UnauthorizedException("Institution with the email '" + email + "'  does not exist. Visit the website to create an account."));
 
         if (Boolean.TRUE.equals(institution.getIsVerified())) {
-            log.debug("User already verified");
-            throw new DuplicateResourceException("User already verified");
+            log.debug("Institution already verified");
+            throw new DuplicateResourceException("Institution already verified");
         }
         String emailVerificationToken = UUID.randomUUID().toString();
         institution.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
@@ -136,7 +137,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
     public void createUser(RegisterUserRequest registerUserRequest) throws MessagingException {
         final String institutionId = InstitutionContext.getCurrentInstitution();
         log.info("Creating user for institution: {}", institutionId);
@@ -150,7 +150,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         if (registerUserRequest.getUserAccountType() == UserAccountType.SUPER_ADMIN || registerUserRequest.getUserAccountType() == UserAccountType.INSTITUTION_ADMIN
         ) {
-            throw new InvalidRequestException("SUPER_ADMIN or INSTITUTION_ADMIN cannot be selected as an account type");
+            throw new InvalidRequestException("SUPER_ADMIN and INSTITUTION_ADMIN cannot be selected as an account type");
         }
         final User newUser = userMapper.toEntity(registerUserRequest);
         newUser.setInstitution(Institution.builder().id(institutionId).build());
@@ -175,8 +175,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
     public void verifyUser(final String verificationTokenFromRequest, final String email) {
+        log.info("Verifying user");
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new InvalidRequestException("User with the email '" + email + "' does not exist. Visit the website to register"));
         if (!passwordEncoder.matches(verificationTokenFromRequest, user.getEmailVerificationToken())) {
@@ -193,11 +193,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setEmailVerificationToken("used");
         user.setEmailVerificationTokenExpiry(null);
         userRepository.save(user);
+        log.info("User verified successfully");
     }
 
     @Override
-    @Transactional
     public void resendUserVerificationToken(final String email) {
+        log.info("Resending user email verification token");
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("user with the email '" + email + "'  does not exist. Visit the website to create an account."));
 
@@ -209,6 +210,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
         user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
         userRepository.save(user);
+        log.info("User email verification token resent");
 
         Map<String, Object> model = new HashMap<>();
         model.put("name", user.getName());
@@ -226,13 +228,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
     public LoginResponse login(final LoginRequest request) throws MessagingException {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Username not found"));
-
-        if (user.getIsVerified() == false) throw new InvalidRequestException("User not verified");
-
+        if (user.getIsVerified() == false) {
+            log.debug("User not verified");
+            throw new InvalidRequestException("User not verified");
+        }
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            log.debug("Incorrect password");
+            throw new InvalidRequestException("Incorrect password");
+        }
         final Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -243,23 +249,34 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setResetPasswordToken(passwordEncoder.encode(token));
         user.setResetPasswordTokenExpiry(LocalDateTime.now().plusMinutes(10));
         userRepository.save(user);
+        log.info("User logged in successfully");
 
-        Map<String, Object> model = new HashMap<>();
-        model.put("name", request.getUsername());
-        model.put("resetUrl", "https://multitenantbank.com/api/v1/auth/reset-password?token=" + token);
-
-        emailService.sendVerificationEmail(
-                request.getUsername(),
-                "New Login Alert!",
-                "login",
-                model
-        );
         final User users = (User) authentication.getPrincipal();
         final String accessToken = jwtService.generateAccessToken(users.getInstitutionId(), users.getId(),
                 users.getUserAccountType().name());
         final String refreshToken = jwtService.generateRefreshToken(users.getInstitutionId(),
                 users.getId(), users.getUserAccountType().name());
         final String tokenType = "Bearer";
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("name", request.getUsername());
+        model.put("resetUrl", "https://multitenantbank.com/api/v1/auth/reset-password?token=" + token);
+        model.put("revokeUrl", "https://multitenantbanking.com/api/v1/auth/revoke-session?token=" + accessToken);
+
+        emailService.sendVerificationEmail(
+                request.getUsername(),
+                "New Login Alert!",
+                "login",
+                model);
+
+       UserSession session = UserSession.builder()
+                .accessToken(accessToken)
+                .revoked(false)
+                .expiryDate(jwtService.extractExpiration(accessToken).toInstant())
+                .user(user)
+                .build();
+        userSessionRepository.save(session);
+
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -269,7 +286,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 
     @Override
-    @Transactional
     public void changePassword(ChangePasswordRequest request) {
         User loggedInUser = currentUserUtil.getLoggedInUser();
 
@@ -288,7 +304,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
     public void forgotPassword(ForgotPasswordRequest request) throws MessagingException {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("Email not found"));
@@ -311,7 +326,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
     public void resetPasswordWithToken(String token, ResetPasswordRequest request) {
         User user = userRepository.findAll().stream()
                 .filter(u -> u.getResetPasswordToken() != null)
@@ -334,7 +348,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
     public LoginResponse refreshToken(final RefreshTokenRequest request) {
         final String refreshToken = request.getRefreshToken();
         if (!jwtService.isRefreshToken(refreshToken)) {
@@ -358,22 +371,36 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
     public void logout(HttpServletRequest request) {
-
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.debug("Invalid authorization header");
             throw new InvalidRequestException("Invalid authorization header");
         }
-
         String token = authHeader.substring(7);
+        UserSession userSession = userSessionRepository
+                .findByAccessToken(token)
+                .orElseThrow(() -> new InvalidRequestException("Session ended"));
         Instant expiryDate = jwtService.extractExpiration(token).toInstant();
+
         LogoutToken logoutToken = LogoutToken.builder()
                 .token(token)
                 .expiryDate(expiryDate)
+                .userSession(userSession)
                 .build();
-
         logoutTokenRepository.save(logoutToken);
+
+        userSession.setRevoked(true);
+        userSessionRepository.save(userSession);
+    }
+
+
+    @Override
+    public void revokeSession(String accessToken) {
+        UserSession session = userSessionRepository.findByAccessToken(accessToken)
+                .orElseThrow(() -> new InvalidRequestException("Session ended"));
+        session.setRevoked(true);
+        session.setAccessToken("used");
+        userSessionRepository.save(session);
     }
 }

@@ -1,4 +1,4 @@
-package com.bank.auth.controller;
+package com.bank.controllers;
 
 import com.bank.auth.requests.*;
 import com.bank.auth.response.LoginResponse;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication", description = "Authentication API")
-public class AuthenticationController {
+//@Tag(name = "Authentication", description = "Authentication API")
+public class AuthController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/register-institution")
@@ -33,9 +33,9 @@ public class AuthenticationController {
         return ResponseEntity.ok(ApiResponse.success(true, "Institution registered successfully", null));
     }
 
-    @GetMapping("/resend-institution-verification")
+    @GetMapping("/reverify-institution")
     public ResponseEntity<ApiResponse<String>> resendUserVerificationEmail(@RequestParam final String email) {
-        authenticationService.resendEmailVerificationToken(email);
+        authenticationService.reverifyInstitutionEmail(email);
         return ResponseEntity.ok(ApiResponse.success(true, "Resent! Check your email to complete your registration.", null));
     }
 
@@ -92,5 +92,11 @@ public class AuthenticationController {
     public ResponseEntity<ApiResponse<String>> logout(HttpServletRequest request) {
         authenticationService.logout(request);
         return ResponseEntity.ok(ApiResponse.success(true, "Logout successful", null));
+    }
+
+    @PostMapping("/revoke-session")
+    public ResponseEntity<ApiResponse<String>> revokeSession(@RequestParam String token) {
+        authenticationService.revokeSession(token);
+        return ResponseEntity.ok(ApiResponse.success(true, "Session revoked successfully", null));
     }
 }

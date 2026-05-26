@@ -1,11 +1,15 @@
 package com.bank.services;
 
 
-import com.bank.common.PageResponse;
+import com.bank.responses.PageResponse;
 import com.bank.responses.*;
+import jakarta.mail.MessagingException;
+
+import java.time.Month;
+import java.time.Year;
 
 public interface InstitutionService {
-    void approveInstitution(final String institutionId);
+    void approveInstitution(final String institutionId) throws MessagingException;
     void activateInstitution(final String institutionId);
     void deactivateInstitution(final String institutionId);
     void suspendInstitution(final String institutionId);
@@ -14,5 +18,5 @@ public interface InstitutionService {
     TotalSavingsStatisticsResponse getSavingsStatistics();
     TotalLoansOutstandingStatisticsResponse getLoansOutstandingStatistics();
     TotalDepositsStatisticsResponse getDepositsStatistics();
-    TotalLoansDisbursedStatisticsResponse getLoansDisbursedStatistics(java.time.Month month, java.time.Year year);
+    TotalLoansDisbursedStatisticsResponse getLoansDisbursedStatistics(Month month, Year year);
 }

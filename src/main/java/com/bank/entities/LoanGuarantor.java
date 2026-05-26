@@ -27,7 +27,7 @@ public class LoanGuarantor extends AbstractEntity {
     @JoinColumn(name = "loan_application_id", foreignKey = @ForeignKey(name = "fk_loan_guarantor_loan_application_id"))
     private LoanApplication loanApplication;
 
-    private UUID guarantorMemberId;
+    private String guarantorMemberId;
 
     @Enumerated(EnumType.STRING)
     private GuarantorStatus guarantorStatus;

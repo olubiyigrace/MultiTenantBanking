@@ -21,7 +21,7 @@ public class LoanRepaymentSchedule {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private Integer installmentNumber;
+    private String installmentNumber;
     private BigDecimal principalDue;
     private BigDecimal interestDue;
     private BigDecimal totalDue;

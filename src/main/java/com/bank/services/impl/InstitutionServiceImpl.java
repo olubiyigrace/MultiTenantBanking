@@ -1,6 +1,6 @@
 package com.bank.services.impl;
 
-import com.bank.common.PageResponse;
+import com.bank.responses.PageResponse;
 import com.bank.entities.User;
 import com.bank.enums.UserAccountType;
 import com.bank.auth.repository.UserRepository;
@@ -10,9 +10,11 @@ import com.bank.exceptions.DuplicateResourceException;
 import com.bank.exceptions.InvalidRequestException;
 import com.bank.repositories.InstitutionRepository;
 import com.bank.responses.*;
+import com.bank.services.EmailService;
 import com.bank.services.InstitutionService;
 import com.bank.mapper.InstitutionMapper;
 import com.bank.services.ProvisioningService;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.Year;
 import java.util.*;
 
 @Service
@@ -32,23 +38,57 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final InstitutionRepository institutionRepository;
     private final UserRepository userRepository;
     private final InstitutionMapper institutionMapper;
-    private final ProvisioningService provisioningService;
     private final JdbcTemplate jdbcTemplate;
-
+    private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Override
-    public void approveInstitution(final String institutionId) {
+    public void approveInstitution(final String institutionId) throws MessagingException {
         final Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution with the id '" + institutionId + "' does not exist"));
         institutionRepository.save(institution);
         try {
-            provisioningService.provisionInstitution(institution);
             createAdminUser(institution);
         } catch (final Exception e) {
             log.error("Institution approval failed", e);
             rollBackInstitutionStatus(institution);
             throw e;
         }
+    }
+
+    private void createAdminUser(Institution institution) throws MessagingException {
+        if (userRepository.existsByUsername(institution.getAdminUsername())) {
+            log.debug("User already exists");
+            throw new DuplicateResourceException("User already exists");
+        }
+        final User adminUser = User.builder()
+                .username(institution.getAdminUsername())
+                .email(institution.getAdminEmail())
+                .name(institution.getAdminName())
+                .nin(institution.getAdminNin())
+                .phone(institution.getAdminPhone())
+                .password(institution.getAdminPassword())
+                .isVerified(false)
+                .userAccountType(UserAccountType.INSTITUTION_ADMIN)
+                .institution(institution)
+                .build();
+        userRepository.save(adminUser);
+        log.info("Admin user created successfully");
+
+        String emailVerificationToken = UUID.randomUUID().toString();
+        adminUser.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
+        adminUser.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("institutionName", institution.getAdminName());
+        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?token=" + emailVerificationToken);
+
+        emailService.sendVerificationEmail(
+                institution.getAdminEmail(),
+                "Verify your account",
+                "verification",
+                model
+        );
     }
 
     @Override
@@ -100,24 +140,6 @@ public class InstitutionServiceImpl implements InstitutionService {
         log.debug("Institution not approved");
     }
 
-    private void createAdminUser(Institution institution) {
-        if (userRepository.existsByUsername(institution.getAdminUsername())) {
-            log.debug("User already exists");
-            throw new DuplicateResourceException("User already exists");
-        }
-        final User adminUser = User.builder()
-                .username(institution.getAdminUsername())
-                .email(institution.getAdminEmail())
-                .name(institution.getAdminName())
-                .nin(institution.getAdminNin())
-                .phone(institution.getAdminPhone())
-                .password(institution.getAdminPassword())
-                .userAccountType(UserAccountType.INSTITUTION_ADMIN)
-                .institution(institution)
-                .build();
-        userRepository.save(adminUser);
-        log.info("Admin user created successfully");
-    }
 
     @Override
     public TotalMembersStatisticsResponse getMembersStatistics() {
@@ -126,7 +148,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         long totalMembersAcrossAll = 0L;
 
         for (Institution institution : institutions) {
-            String schema = institution.getInstitutionName().toLowerCase();
+            String schema = institution.getInstitutionName();
             Long members = countMembers(schema);
             totalMembersAcrossAll += members;
 
@@ -164,7 +186,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         BigDecimal totalSavingsAcrossAll = BigDecimal.ZERO;
 
         for (Institution institution : institutions) {
-            String schema = institution.getInstitutionName().toLowerCase();
+            String schema = institution.getInstitutionName();
             BigDecimal savings = getInstitutionSavings(schema);
             totalSavingsAcrossAll = totalSavingsAcrossAll.add(savings);
 
@@ -203,7 +225,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         BigDecimal totalLoansOutstandingAcrossAll = BigDecimal.ZERO;
 
         for (Institution institution : institutions) {
-            String schema = institution.getInstitutionName().toLowerCase();
+            String schema = institution.getInstitutionName();
             BigDecimal loansOutstanding = getInstitutionLoansOutstanding(schema);
             totalLoansOutstandingAcrossAll = totalLoansOutstandingAcrossAll.add(loansOutstanding);
 
@@ -242,7 +264,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         BigDecimal totalDepositsAcrossAll = BigDecimal.ZERO;
 
         for (Institution institution : institutions) {
-            String schema = institution.getInstitutionName().toLowerCase();
+            String schema = institution.getInstitutionName();
             BigDecimal deposits = getInstitutionDeposits(schema);
             totalDepositsAcrossAll = totalDepositsAcrossAll.add(deposits);
 
@@ -274,13 +296,13 @@ public class InstitutionServiceImpl implements InstitutionService {
     }
 
     @Override
-    public TotalLoansDisbursedStatisticsResponse getLoansDisbursedStatistics(java.time.Month month, java.time.Year year) {
+    public TotalLoansDisbursedStatisticsResponse getLoansDisbursedStatistics(Month month, Year year) {
         List<Institution> institutions = institutionRepository.findAll();
         List<TotalLoansDisbursedResponse> perInstitution = new ArrayList<>();
         BigDecimal totalLoansDisbursedAcrossAll = BigDecimal.ZERO;
 
         for (Institution institution : institutions) {
-            String schema = institution.getInstitutionName().toLowerCase();
+            String schema = institution.getInstitutionName();
             BigDecimal loansDisbursed = getInstitutionLoansDisbursed(schema, month, year);
             totalLoansDisbursedAcrossAll = totalLoansDisbursedAcrossAll.add(loansDisbursed);
 
@@ -298,10 +320,10 @@ public class InstitutionServiceImpl implements InstitutionService {
                 .build();
     }
 
-    private BigDecimal getInstitutionLoansDisbursed(String schema, java.time.Month month, java.time.Year year) {
+    private BigDecimal getInstitutionLoansDisbursed(String schema, Month month, Year year) {
         try {
             StringBuilder sqlBuilder = new StringBuilder(
-                    "SELECT COALESCE(SUM(approved_amount), 0) FROM %s.loan_applications WHERE 1=1 ".formatted(schema)
+                    "SELECT COALESCE(SUM(loan_status.DISBURSED), 0) FROM %s.loan_applications WHERE 1=1 ".formatted(schema)
             );
             List<Object> params = new ArrayList<>();
             if (year != null) {

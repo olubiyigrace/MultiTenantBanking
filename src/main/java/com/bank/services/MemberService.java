@@ -1,7 +1,7 @@
 package com.bank.services;
 
 
-import com.bank.common.PageResponse;
+import com.bank.responses.PageResponse;
 import com.bank.enums.ProfileStatus;
 import com.bank.requests.MemberRequest;
 import com.bank.responses.MemberResponse;

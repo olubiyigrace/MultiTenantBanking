@@ -1,6 +1,6 @@
 package com.bank.auth.logout;
 
-import com.bank.entities.User;
+import com.bank.auth.UserSession;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,7 +21,7 @@ public class LogoutToken {
     @Column(nullable = false)
     private Instant expiryDate;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_logout_token_user_id"))
-    private User user;
+    @OneToOne
+    @JoinColumn(name = "user_session_id", foreignKey = @ForeignKey(name = "fk_logout_token_user_session_id"))
+    private UserSession userSession;
 }

@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
 import java.io.InputStream;
 import java.security.KeyFactory;
 import java.security.PrivateKey;

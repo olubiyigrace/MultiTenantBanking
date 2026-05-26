@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 public interface AuthenticationService {
     void registerInstitution(final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException;
     void verifyEmail(final String verificationTokenFromRequest, final String email);
-    void resendEmailVerificationToken(final String email);
+    void reverifyInstitutionEmail(final String email);
     void createUser(RegisterUserRequest registerUserRequest) throws MessagingException;
     LoginResponse login(final LoginRequest request) throws MessagingException;
     void verifyUser(final String verificationTokenFromRequest, final String email);
@@ -20,4 +20,5 @@ public interface AuthenticationService {
     void forgotPassword(ForgotPasswordRequest request) throws MessagingException;
     void resetPasswordWithToken(String token, ResetPasswordRequest request);
     void logout(HttpServletRequest request);
+    void revokeSession(String token);
 }

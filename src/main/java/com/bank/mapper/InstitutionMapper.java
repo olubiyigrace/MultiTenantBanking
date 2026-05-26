@@ -24,7 +24,6 @@ public class InstitutionMapper {
                 .adminNin(institutionRequest.getAdminNin())
                 .adminPhone(institutionRequest.getAdminPhone())
                 .adminUsername(institutionRequest.getAdminEmail())
-                .isVerified(false)
                 .adminPassword(passwordEncoder.encode(institutionRequest.getAdminPassword()))
                 .build();
     }

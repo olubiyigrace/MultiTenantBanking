@@ -1,4 +1,4 @@
-package com.bank.common;
+package com.bank.responses;
 
 import lombok.*;
 import org.springframework.data.domain.Page;

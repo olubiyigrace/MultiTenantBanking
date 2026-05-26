@@ -21,7 +21,7 @@ import java.util.UUID;
 @SuperBuilder
 @Table(name = "transactions")
 public class Transaction extends AbstractEntity {
-    private UUID reversedByTransactionId;
+    private String reversedByTransactionId;
     private BigDecimal amount;
     private BigDecimal balanceBefore;
     private BigDecimal balanceAfter;

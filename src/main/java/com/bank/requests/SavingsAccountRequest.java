@@ -31,7 +31,7 @@ public class SavingsAccountRequest {
     private SavingsAccountType savingsAccountType;
 
     @NotNull(message = "Member profile ID is required")
-    private String member_id;
+    private String memberId;
 
 }
 

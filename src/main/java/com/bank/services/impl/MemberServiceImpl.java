@@ -1,7 +1,7 @@
 package com.bank.services.impl;
 
 import com.bank.auth.repository.UserRepository;
-import com.bank.common.PageResponse;
+import com.bank.responses.PageResponse;
 import com.bank.config.InstitutionContext;
 import com.bank.entities.Institution;
 import com.bank.entities.MemberProfile;

@@ -12,7 +12,7 @@ public class SavingsMapper {
                 .targetAmount(savingsAccountRequest.getTargetAmount())
                 .maturityDate(savingsAccountRequest.getMaturityDate())
                 .savingsAccountType(savingsAccountRequest.getSavingsAccountType())
-                .memberId(savingsAccountRequest.getMember_id())
+                .memberId(savingsAccountRequest.getMemberId())
                 .build();
     }
 }

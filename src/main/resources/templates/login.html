@@ -40,6 +40,12 @@
                             <tr>
                                 <td style="padding:5px;">
 
+
+                                    <a th:href="${revokeUrl}"
+                                       style="background:#dc2626; color:#ffffff; padding:12px 18px; text-decoration:none; border-radius:6px; font-weight:bold; margin-right:10px; margin-bottom:5px; display:inline-block;">
+                                        Revoke Session
+                                    </a>
+
                                     <a th:href="${resetUrl}"
                                        style="background:#2563eb; color:#ffffff; padding:12px 18px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">
                                         Reset Password
@@ -47,6 +53,13 @@
 
                                     <p>If the button doesn’t work, please copy and paste the following link into your browser:</p>
                                     <p><a th:href="${resetUrl}" th:text="${resetUrl}">verification link</a></p>
+
+
+
+
+
+                                    <p>If the button doesn’t work, please copy and paste the following link into your browser:</p>
+                                    <p><a th:href="${revokeUrl}" th:text="${revokeUrl}">verification link</a></p>
 
                                 </td>
                             </tr>

@@ -26,21 +26,18 @@ public class LoanApplication extends AbstractEntity {
     @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_loan_application_institution_id"))
     private Institution institution;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_profile_id", foreignKey = @ForeignKey(name = "fk_loan_application_member_profile_id"))
-    private MemberProfile memberProfile;
+    @ManyToOne
+    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(name = "fk_loan_application_member_id"))
+    private MemberProfile member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "loan_product_id", foreignKey = @ForeignKey(name = "fk_loan_application_loan_product_id"))
-    private LoanProduct loanProduct;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "loan_officer_id", foreignKey = @ForeignKey(name = "fk_loan_application_loan_officer_id"))
-    private User user;
+    private User loanOfficer;
 
     @Enumerated(EnumType.STRING)
     private LoanApplicationStatus loanStatus;
 
+    private String loanProductId;
     private BigDecimal requestedAmount;
     private BigDecimal approvedAmount;
     private Integer tenureMonths;

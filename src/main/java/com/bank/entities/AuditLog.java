@@ -27,7 +27,7 @@ public class AuditLog extends AbstractEntity {
 
     private String entityType;
     private String action;
-    private UUID entityId;
+    private String entityId;
     private String oldValue;
     private String newValue;
     private String ipAddress;

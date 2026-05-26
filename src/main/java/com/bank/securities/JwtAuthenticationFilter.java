@@ -1,7 +1,8 @@
 package com.bank.securities;
 
+import com.bank.auth.UserSession;
+import com.bank.auth.repository.UserSessionRepository;
 import com.bank.config.InstitutionContext;
-import com.bank.config.InstitutionSchemaResolver;
 import com.bank.exceptions.UnauthorizedException;
 import com.bank.auth.logout.LogoutTokenRepository;
 import jakarta.servlet.FilterChain;
@@ -20,14 +21,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
-    private final InstitutionSchemaResolver institutionSchemaResolver;
     private final LogoutTokenRepository logoutTokenRepository;
+    private final UserSessionRepository userSessionRepository;
 
     @Override
     protected void doFilterInternal(final HttpServletRequest request,
@@ -56,11 +58,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 if (institutionId != null) {
                     InstitutionContext.setCurrentInstitution(institutionId);
-
-                    final String schemaName =
-                            institutionSchemaResolver.resolveInstitutionSchema(institutionId);
-
-                    InstitutionContext.setCurrentSchema(schemaName);
                 }
                 if (userAccountType == null || userAccountType.isBlank()) {
                     log.warn("Missing userAccountType in JWT for userId={}", userId);
@@ -77,6 +74,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
+
+                Optional<UserSession> session = userSessionRepository.findByAccessToken(jwt);
+                if (session.isPresent() && session.get().isRevoked()) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Session has been revoked");
+                    return;
+                }
+
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 log.debug(
                         "User authenticated for user ID:{}, institution: {}, role: {}",
