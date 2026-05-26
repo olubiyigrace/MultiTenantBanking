@@ -1,5 +1,7 @@
 package com.bank.controllers;
 
+import com.bank.auth.requests.RegisterUserRequest;
+import com.bank.auth.service.AuthenticationService;
 import com.bank.responses.PageResponse;
 import com.bank.enums.ProfileStatus;
 import com.bank.requests.LoanProductRequest;
@@ -8,6 +10,7 @@ import com.bank.services.LoanProductService;
 import com.bank.services.MemberService;
 import com.bank.services.SavingsService;
 import com.bank.utils.ApiResponse;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +28,13 @@ public class InstitutionAdminController {
     private final LoanProductService loanProductService;
     private final MemberService memberService;
     private final SavingsService savingsService;
+    private final AuthenticationService authenticationService;
 
+    @PostMapping("/register-user")
+    public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody final RegisterUserRequest registerUserRequest) throws MessagingException {
+        authenticationService.createUser(registerUserRequest);
+        return ResponseEntity.ok(ApiResponse.success(true, "Almost there! Check your email to complete your registration.", null));
+    }
 
     @PostMapping("/create-products")
     public ResponseEntity<ApiResponse<String>> create(@Valid @RequestBody LoanProductRequest loanProductRequest){

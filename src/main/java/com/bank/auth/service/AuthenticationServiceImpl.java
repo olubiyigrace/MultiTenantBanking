@@ -82,7 +82,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         emailService.sendVerificationEmail(
                 registerInstitutionRequest.getInstitutionEmail(),
                 "Verify your account",
-                "verification",
+                "institutionverification",
                 model
         );
     }
@@ -163,13 +163,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
 
         Map<String, Object> model = new HashMap<>();
-        model.put("institutionName", registerUserRequest.getName());
+        model.put("name", registerUserRequest.getName());
         model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?token=" + emailVerificationToken);
 
         emailService.sendVerificationEmail(
                 registerUserRequest.getEmail(),
                 "Verify your account",
-                "verification",
+                "userverification",
                 model
         );
     }

@@ -13,9 +13,9 @@ import com.bank.responses.*;
 import com.bank.services.EmailService;
 import com.bank.services.InstitutionService;
 import com.bank.mapper.InstitutionMapper;
-import com.bank.services.ProvisioningService;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,6 +34,7 @@ import java.util.*;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class InstitutionServiceImpl implements InstitutionService {
     private final InstitutionRepository institutionRepository;
     private final UserRepository userRepository;
@@ -86,7 +87,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         emailService.sendVerificationEmail(
                 institution.getAdminEmail(),
                 "Verify your account",
-                "verification",
+                "userverification",
                 model
         );
     }
