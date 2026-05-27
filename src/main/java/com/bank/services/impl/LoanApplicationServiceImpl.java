@@ -1,8 +1,8 @@
 package com.bank.services.impl;
 
+import com.bank.auth.repository.UserRepository;
 import com.bank.auth.util.CurrentUserUtil;
 import com.bank.config.InstitutionContext;
-import com.bank.controllers.LoanOfficerController;
 import com.bank.entities.*;
 import com.bank.enums.LoanApplicationStatus;
 import com.bank.enums.UserAccountType;
@@ -13,15 +13,18 @@ import com.bank.repositories.LoanApplicationRepository;
 import com.bank.repositories.LoanProductRepository;
 import com.bank.repositories.MemberRepository;
 import com.bank.requests.LoanApplicationRequest;
+import com.bank.responses.LoanApplicationResponse;
+import com.bank.responses.PageResponse;
 import com.bank.services.LoanApplicationService;
-import com.sun.jdi.request.DuplicateRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.Optional;
 
 
 @Service
@@ -33,6 +36,8 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     private final MemberRepository memberRepository;
     private final LoanProductRepository loanProductRepository;
     private final CurrentUserUtil currentUserUtil;
+    private final UserRepository userRepository;
+
 
     @Override
     public void createApplication(LoanApplicationRequest loanApplicationRequest) {
@@ -84,11 +89,81 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             log.debug("Cannot apply for a loan.");
             throw new DuplicateResourceException("Cannot apply for a loan.");
         }
+
+        User loanOfficer = userRepository.findFirstByInstitutionIdAndUserAccountType(institutionId, UserAccountType.LOAN_OFFICER)
+                .orElseThrow(() -> new InvalidRequestException("No loan officer found for this institution"));
+
         LoanApplication loanApplication = loanApplicationMapper.toEntity(loanApplicationRequest);
         loanApplication.setInstitution(Institution.builder().id(institutionId).build());
         loanApplication.setMember(MemberProfile.builder().id(existingMember.getId()).build());
+        loanApplication.setLoanOfficer(User.builder().id(loanOfficer.getId()).build());
         loanApplication.setLoanApplicationStatus(LoanApplicationStatus.PENDING);
         loanApplicationRepository.save(loanApplication);
+    }
+
+    @Override
+    public PageResponse<LoanApplicationResponse> getAllApplications(int page, int size) {
+        final PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        final Page<LoanApplication> loanApplications = loanApplicationRepository.findAll(pageRequest);
+        final Page<LoanApplicationResponse> loanApplicationResponses = loanApplications.map(loanApplicationMapper::toResponse);
+        return PageResponse.of(loanApplicationResponses);
+    }
+
+
+
+    //    private BigDecimal approvedAmount;
+//    private Integer tenureMonths;
+//    private BigDecimal interestRatePercent;
+//    private String interestType;
+//    private BigDecimal totalInterest;
+//    private BigDecimal totalRepayable;
+//    private BigDecimal monthlyInstallment;
+//    private BigDecimal processingFee;
+
+
+    @Override
+    public void reviewLoanApplication(String loanApplicationId) {
+        User userId = currentUserUtil.getLoggedInUser();
+
+        Optional<LoanApplication> loanApplication = loanApplicationRepository.findById(loanApplicationId);
+        if(loanApplication.isEmpty()){
+            log.debug("Loan Application with the id '{}' does not exist", loanApplicationId);
+            throw new InvalidRequestException("Loan Application with the id '" + loanApplicationId + "' does not exist");
+        }
+        LoanApplication existingApplication = loanApplication.get();
+        existingApplication.setReviewedBy(userId.getName());
+        existingApplication.setReviewedAt(LocalDateTime.now());
+        existingApplication.setLoanApplicationStatus(LoanApplicationStatus.UNDER_REVIEW);
+        loanApplicationRepository.save(existingApplication);
+    }
+
+    @Override
+    public void approveLoan(String loanApplicationId) {
+    }
+
+    @Override
+    public void rejectLoan(String loanApplicationId) {
+
+    }
+
+    @Override
+    public void disburseLoan(String loanApplicationId) {
+
+    }
+
+    @Override
+    public void checkIfRepaid(String loanApplicationId) {
+
+    }
+
+    @Override
+    public void addDefaulter(String loanApplicationId) {
+
+    }
+
+    @Override
+    public void writeOff(String loanApplicationId) {
+
     }
 }
 

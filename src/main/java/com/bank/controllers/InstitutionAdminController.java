@@ -7,10 +7,7 @@ import com.bank.responses.PageResponse;
 import com.bank.enums.ProfileStatus;
 import com.bank.requests.LoanProductRequest;
 import com.bank.responses.*;
-import com.bank.services.InstitutionService;
-import com.bank.services.LoanProductService;
-import com.bank.services.MemberService;
-import com.bank.services.SavingsService;
+import com.bank.services.*;
 import com.bank.utils.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -32,6 +29,7 @@ public class InstitutionAdminController {
     private final SavingsService savingsService;
     private final AuthenticationService authenticationService;
     private final InstitutionService institutionService;
+    private final LoanApplicationService loanApplicationService;
 
     @PostMapping("/register-user")
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody RegisterUserRequest registerUserRequest)
@@ -139,5 +137,19 @@ public class InstitutionAdminController {
             @RequestParam(value = "year", required = false) final Year year) {
         return ResponseEntity.ok(ApiResponse.success(true, "Total interest calculated successfully",
                 savingsService.getTotalInterestCollected(month, year)));
+    }
+
+    @GetMapping("/all-loan-applications")
+    public ResponseEntity<ApiResponse<PageResponse<LoanApplicationResponse>>> getAllLoanApplications(
+            @RequestParam(name = "page", defaultValue = "0") final int page,
+            @RequestParam(name = "size", defaultValue = "10") final int size) {
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan Applications retrieved successfully",
+                loanApplicationService.getAllApplications(page, size)));
+    }
+
+    @PostMapping("/review")
+    public ResponseEntity<ApiResponse<String>> review(@RequestParam String loanApplicationId){
+        loanApplicationService.reviewLoan(loanApplicationId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review", null));
     }
 }

@@ -2,10 +2,8 @@ package com.bank.mapper;
 
 import com.bank.entities.LoanApplication;
 import com.bank.enums.LoanApplicationStatus;
-import com.bank.enums.UserAccountType;
 import com.bank.requests.LoanApplicationRequest;
 import com.bank.responses.LoanApplicationResponse;
-import com.bank.responses.LoanRejectionResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,23 +19,10 @@ public class LoanApplicationMapper {
     public LoanApplicationResponse toResponse(LoanApplication loanApplication){
         return LoanApplicationResponse.builder()
                 .loanProductId(loanApplication.getLoanProductId())
-                .requestedAmount(loanApplication.getRequestedAmount())
-                .approvedAmount(loanApplication.getApprovedAmount())
-                .tenureMonths(loanApplication.getTenureMonths())
+                .id(loanApplication.getId())
+                .loanApplicationStatus(LoanApplicationStatus.PENDING)
                 .purpose(loanApplication.getPurpose())
-                .interestRatePercent(loanApplication.getInterestRatePercent())
-                .interestType(loanApplication.getInterestType())
-                .totalInterest(loanApplication.getTotalInterest())
-                .totalRepayable(loanApplication.getTotalRepayable())
-                .monthlyInstallment(loanApplication.getMonthlyInstallment())
-                .processingFee(loanApplication.getProcessingFee())
-                .build();
-    }
-    public LoanRejectionResponse entityToResponse(LoanApplication loanApplication){
-        return LoanRejectionResponse.builder()
-                .loanProductId(loanApplication.getLoanProductId())
-                .loanApplicationStatus(loanApplication.getLoanApplicationStatus())
-                .rejectionReason(loanApplication.getRejectionReason())
+                .requestedAmount(loanApplication.getRequestedAmount())
                 .build();
     }
 }

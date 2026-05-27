@@ -1,6 +1,7 @@
 package com.bank.auth.repository;
 
 import com.bank.entities.User;
+import com.bank.enums.UserAccountType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,5 @@ public interface UserRepository extends JpaRepository<User, String>{
     Optional<User> findByUsername(String username);
     Optional<User> findById(String id);
     Optional<User> findByEmail(String email);
+    Optional<User> findFirstByInstitutionIdAndUserAccountType(String institutionId, UserAccountType userAccountType);
 }

@@ -50,7 +50,7 @@ public class LoanApplication extends AbstractEntity {
     private BigDecimal processingFee;
     private BigDecimal netDisbursement;
     private String rejectionReason;
-    private UUID reviewedBy;
+    private String reviewedBy;
 
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
     private LocalDateTime disbursedAt;
