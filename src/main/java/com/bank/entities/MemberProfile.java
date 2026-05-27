@@ -2,8 +2,6 @@ package com.bank.entities;
 
 import com.bank.common.AbstractEntity;
 import com.bank.enums.ProfileStatus;
-import com.bank.enums.SavingsAccountType;
-import com.bank.enums.UserAccountType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter
@@ -53,9 +52,8 @@ public class MemberProfile extends AbstractEntity {
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_member_profile_user_id"))
     private User user;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "savings_account_id", foreignKey = @ForeignKey(name = "fk_member_profile_savings_account_id"))
-    private SavingsAccount savingsAccount;
+    @OneToMany(mappedBy = "member")
+    private List<SavingsAccount> savingsAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_member_profile_institution_id"))

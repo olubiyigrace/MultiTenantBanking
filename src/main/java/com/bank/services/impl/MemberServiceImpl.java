@@ -3,8 +3,6 @@ package com.bank.services.impl;
 import com.bank.auth.repository.UserRepository;
 import com.bank.entities.SavingsAccount;
 import com.bank.enums.SavingsAccountType;
-import com.bank.exceptions.InvalidRequestException;
-import com.bank.repositories.SavingsRepository;
 import com.bank.responses.PageResponse;
 import com.bank.config.InstitutionContext;
 import com.bank.entities.Institution;
@@ -38,51 +36,47 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final MemberMapper memberMapper;
     private final UserRepository userRepository;
-    private final SavingsRepository savingsRepository;
 
 
     @Transactional
-    @Override
     public void createMember(MemberRequest memberRequest) {
         final String institutionId = InstitutionContext.getCurrentInstitution();
 
-       Optional<MemberProfile> existingMember = memberRepository.findByBvn(memberRequest.getBvn());
-        if(existingMember.isPresent()){
+        Optional<MemberProfile> existingMember = memberRepository.findByBvn(memberRequest.getBvn());
+        if (existingMember.isPresent()) {
             log.debug("Member already exists");
             throw new DuplicateRequestException("Member already exists");
         }
+
         Optional<User> existingUser = userRepository.findByEmail(memberRequest.getRegisterUserRequest().getEmail());
-        if(existingUser.isPresent()){
+        if (existingUser.isPresent()) {
             log.debug("User already exists");
             throw new DuplicateRequestException("User already exists");
         }
 
-        MemberProfile newMember = memberMapper.toEntity(memberRequest);
-        newMember.setMemberNumber(generateMemberNumber());
+        MemberProfile member = memberMapper.toEntity(memberRequest);
+        member.setMemberNumber(generateMemberNumber());
 
-        Institution institution = Institution.builder().id(institutionId).build();
-        newMember.setInstitution(institution);
-        newMember.getSavingsAccount().setInstitution(institution);
-        newMember.getSavingsAccount().setMember(MemberProfile.builder().id(newMember.getId()).build());
-        newMember.getUser().setInstitution(institution);
+        Institution institution = Institution.builder()
+                .id(institutionId)
+                .build();
 
-        newMember.getSavingsAccount().setAccountNumber(generateAccountNumber());
-        newMember.getSavingsAccount().setInterestRatePercent(BigDecimal.valueOf(0.01));
-        SavingsAccount newSavingsAccount = savingsRepository.save(newMember.getSavingsAccount());
-        newMember.setSavingsAccount(newSavingsAccount);
-        User newUser = userRepository.save(newMember.getUser());
-        newMember.setUser(newUser);
+        member.setInstitution(institution);
+        member.getUser().setInstitution(institution);
 
-        memberRepository.save(newMember);
-    }
+        SavingsAccount savingsAccount = SavingsAccount.builder()
+                .accountNumber(generateAccountNumber())
+                .balance(memberRequest.getSavingsAccountRequest().getBalance())
+                .targetAmount(memberRequest.getSavingsAccountRequest().getTargetAmount())
+                .maturityDate(memberRequest.getSavingsAccountRequest().getMaturityDate())
+                .interestRatePercent(BigDecimal.valueOf(0.01))
+                .savingsAccountType(SavingsAccountType.REGULAR)
+                .member(member)
+                .institution(institution)
+                .build();
 
-    private String generateAccountNumber() {
-        SecureRandom random = new SecureRandom();
-        StringBuilder accountNumber = new StringBuilder();
-        for (int i = 0; i < 9; i++) {
-            accountNumber.append(random.nextInt(10));
-        }
-        return accountNumber.toString();
+        member.getSavingsAccount().add(savingsAccount);
+        memberRepository.save(member);
     }
 
     @Override
@@ -99,6 +93,12 @@ public class MemberServiceImpl implements MemberService {
         return PageResponse.of(memberResponses);
     }
 
+    @Override
+    public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User with the username '" + username + "' not found"));
+    }
+
     private String generateMemberNumber() {
         MemberProfile lastMember = memberRepository.findTopByOrderByCreatedAtDesc().orElse(null);
         if (lastMember == null) {
@@ -110,10 +110,13 @@ public class MemberServiceImpl implements MemberService {
         return String.format("M%013d", nextNumber);
     }
 
-    @Override
-    public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User with the username '" + username + "' not found"));
+    private String generateAccountNumber() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder accountNumber = new StringBuilder();
+        for (int i = 0; i < 9; i++) {
+            accountNumber.append(random.nextInt(10));
+        }
+        return accountNumber.toString();
     }
 }
 

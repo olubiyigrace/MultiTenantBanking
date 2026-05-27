@@ -3,6 +3,7 @@ package com.bank.requests;
 import com.bank.auth.requests.RegisterUserRequest;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -50,11 +51,11 @@ public class MemberRequest {
     @Column(updatable = false)
     private LocalDate dateOfBirth;
 
-    @NotNull(message = "User cannot be null")
-    @Column(updatable = false)
+    @NotNull(message = "User details are required")
+    @Valid
     private RegisterUserRequest registerUserRequest;
 
-    @NotNull(message = "Savings account cannot be null")
-    @Column(updatable = false)
+    @NotNull(message = "Savings account details are required")
+    @Valid
     private SavingsAccountRequest savingsAccountRequest;
 }

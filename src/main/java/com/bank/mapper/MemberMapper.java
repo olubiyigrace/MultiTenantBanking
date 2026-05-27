@@ -41,12 +41,6 @@ public class MemberMapper {
                         .email(memberRequest.getRegisterUserRequest().getEmail())
                         .userAccountType(UserAccountType.MEMBER)
                         .build())
-                .savingsAccount(SavingsAccount.builder()
-                        .balance(memberRequest.getSavingsAccountRequest().getBalance())
-                        .targetAmount(memberRequest.getSavingsAccountRequest().getTargetAmount())
-                        .maturityDate(memberRequest.getSavingsAccountRequest().getMaturityDate())
-                        .savingsAccountType(SavingsAccountType.REGULAR)
-                        .build())
                 .build();
     }
 

@@ -44,6 +44,7 @@ public class SavingsAccount extends AbstractEntity {
     @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_savings_account_institution_id"))
     private Institution institution;
 
-    @OneToOne(mappedBy = "savingsAccount")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(name = "fk_savings_account_member_profile_id"))
     private MemberProfile member;
 }

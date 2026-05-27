@@ -97,6 +97,41 @@ create table logout_tokens
 
 
 
+create table member_profiles
+(
+    id                varchar(255)   not null primary key,
+    created_at        timestamp(6)   not null,
+    member_number     varchar(255)   not null unique,
+    bvn               varchar(255)   not null unique,
+    employment_status varchar(255)   not null,
+    next_of_kin_name  varchar(255)   not null,
+    next_of_kin_phone varchar(50)    not null,
+    monthly_income    numeric(38, 2) not null,
+    address           text           not null,
+    date_of_birth     date           not null,
+    institution_id    varchar(255)   not null,
+    user_id           varchar(255)   not null,
+    profile_status    varchar(255)
+        constraint member_profiles_profile_status_check
+            check (
+                (profile_status)::text = ANY (
+        ARRAY[
+        ('ACTIVE':: character varying)::text,
+        ('SUSPENDED':: character varying)::text,
+        ('EXITED':: character varying)::text
+        ]
+        )
+) ,
+    constraint fk_member_profile_institution_id
+        foreign key (institution_id)
+        references institutions(id),
+    constraint fk_member_profile_user_id
+        foreign key (user_id)
+         references users(id)
+);
+
+
+
 create table savings_accounts
 (
     id                    varchar(255)   not null primary key,
@@ -132,49 +167,13 @@ create table savings_accounts
         ]
         )
 ) ,
+    constraint fk_savings_account_member_id
+        foreign key (member_id)
+        references member_profiles(id),
     constraint fk_savings_account_institution_id
         foreign key (institution_id)
         references institutions(id)
 );
-
-
-create table member_profiles
-(
-    id                 varchar(255)   not null primary key,
-    created_at         timestamp(6)   not null,
-    member_number      varchar(255)   not null unique,
-    bvn                varchar(255)   not null unique,
-    employment_status  varchar(255)   not null,
-    next_of_kin_name   varchar(255)   not null,
-    next_of_kin_phone  varchar(50)    not null,
-    monthly_income     numeric(38, 2) not null,
-    address            text           not null,
-    date_of_birth      date           not null,
-    institution_id     varchar(255)   not null,
-    user_id            varchar(255)   not null,
-    savings_account_id varchar(255)   not null,
-    profile_status     varchar(255)
-        constraint member_profiles_profile_status_check
-            check (
-                (profile_status)::text = ANY (
-        ARRAY[
-        ('ACTIVE':: character varying)::text,
-        ('SUSPENDED':: character varying)::text,
-        ('EXITED':: character varying)::text
-        ]
-        )
-) ,
-    constraint fk_member_profile_institution_id
-        foreign key (institution_id)
-        references institutions(id),
-    constraint fk_member_profile_savings_account_id
-        foreign key (savings_account_id)
-        references savings_accounts(id),
-    constraint fk_member_profile_user_id
-        foreign key (user_id)
-         references users(id)
-);
-
 
 
 create table loan_applications

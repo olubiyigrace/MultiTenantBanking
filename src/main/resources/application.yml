@@ -8,7 +8,7 @@ spring:
 
   mail:
     host: smtp.gmail.com
-    port: 465
+    port: 587
     username: multitenantbank@gmail.com
     password: dhmj rivz ftmg osoo
 
@@ -17,12 +17,12 @@ spring:
         smtp:
           auth: true
 
-#          starttls:
-#            enable: true
-#            required: true
+          starttls:
+            enable: true
+            required: true
 
           ssl:
-            enable: true
+            enable: false
 
   datasource:
     url: jdbc:postgresql://localhost:5432/multitenant_db
