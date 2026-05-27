@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoanOfficerController {
     private final MemberService memberService;
 
-    @PostMapping("/register-member")
+    @PostMapping("/register-members")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody MemberRequest memberRequest){
         memberService.createMember(memberRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "Member registered successfully!", null));
