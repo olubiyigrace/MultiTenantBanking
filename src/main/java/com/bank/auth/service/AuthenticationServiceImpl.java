@@ -154,13 +154,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         final User newUser = userMapper.toEntity(registerUserRequest);
         newUser.setInstitution(Institution.builder().id(institutionId).build());
-        userRepository.save(newUser);
-        log.info("User created successfully!");
 
         final User user = userMapper.toEntity(registerUserRequest);
         String emailVerificationToken = UUID.randomUUID().toString();
         user.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
         user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(newUser);
+        log.info("User created successfully!");
 
         Map<String, Object> model = new HashMap<>();
         model.put("name", registerUserRequest.getName());

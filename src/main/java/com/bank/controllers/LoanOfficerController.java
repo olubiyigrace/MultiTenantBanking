@@ -3,6 +3,7 @@ package com.bank.controllers;
 import com.bank.requests.MemberRequest;
 import com.bank.services.MemberService;
 import com.bank.utils.ApiResponse;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class LoanOfficerController {
     private final MemberService memberService;
 
     @PostMapping("/register-members")
-    public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody MemberRequest memberRequest){
+    public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody MemberRequest memberRequest) throws MessagingException {
         memberService.createMember(memberRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "Member registered successfully!", null));
     }
