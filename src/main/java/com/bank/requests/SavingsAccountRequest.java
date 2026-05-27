@@ -29,10 +29,6 @@ public class SavingsAccountRequest {
 
     @NotNull(message = "Savings account type is required")
     private SavingsAccountType savingsAccountType;
-
-    @NotNull(message = "Member profile ID is required")
-    private String memberId;
-
 }
 
 

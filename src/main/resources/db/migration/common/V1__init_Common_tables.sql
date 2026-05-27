@@ -153,7 +153,7 @@ create table savings_accounts
     interest_rate_percent numeric(5, 2)  not null,
     institution_id        varchar(255)   not null,
     target_amount         numeric(38, 2),
-    savings_status        varchar(255)   not null
+    savings_status        varchar(255)
         constraint savings_accounts_savings_status_check
             check (
                 (savings_status)::text = ANY (
@@ -163,17 +163,18 @@ create table savings_accounts
         ('CLOSED':: character varying)::text
         ]
         )
-) ,
-    savings_account_type            varchar(255) not null
+),
+    savings_account_type  varchar(255)   not null
         constraint savings_accounts_savings_account_type_check
             check (
                 (savings_account_type)::text = ANY (
         ARRAY[
-        ('REGULAR'::character varying)::text,
-        ('TARGET'::character varying)::text,
-        ('FIXED'::character varying)::text
+        ('REGULAR':: character varying)::text,
+        ('TARGET':: character varying)::text,
+        ('FIXED':: character varying)::text
         ]
-        )),
+        )
+) ,
     constraint fk_savings_account_institution_id
         foreign key (institution_id)
         references institutions(id)

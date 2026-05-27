@@ -28,7 +28,6 @@ public class SavingsAccount extends AbstractEntity {
     private BigDecimal interestRatePercent;
     private BigDecimal targetAmount;
     private LocalDate maturityDate;
-    private String memberId;
 
     @Version
     private Integer version;
@@ -45,4 +44,8 @@ public class SavingsAccount extends AbstractEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_savings_account_institution_id"))
     private Institution institution;
+
+    @ManyToOne
+    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(name = "fk_loan_application_member_id"))
+    private MemberProfile member;
 }

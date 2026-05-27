@@ -1,9 +1,11 @@
 package com.bank.services.impl;
 
+import com.bank.auth.util.CurrentUserUtil;
 import com.bank.config.InstitutionContext;
 import com.bank.entities.Institution;
 import com.bank.entities.MemberProfile;
 import com.bank.entities.SavingsAccount;
+import com.bank.entities.User;
 import com.bank.enums.SavingsAccountType;
 import com.bank.enums.SavingsStatus;
 import com.bank.exceptions.InvalidRequestException;
@@ -40,12 +42,15 @@ public class SavingsServiceImpl implements SavingsService {
     private final MemberRepository memberRepository;
     private final JdbcTemplate jdbcTemplate;
     private final InstitutionRepository institutionRepository;
+    private final CurrentUserUtil currentUserUtil;
 
     @Override
     public void create(SavingsAccountRequest savingsAccountRequest) {
         final String institutionId = InstitutionContext.getCurrentInstitution();
         log.info("Creating savings account");
-        MemberProfile existingMember = memberRepository.findById(savingsAccountRequest.getMemberId())
+
+        User userId = currentUserUtil.getLoggedInUser();
+        MemberProfile existingMember = memberRepository.findByUserId(userId.getId())
                 .orElseThrow(() -> {
                     log.debug("Member does not exist");
                     return new InvalidRequestException("Member does not exist");
@@ -81,6 +86,7 @@ public class SavingsServiceImpl implements SavingsService {
         newSavingsAccount.setAccountNumber(generateAccountNumber());
         newSavingsAccount.setInterestRatePercent(BigDecimal.valueOf(4.50));
         newSavingsAccount.setInstitution(Institution.builder().id(institutionId).build());
+        newSavingsAccount.setMember(MemberProfile.builder().id(existingMember.getId()).build());
         savingsRepository.save(newSavingsAccount);
 
         log.info("Savings account created successfully");
@@ -192,23 +198,23 @@ public class SavingsServiceImpl implements SavingsService {
         Institution institution = institutionRepository.findById(institutionId)
                 .orElseThrow(() -> new InvalidRequestException("Institution does not exist"));
 
-            String schema = institution.getInstitutionName().toLowerCase();
-            BigDecimal loansOutstanding = getTotalLoansOutstanding(schema);
+        String schema = institution.getInstitutionName().toLowerCase();
+        BigDecimal loansOutstanding = getTotalLoansOutstanding(schema);
 
-                    return TotalLoansOutstandingResponse.builder()
-                            .institutionId(institution.getId())
-                            .institutionName(schema)
-                            .totalLoansOutstanding(loansOutstanding)
-                            .build();
+        return TotalLoansOutstandingResponse.builder()
+                .institutionId(institution.getId())
+                .institutionName(schema)
+                .totalLoansOutstanding(loansOutstanding)
+                .build();
 
     }
 
     private BigDecimal getTotalLoansOutstanding(String schema) {
         try {
             String sql = """
-            SELECT COALESCE(SUM(balance_remaining), 0)
-            FROM %s.loan_repayment_schedule
-            """.formatted(schema);
+                    SELECT COALESCE(SUM(balance_remaining), 0)
+                    FROM %s.loan_repayment_schedule
+                    """.formatted(schema);
             BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
             return total != null ? total : BigDecimal.ZERO;
         } catch (Exception e) {
@@ -238,9 +244,9 @@ public class SavingsServiceImpl implements SavingsService {
     private BigDecimal getTotalLoansOverdue(String schema) {
         try {
             String sql = """
-            SELECT COALESCE(SUM(loan_repayment_status.OVERDUE), 0)
-            FROM %s.loan_repayment_schedule
-            """.formatted(schema);
+                    SELECT COALESCE(SUM(loan_repayment_status.OVERDUE), 0)
+                    FROM %s.loan_repayment_schedule
+                    """.formatted(schema);
             BigDecimal total = jdbcTemplate.queryForObject(sql, BigDecimal.class);
             return total != null ? total : BigDecimal.ZERO;
         } catch (Exception e) {
@@ -283,8 +289,7 @@ public class SavingsServiceImpl implements SavingsService {
             }
             BigDecimal total = jdbcTemplate.queryForObject(sqlBuilder.toString(), BigDecimal.class, params.toArray());
             return total != null ? total : BigDecimal.ZERO;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return BigDecimal.ZERO;
         }
     }
