@@ -96,49 +96,6 @@ create table logout_tokens
 );
 
 
-create table member_profiles
-(
-    id                   varchar(255)        not null primary key,
-    created_at           timestamp(6)        not null,
-    member_number        varchar(255)        not null unique,
-    bvn                  varchar(255)        not null unique,
-    employment_status    varchar(255)        not null,
-    next_of_kin_name     varchar(255)        not null,
-    next_of_kin_phone    varchar(50)         not null,
-    monthly_income       numeric(38, 2)      not null,
-    address              text                not null,
-    date_of_birth        date                not null,
-    institution_id       varchar(255)        not null,
-    user_id              varchar(255) unique not null,
-    savings_account_type varchar(255)        not null
-        constraint member_profiles_savings_account_type_check
-            check (
-                (savings_account_type)::text = ANY (
-        ARRAY[
-        ('REGULAR':: character varying)::text,
-        ('TARGET':: character varying)::text,
-        ('FIXED':: character varying)::text
-        ]
-        )
-) ,
-    profile_status              varchar(255) not null
-        constraint member_profiles_profile_status_check
-            check (
-                (profile_status)::text = ANY (
-        ARRAY[
-        ('ACTIVE'::character varying)::text,
-        ('SUSPENDED'::character varying)::text,
-        ('EXITED'::character varying)::text
-        ]
-        )),
-    constraint fk_member_profile_institution_id
-        foreign key (institution_id)
-        references institutions(id),
-    constraint fk_member_profile_user_id
-        foreign key (user_id)
-         references users(id)
-);
-
 
 create table savings_accounts
 (
@@ -163,7 +120,7 @@ create table savings_accounts
         ('CLOSED':: character varying)::text
         ]
         )
-),
+) ,
     savings_account_type  varchar(255)   not null
         constraint savings_accounts_savings_account_type_check
             check (
@@ -179,6 +136,45 @@ create table savings_accounts
         foreign key (institution_id)
         references institutions(id)
 );
+
+
+create table member_profiles
+(
+    id                 varchar(255)   not null primary key,
+    created_at         timestamp(6)   not null,
+    member_number      varchar(255)   not null unique,
+    bvn                varchar(255)   not null unique,
+    employment_status  varchar(255)   not null,
+    next_of_kin_name   varchar(255)   not null,
+    next_of_kin_phone  varchar(50)    not null,
+    monthly_income     numeric(38, 2) not null,
+    address            text           not null,
+    date_of_birth      date           not null,
+    institution_id     varchar(255)   not null,
+    user_id            varchar(255)   not null,
+    savings_account_id varchar(255)   not null,
+    profile_status     varchar(255)
+        constraint member_profiles_profile_status_check
+            check (
+                (profile_status)::text = ANY (
+        ARRAY[
+        ('ACTIVE':: character varying)::text,
+        ('SUSPENDED':: character varying)::text,
+        ('EXITED':: character varying)::text
+        ]
+        )
+) ,
+    constraint fk_member_profile_institution_id
+        foreign key (institution_id)
+        references institutions(id),
+    constraint fk_member_profile_savings_account_id
+        foreign key (savings_account_id)
+        references savings_accounts(id),
+    constraint fk_member_profile_user_id
+        foreign key (user_id)
+         references users(id)
+);
+
 
 
 create table loan_applications

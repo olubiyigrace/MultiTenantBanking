@@ -22,9 +22,6 @@ import java.time.LocalDate;
 @SuperBuilder
 @Table(name = "member_profiles")
 public class MemberProfile extends AbstractEntity {
-    @Enumerated(EnumType.STRING)
-    private SavingsAccountType savingsAccountType = SavingsAccountType.REGULAR;
-
     @Column(nullable = false, unique = true)
     private String bvn;
 
@@ -55,6 +52,10 @@ public class MemberProfile extends AbstractEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_member_profile_user_id"))
     private User user;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "savings_account_id", foreignKey = @ForeignKey(name = "fk_member_profile_savings_account_id"))
+    private SavingsAccount savingsAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_member_profile_institution_id"))

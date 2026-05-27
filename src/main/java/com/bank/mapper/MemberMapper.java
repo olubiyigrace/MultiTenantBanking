@@ -1,8 +1,8 @@
 package com.bank.mapper;
 
 import com.bank.auth.response.UserResponse;
-import com.bank.entities.Institution;
 import com.bank.entities.MemberProfile;
+import com.bank.entities.SavingsAccount;
 import com.bank.entities.User;
 import com.bank.enums.ProfileStatus;
 import com.bank.enums.SavingsAccountType;
@@ -31,7 +31,6 @@ public class MemberMapper {
                 .dateOfBirth(memberRequest.getDateOfBirth())
                 .createdAt(LocalDateTime.now())
                 .profileStatus(ProfileStatus.ACTIVE)
-                .savingsAccountType(SavingsAccountType.REGULAR)
                 .user(User.builder()
                         .name(memberRequest.getRegisterUserRequest().getName())
                         .username(memberRequest.getRegisterUserRequest().getEmail())
@@ -41,6 +40,12 @@ public class MemberMapper {
                         .isVerified(false)
                         .email(memberRequest.getRegisterUserRequest().getEmail())
                         .userAccountType(UserAccountType.MEMBER)
+                        .build())
+                .savingsAccount(SavingsAccount.builder()
+                        .balance(memberRequest.getSavingsAccountRequest().getBalance())
+                        .targetAmount(memberRequest.getSavingsAccountRequest().getTargetAmount())
+                        .maturityDate(memberRequest.getSavingsAccountRequest().getMaturityDate())
+                        .savingsAccountType(SavingsAccountType.REGULAR)
                         .build())
                 .build();
     }

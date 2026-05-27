@@ -13,7 +13,6 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -45,7 +44,6 @@ public class SavingsAccount extends AbstractEntity {
     @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_savings_account_institution_id"))
     private Institution institution;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(name = "fk_loan_application_member_id"))
+    @OneToOne(mappedBy = "savingsAccount")
     private MemberProfile member;
 }

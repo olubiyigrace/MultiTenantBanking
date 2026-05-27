@@ -53,4 +53,8 @@ public class MemberRequest {
     @NotNull(message = "User cannot be null")
     @Column(updatable = false)
     private RegisterUserRequest registerUserRequest;
+
+    @NotNull(message = "Savings account cannot be null")
+    @Column(updatable = false)
+    private SavingsAccountRequest savingsAccountRequest;
 }

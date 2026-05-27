@@ -1,6 +1,10 @@
 package com.bank.services.impl;
 
 import com.bank.auth.repository.UserRepository;
+import com.bank.entities.SavingsAccount;
+import com.bank.enums.SavingsAccountType;
+import com.bank.exceptions.InvalidRequestException;
+import com.bank.repositories.SavingsRepository;
 import com.bank.responses.PageResponse;
 import com.bank.config.InstitutionContext;
 import com.bank.entities.Institution;
@@ -23,6 +27,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 
+import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.util.Optional;
 
 @Service
@@ -32,29 +38,51 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final MemberMapper memberMapper;
     private final UserRepository userRepository;
+    private final SavingsRepository savingsRepository;
+
 
     @Transactional
     @Override
     public void createMember(MemberRequest memberRequest) {
         final String institutionId = InstitutionContext.getCurrentInstitution();
-        Optional<MemberProfile> findMemberProfile = memberRepository.findByBvn(memberRequest.getBvn());
-        if(findMemberProfile.isPresent()){
+
+       Optional<MemberProfile> existingMember = memberRepository.findByBvn(memberRequest.getBvn());
+        if(existingMember.isPresent()){
             log.debug("Member already exists");
             throw new DuplicateRequestException("Member already exists");
         }
-        Optional<User> findUser = userRepository.findByEmail(memberRequest.getRegisterUserRequest().getEmail());
-        if(findUser.isPresent()){
+        Optional<User> existingUser = userRepository.findByEmail(memberRequest.getRegisterUserRequest().getEmail());
+        if(existingUser.isPresent()){
             log.debug("User already exists");
             throw new DuplicateRequestException("User already exists");
         }
+
         MemberProfile newMember = memberMapper.toEntity(memberRequest);
         newMember.setMemberNumber(generateMemberNumber());
+
         Institution institution = Institution.builder().id(institutionId).build();
         newMember.setInstitution(institution);
+        newMember.getSavingsAccount().setInstitution(institution);
+        newMember.getSavingsAccount().setMember(MemberProfile.builder().id(newMember.getId()).build());
         newMember.getUser().setInstitution(institution);
-        User savedUser = userRepository.save(newMember.getUser());
-        newMember.setUser(savedUser);
+
+        newMember.getSavingsAccount().setAccountNumber(generateAccountNumber());
+        newMember.getSavingsAccount().setInterestRatePercent(BigDecimal.valueOf(0.01));
+        SavingsAccount newSavingsAccount = savingsRepository.save(newMember.getSavingsAccount());
+        newMember.setSavingsAccount(newSavingsAccount);
+        User newUser = userRepository.save(newMember.getUser());
+        newMember.setUser(newUser);
+
         memberRepository.save(newMember);
+    }
+
+    private String generateAccountNumber() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder accountNumber = new StringBuilder();
+        for (int i = 0; i < 9; i++) {
+            accountNumber.append(random.nextInt(10));
+        }
+        return accountNumber.toString();
     }
 
     @Override
