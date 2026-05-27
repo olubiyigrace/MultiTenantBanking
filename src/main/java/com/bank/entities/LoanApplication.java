@@ -35,7 +35,7 @@ public class LoanApplication extends AbstractEntity {
     private User loanOfficer;
 
     @Enumerated(EnumType.STRING)
-    private LoanApplicationStatus loanStatus;
+    private LoanApplicationStatus loanApplicationStatus;
 
     private String loanProductId;
     private BigDecimal requestedAmount;

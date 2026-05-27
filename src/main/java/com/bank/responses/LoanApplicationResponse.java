@@ -16,7 +16,7 @@ import java.util.UUID;
 @Builder
 public class LoanApplicationResponse {
     private String loanProductId;
-    private LoanApplicationStatus loanStatus;
+    private LoanApplicationStatus loanApplicationStatus;
     private BigDecimal requestedAmount;
     private BigDecimal approvedAmount;
     private Integer tenureMonths;

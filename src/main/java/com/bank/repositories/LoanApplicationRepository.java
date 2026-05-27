@@ -5,5 +5,5 @@ import com.bank.enums.LoanApplicationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LoanApplicationRepository extends JpaRepository <LoanApplication, String> {
-    boolean existsByMemberIdAndLoanStatus(String memberId, LoanApplicationStatus loanStatus);
+    boolean existsByMemberIdAndLoanApplicationStatus(String memberId, LoanApplicationStatus loanStatus);
 }

@@ -186,10 +186,10 @@ create table loan_applications
     created_at              timestamp(6)   not null,
     disbursed_at            timestamp(6),
     fully_repaid_at         timestamp(6),
-    reviewed_at             timestamp(6)   not null,
+    reviewed_at             timestamp(6),
     requested_amount        numeric(38, 2) not null,
     approved_amount         numeric(38, 2),
-    tenure_months           integer        not null,
+    tenure_months           integer,
     purpose                 text           not null,
     interest_rate_percent   numeric(5, 2),
     interest_type           varchar(255),
@@ -199,11 +199,11 @@ create table loan_applications
     processing_fee          numeric(38, 2),
     net_disbursement        numeric(38, 2),
     rejection_reason        text,
-    reviewed_by             varchar(255)   not null,
+    reviewed_by             varchar(255),
     member_id               varchar(255)   not null,
     institution_id          varchar(255)   not null,
     loan_product_id         varchar(255)   not null,
-    loan_officer_id         varchar(255)   not null,
+    loan_officer_id         varchar(255),
     loan_application_status varchar(255)   not null
         constraint loan_applications_loan_application_status_check
             check (

@@ -11,6 +11,6 @@ import lombok.Data;
 public class LoanRejectionResponse {
     private String memberId;
     private String loanProductId;
-    private LoanApplicationStatus loanStatus;
+    private LoanApplicationStatus loanApplicationStatus;
     private String rejectionReason;
 }

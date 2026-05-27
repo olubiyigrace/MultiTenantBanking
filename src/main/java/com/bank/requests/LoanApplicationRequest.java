@@ -2,6 +2,7 @@ package com.bank.requests;
 
 import com.bank.entities.LoanProduct;
 import com.bank.entities.MemberProfile;
+import com.bank.entities.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

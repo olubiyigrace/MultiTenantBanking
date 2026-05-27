@@ -1,6 +1,8 @@
 package com.bank.mapper;
 
 import com.bank.entities.LoanApplication;
+import com.bank.enums.LoanApplicationStatus;
+import com.bank.enums.UserAccountType;
 import com.bank.requests.LoanApplicationRequest;
 import com.bank.responses.LoanApplicationResponse;
 import com.bank.responses.LoanRejectionResponse;
@@ -19,7 +21,6 @@ public class LoanApplicationMapper {
     public LoanApplicationResponse toResponse(LoanApplication loanApplication){
         return LoanApplicationResponse.builder()
                 .loanProductId(loanApplication.getLoanProductId())
-                .loanStatus(loanApplication.getLoanStatus())
                 .requestedAmount(loanApplication.getRequestedAmount())
                 .approvedAmount(loanApplication.getApprovedAmount())
                 .tenureMonths(loanApplication.getTenureMonths())
@@ -35,7 +36,7 @@ public class LoanApplicationMapper {
     public LoanRejectionResponse entityToResponse(LoanApplication loanApplication){
         return LoanRejectionResponse.builder()
                 .loanProductId(loanApplication.getLoanProductId())
-                .loanStatus(loanApplication.getLoanStatus())
+                .loanApplicationStatus(loanApplication.getLoanApplicationStatus())
                 .rejectionReason(loanApplication.getRejectionReason())
                 .build();
     }
