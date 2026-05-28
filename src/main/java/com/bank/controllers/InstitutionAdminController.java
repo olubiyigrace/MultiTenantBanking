@@ -143,13 +143,22 @@ public class InstitutionAdminController {
     public ResponseEntity<ApiResponse<PageResponse<LoanApplicationResponse>>> getAllLoanApplications(
             @RequestParam(name = "page", defaultValue = "0") final int page,
             @RequestParam(name = "size", defaultValue = "10") final int size) {
-        return ResponseEntity.ok(ApiResponse.success(true, "Loan Applications retrieved successfully",
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan applications retrieved successfully",
                 loanApplicationService.getAllApplications(page, size)));
     }
 
-    @PostMapping("/review")
-    public ResponseEntity<ApiResponse<String>> review(@RequestParam String loanApplicationId){
-        loanApplicationService.reviewLoan(loanApplicationId);
-        return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review", null));
+    @PostMapping("/review-loan-applications")
+    public ResponseEntity<ApiResponse<String>> review(@RequestParam String loanApplicationId) {
+        loanApplicationService.reviewLoanApplication(loanApplicationId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review",
+                null));
+    }
+
+    @PostMapping("/assign-loan-applications")
+    public ResponseEntity<ApiResponse<String>> assignApplication(@RequestParam String loanApplicationId,
+                                                                 @RequestParam String loanOfficerId) {
+        loanApplicationService.assignApplication(loanApplicationId, loanOfficerId);
+        return ResponseEntity.ok(ApiResponse.success(true,
+                "Loan application successfully assigned to the loan officer", null));
     }
 }

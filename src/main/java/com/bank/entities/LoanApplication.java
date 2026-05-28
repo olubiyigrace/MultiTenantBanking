@@ -1,6 +1,7 @@
 package com.bank.entities;
 
 import com.bank.common.AbstractEntity;
+import com.bank.enums.InterestType;
 import com.bank.enums.LoanApplicationStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -40,10 +41,10 @@ public class LoanApplication extends AbstractEntity {
     private String loanProductId;
     private BigDecimal requestedAmount;
     private BigDecimal approvedAmount;
-    private Integer tenureMonths;
+    private BigDecimal tenureMonths;
     private String purpose;
     private BigDecimal interestRatePercent;
-    private String interestType;
+    private InterestType interestType;
     private BigDecimal totalInterest;
     private BigDecimal totalRepayable;
     private BigDecimal monthlyInstallment;

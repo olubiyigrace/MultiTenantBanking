@@ -24,7 +24,7 @@ public class LoanProduct extends AbstractEntity {
     private BigDecimal minAmount;
     private BigDecimal maxAmount;
     private BigDecimal interestRatePercent;
-    private Integer maxTenureMonths;
+    private BigDecimal maxTenureMonths;
     private Boolean requiresGuarantor;
     private Boolean requiresCollateral;
     private BigDecimal processingFeePercent;

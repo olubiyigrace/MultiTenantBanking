@@ -7,10 +7,9 @@ import com.bank.responses.PageResponse;
 public interface LoanApplicationService {
     void createApplication(LoanApplicationRequest loanApplicationRequest);
     PageResponse<LoanApplicationResponse> getAllApplications(int page, int size);
-    void reviewLoan(String loanApplicationId);
-
     void reviewLoanApplication(String loanApplicationId);
-
+    void assignApplication(String loanApplicationId, String loanOfficerId);
+    PageResponse<LoanApplicationResponse> getAllAssignedApplications(int page, int size);
     void approveLoan(String loanApplicationId);
     void rejectLoan(String loanApplicationId);
     void disburseLoan(String loanApplicationId);
