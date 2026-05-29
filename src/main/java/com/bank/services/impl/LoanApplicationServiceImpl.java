@@ -6,6 +6,7 @@ import com.bank.config.InstitutionContext;
 import com.bank.entities.*;
 import com.bank.enums.LoanApplicationStatus;
 import com.bank.enums.ProfileStatus;
+import com.bank.enums.SavingsStatus;
 import com.bank.enums.UserAccountType;
 import com.bank.exceptions.DuplicateResourceException;
 import com.bank.exceptions.InvalidRequestException;
@@ -14,6 +15,7 @@ import com.bank.mapper.LoanApplicationMapper;
 import com.bank.repositories.LoanApplicationRepository;
 import com.bank.repositories.LoanProductRepository;
 import com.bank.repositories.MemberRepository;
+import com.bank.repositories.SavingsRepository;
 import com.bank.requests.LoanApplicationRequest;
 import com.bank.responses.LoanApplicationResponse;
 import com.bank.responses.PageResponse;
@@ -40,6 +42,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     private final LoanProductRepository loanProductRepository;
     private final CurrentUserUtil currentUserUtil;
     private final UserRepository userRepository;
+    private final SavingsRepository savingsRepository;
 
 
     @Override
@@ -61,6 +64,12 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             throw new InvalidRequestException("You cannot apply for a loan at the moment");
         }
 
+        boolean hasSavings = savingsRepository.existsByMemberIdAndSavingsStatus
+                (existingMember.getId(), SavingsStatus.ACTIVE);
+        if(!hasSavings){
+            throw new InvalidRequestException("Member has no active savings account");
+        }
+
         LoanProduct existingProduct = loanProductRepository.findById(loanApplicationRequest.getLoanProductId())
                 .orElseThrow(() -> new InvalidRequestException("Loan product not found"));
         if (loanApplicationRequest.getRequestedAmount().compareTo(existingProduct.getMinAmount()) < 0) {
@@ -79,7 +88,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             log.debug("Loan purpose does not match with the loan product description");
             throw new InvalidRequestException("Loan purpose does not match with the loan product description");
         }
-
         LoanApplication loanApplication = loanApplicationMapper.toEntity(loanApplicationRequest);
         loanApplication.setInstitution(Institution.builder().id(institutionId).build());
         loanApplication.setMember(MemberProfile.builder().id(existingMember.getId()).build());
@@ -91,34 +99,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     public PageResponse<LoanApplicationResponse> getAllApplications(int page, int size) {
         final PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
         final Page<LoanApplication> loanApplications = loanApplicationRepository.findAll(pageRequest);
-        final Page<LoanApplicationResponse> loanApplicationResponses = loanApplications.map(loanApplicationMapper::toResponse);
-        return PageResponse.of(loanApplicationResponses);
-    }
-
-    @Override
-    public void assignApplication(String loanApplicationId, String loanOfficerId) {
-        String institutionId = InstitutionContext.getCurrentInstitution();
-
-        LoanApplication existingApplication = loanApplicationRepository.findById(loanApplicationId).orElseThrow(() -> new InvalidRequestException("Loan application does not exist"));
-        if (!existingApplication.getLoanApplicationStatus().equals(LoanApplicationStatus.PENDING)) {
-            throw new InvalidRequestException("Only pending loan applications can be assigned");
-        }
-        User loanOfficer = userRepository.findById(loanOfficerId).orElseThrow(() -> new InvalidRequestException("Loan officer not found"));
-        if (!loanOfficer.getUserAccountType().equals(UserAccountType.LOAN_OFFICER)) {
-            throw new InvalidRequestException("User is not a loan officer");
-        }
-        if (!loanOfficer.getInstitution().getId().equals(institutionId)) {
-            throw new UnauthorizedException("Loan officer does not belong to this institution");
-        }
-        existingApplication.setLoanOfficer(loanOfficer);
-        loanApplicationRepository.save(existingApplication);
-    }
-
-    @Override
-    public PageResponse<LoanApplicationResponse> getAllAssignedApplications(int page, int size) {
-        User loggedInUser = currentUserUtil.getLoggedInUser();
-        final PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        final Page<LoanApplication> loanApplications = loanApplicationRepository.findByLoanOfficerId(loggedInUser.getId(), pageRequest);
         final Page<LoanApplicationResponse> loanApplicationResponses = loanApplications.map(loanApplicationMapper::toResponse);
         return PageResponse.of(loanApplicationResponses);
     }
@@ -139,6 +119,35 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         loanApplicationRepository.save(loanApplication);
     }
 
+    @Override
+    public void assignApplication(String loanApplicationId, String loanOfficerId) {
+        String institutionId = InstitutionContext.getCurrentInstitution();
+
+        LoanApplication existingApplication = loanApplicationRepository.findById(loanApplicationId).orElseThrow(()
+                -> new InvalidRequestException("Loan application does not exist"));
+        if (!existingApplication.getLoanApplicationStatus().equals(LoanApplicationStatus.UNDER_REVIEW)) {
+            throw new InvalidRequestException("Only loan applications with UNDER_REVIEW status can be assigned");
+        }
+        User loanOfficer = userRepository.findById(loanOfficerId).orElseThrow(() ->
+                new InvalidRequestException("Loan officer not found"));
+        if (!loanOfficer.getUserAccountType().equals(UserAccountType.LOAN_OFFICER)) {
+            throw new InvalidRequestException("User is not a loan officer");
+        }
+        if (!loanOfficer.getInstitution().getId().equals(institutionId)) {
+            throw new UnauthorizedException("Loan officer does not belong to this institution");
+        }
+        existingApplication.setLoanOfficer(loanOfficer);
+        loanApplicationRepository.save(existingApplication);
+    }
+
+    @Override
+    public PageResponse<LoanApplicationResponse> getAllAssignedApplications(int page, int size) {
+        User loggedInUser = currentUserUtil.getLoggedInUser();
+        final PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        final Page<LoanApplication> loanApplications = loanApplicationRepository.findByLoanOfficerId(loggedInUser.getId(), pageRequest);
+        final Page<LoanApplicationResponse> loanApplicationResponses = loanApplications.map(loanApplicationMapper::toResponse);
+        return PageResponse.of(loanApplicationResponses);
+    }
 
     @Override
     public void approveLoan(String loanApplicationId) {
