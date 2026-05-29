@@ -4,7 +4,6 @@ import com.bank.auth.repository.UserRepository;
 import com.bank.auth.util.CurrentUserUtil;
 import com.bank.config.InstitutionContext;
 import com.bank.entities.*;
-import com.bank.enums.InterestType;
 import com.bank.enums.LoanApplicationStatus;
 import com.bank.enums.UserAccountType;
 import com.bank.exceptions.DuplicateResourceException;
@@ -47,9 +46,14 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         final String institutionId = InstitutionContext.getCurrentInstitution();
         log.info("Creating loan application");
 
-        User userId = currentUserUtil.getLoggedInUser();
-        MemberProfile existingMember = memberRepository.findByUserId(userId.getId()).orElseThrow(() -> new InvalidRequestException("Member not found"));
-        LoanProduct existingProduct = loanProductRepository.findById(loanApplicationRequest.getLoanProductId()).orElseThrow(() -> new InvalidRequestException("Loan product not found"));
+        User user = currentUserUtil.getLoggedInUser();
+
+        MemberProfile existingMember = memberRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new InvalidRequestException("Member not found"));
+
+        LoanProduct existingProduct = loanProductRepository.findById(loanApplicationRequest.getLoanProductId())
+                .orElseThrow(() -> new InvalidRequestException("Loan product not found"));
+
         if (loanApplicationRequest.getRequestedAmount().compareTo(existingProduct.getMinAmount()) < 0) {
             log.debug("Requested amount must be greater than the minimum amount");
             throw new InvalidRequestException("Requested amount must be greater than the minimum amount");
@@ -86,13 +90,17 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         boolean writtenOff = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus(existingMember.getId(), LoanApplicationStatus.WRITTEN_OFF);
         if (writtenOff) {
             log.debug("Cannot apply for a loan.");
-            throw new DuplicateResourceException("Cannot apply for a loan.");
+            throw new UnauthorizedException("Cannot apply for a loan.");
         }
-        User loanOfficer = userRepository.findFirstByInstitutionIdAndUserAccountType(institutionId, UserAccountType.LOAN_OFFICER).orElseThrow(() -> new InvalidRequestException("No loan officer found for this institution"));
+        boolean rejected = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus(existingMember.getId(), LoanApplicationStatus.REJECTED);
+        if (rejected) {
+            log.debug("Rejected!");
+            throw new UnauthorizedException("Rejected");
+        }
+
         LoanApplication loanApplication = loanApplicationMapper.toEntity(loanApplicationRequest);
         loanApplication.setInstitution(Institution.builder().id(institutionId).build());
         loanApplication.setMember(MemberProfile.builder().id(existingMember.getId()).build());
-        loanApplication.setLoanOfficer(User.builder().id(loanOfficer.getId()).build());
         loanApplication.setLoanApplicationStatus(LoanApplicationStatus.PENDING);
         loanApplicationRepository.save(loanApplication);
     }
@@ -103,25 +111,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         final Page<LoanApplication> loanApplications = loanApplicationRepository.findAll(pageRequest);
         final Page<LoanApplicationResponse> loanApplicationResponses = loanApplications.map(loanApplicationMapper::toResponse);
         return PageResponse.of(loanApplicationResponses);
-    }
-
-    @Override
-    public void reviewLoanApplication(String loanApplicationId) {
-        User userId = currentUserUtil.getLoggedInUser();
-        Optional<LoanApplication> loanApplication = loanApplicationRepository.findById(loanApplicationId);
-        if (loanApplication.isEmpty()) {
-            log.debug("Loan Application with the id '{}' does not exist", loanApplicationId);
-            throw new InvalidRequestException("Loan Application with the id '" + loanApplicationId + "' does not exist");
-        }
-        LoanApplication existingApplication = loanApplication.get();
-        if (existingApplication.getLoanApplicationStatus().equals(LoanApplicationStatus.UNDER_REVIEW)) {
-            log.debug("Loan application is already under review");
-            throw new DuplicateResourceException("Loan application is already under review");
-        }
-        existingApplication.setReviewedBy(userId.getName());
-        existingApplication.setReviewedAt(LocalDateTime.now());
-        existingApplication.setLoanApplicationStatus(LoanApplicationStatus.UNDER_REVIEW);
-        loanApplicationRepository.save(existingApplication);
     }
 
     @Override
@@ -156,6 +145,31 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         return PageResponse.of(loanApplicationResponses);
     }
 
+
+
+
+
+
+
+
+    @Override
+    public void reviewLoanApplication(String loanApplicationId) {
+        User userId = currentUserUtil.getLoggedInUser();
+        LoanApplication loanApplication = loanApplicationRepository.findById(loanApplicationId). orElseThrow(() ->
+//        if (loanApplication.isEmpty()) {
+//            log.debug("Loan Application with the id '{}' does not exist", loanApplicationId);
+            new InvalidRequestException("Loan Application with the id '" + loanApplicationId + "' does not exist"));
+
+        if (loanApplication.getLoanApplicationStatus().equals(LoanApplicationStatus.UNDER_REVIEW)) {
+            log.debug("Loan application is already under review");
+            throw new DuplicateResourceException("Loan application is already under review");
+        }
+        loanApplication.setReviewedBy(userId.getName());
+        loanApplication.setReviewedAt(LocalDateTime.now());
+        loanApplication.setLoanApplicationStatus(LoanApplicationStatus.UNDER_REVIEW);
+        loanApplicationRepository.save(loanApplication);
+    }
+
     @Override
     public void approveLoan(String loanApplicationId) {
         LoanApplication existingApplication = loanApplicationRepository.findById(loanApplicationId).orElseThrow(() ->
@@ -178,30 +192,41 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         existingApplication.setTotalRepayable(existingApplication.getNetDisbursement().add(existingApplication.getTotalInterest()));
         existingApplication.setMonthlyInstallment(existingApplication.getTotalRepayable().divide(existingApplication.getTenureMonths()));
         existingApplication.setLoanApplicationStatus(LoanApplicationStatus.APPROVED);
-
         loanApplicationRepository.save(existingApplication);
     }
 
     @Override
     public void rejectLoan(String loanApplicationId) {
-//        purpose of loan product != member purpose
+        LoanApplication existingApplication = loanApplicationRepository.findById(loanApplicationId).orElseThrow(() ->
+                new InvalidRequestException("Loan application with the id '" + loanApplicationId + "' does not exist"));
+        LoanProduct loanProduct = loanProductRepository.findById(existingApplication.getLoanProductId())
+                .orElseThrow(() -> new InvalidRequestException("Loan product not found"));
 
+        if (loanProduct.getIsActive().equals(false)) {
+        }
+        if(loanProduct.getRequiresGuarantor().equals(false)){
+
+        }
     }
 
     @Override
     public void disburseLoan(String loanApplicationId) {
+
     }
 
     @Override
     public void checkIfRepaid(String loanApplicationId) {
+
     }
 
     @Override
     public void addDefaulter(String loanApplicationId) {
+
     }
 
     @Override
     public void writeOff(String loanApplicationId) {
+
     }
 }
 

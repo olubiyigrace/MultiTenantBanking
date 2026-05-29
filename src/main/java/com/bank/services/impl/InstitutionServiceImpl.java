@@ -84,12 +84,12 @@ public class InstitutionServiceImpl implements InstitutionService {
                 .userAccountType(UserAccountType.INSTITUTION_ADMIN)
                 .institution(institution)
                 .build();
-        userRepository.save(adminUser);
-        log.info("Admin user created successfully");
 
         String emailVerificationToken = UUID.randomUUID().toString();
         adminUser.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
         adminUser.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(adminUser);
+        log.info("Admin user created successfully");
 
         Map<String, Object> model = new HashMap<>();
         model.put("name", institution.getAdminName());

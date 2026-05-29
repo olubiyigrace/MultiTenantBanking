@@ -13,7 +13,6 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -38,13 +37,15 @@ public class LoanApplication extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     private LoanApplicationStatus loanApplicationStatus;
 
+    @Enumerated(EnumType.STRING)
+    private InterestType interestType;
+
     private String loanProductId;
     private BigDecimal requestedAmount;
     private BigDecimal approvedAmount;
     private BigDecimal tenureMonths;
     private String purpose;
     private BigDecimal interestRatePercent;
-    private InterestType interestType;
     private BigDecimal totalInterest;
     private BigDecimal totalRepayable;
     private BigDecimal monthlyInstallment;

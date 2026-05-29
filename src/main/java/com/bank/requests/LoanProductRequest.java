@@ -23,7 +23,7 @@ public class LoanProductRequest {
     private BigDecimal minAmount;
     private BigDecimal maxAmount;
     private BigDecimal interestRatePercent;
-    private Integer maxTenureMonths;
+    private BigDecimal maxTenureMonths;
     private BigDecimal processingFeePercent;
     private InterestType interestType;
     private Boolean requiresGuarantor;

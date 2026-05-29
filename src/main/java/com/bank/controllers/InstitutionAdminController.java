@@ -55,7 +55,7 @@ public class InstitutionAdminController {
     }
 
     @GetMapping("/get-single-product")
-    public ResponseEntity<ApiResponse<String>> getSingle(String id) {
+    public ResponseEntity<ApiResponse<LoanProductResponse>> getSingle(@RequestParam String id) {
         loanProductService.getSingle(id);
         return ResponseEntity.ok(ApiResponse.success(true, "Loan product retrieved successfully",
                 null));
@@ -70,14 +70,14 @@ public class InstitutionAdminController {
     }
 
     @PutMapping("/update-product")
-    public ResponseEntity<ApiResponse<String>> update(String id, LoanProductRequest loanProductRequest) {
+    public ResponseEntity<ApiResponse<String>> update(@RequestParam String id, @Valid @RequestBody LoanProductRequest loanProductRequest) {
         loanProductService.update(id, loanProductRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "Loan product updated successfully",
                 null));
     }
 
     @GetMapping("/delete-product")
-    public ResponseEntity<ApiResponse<String>> delete(String id) {
+    public ResponseEntity<ApiResponse<String>> delete(@RequestParam String id) {
         loanProductService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(true, "Loan product deleted successfully",
                 null));
@@ -85,7 +85,7 @@ public class InstitutionAdminController {
 
     @GetMapping("/all-members")
     public ResponseEntity<ApiResponse<PageResponse<MemberResponse>>> getMembers(
-            @RequestParam ProfileStatus profileStatus,
+            @RequestParam (required = false) ProfileStatus profileStatus,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(true, "Members retrieved successfully",
@@ -145,13 +145,6 @@ public class InstitutionAdminController {
             @RequestParam(name = "size", defaultValue = "10") final int size) {
         return ResponseEntity.ok(ApiResponse.success(true, "Loan applications retrieved successfully",
                 loanApplicationService.getAllApplications(page, size)));
-    }
-
-    @PostMapping("/review-loan-applications")
-    public ResponseEntity<ApiResponse<String>> review(@RequestParam String loanApplicationId) {
-        loanApplicationService.reviewLoanApplication(loanApplicationId);
-        return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review",
-                null));
     }
 
     @PostMapping("/assign-loan-applications")

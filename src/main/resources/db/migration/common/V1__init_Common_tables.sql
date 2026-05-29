@@ -185,10 +185,9 @@ create table loan_applications
     reviewed_at             timestamp(6),
     requested_amount        numeric(38, 2) not null,
     approved_amount         numeric(38, 2),
-    tenure_months           integer,
+    tenure_months           numeric(38, 2),
     purpose                 text           not null,
     interest_rate_percent   numeric(5, 2),
-    interest_type           varchar(255),
     total_interest          numeric(38, 2),
     total_repayable         numeric(38, 2),
     monthly_installment     numeric(38, 2),
@@ -213,16 +212,22 @@ create table loan_applications
         ('FULLY REPAID':: character varying)::text,
         ('DEFAULTED':: character varying)::text,
         ('WRITTEN_OFF':: character varying)::text
-        ]
-        )
-) ,
+        ])),
     constraint fk_loan_application_institution_id
         foreign key (institution_id) references institutions(id),
     constraint fk_loan_application_member_id
         foreign key (member_id) references member_profiles(id),
     constraint fk_loan_application_loan_officer_id
-        foreign key (loan_officer_id) references users(id)
-);
+        foreign key (loan_officer_id) references users(id),
+        interest_type          varchar(255)
+        constraint loan_applications_interest_type_check
+            check (
+                (interest_type)::text = ANY (
+        ARRAY[
+        ('FLAT':: character varying)::text,
+        ('REDUCING_BALANCE':: character varying)::text
+        ])
+));
 
 
 
@@ -268,7 +273,7 @@ create table loan_products
 (
     id                     varchar(255)   not null primary key,
     created_at             timestamp(6)   not null,
-    max_tenure_months      integer        not null,
+    max_tenure_months      numeric(38, 2)  not null,
     min_amount             numeric(38, 2) not null,
     max_amount             numeric(38, 2) not null,
     interest_rate_percent  numeric(5, 2)  not null,
