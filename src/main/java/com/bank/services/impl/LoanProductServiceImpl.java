@@ -42,6 +42,7 @@ public class LoanProductServiceImpl implements LoanProductService {
         }
         LoanProduct newLoanProduct = loanProductMapper.toEntity(loanProductRequest);
         newLoanProduct.setInstitution(Institution.builder().id(institutionId).build());
+        newLoanProduct.setIsActive(false);
         loanProductRepository.save(newLoanProduct);
         log.debug("Loan product created");
     }
