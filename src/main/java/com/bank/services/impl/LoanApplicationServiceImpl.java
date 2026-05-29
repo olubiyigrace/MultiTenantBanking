@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 
 @Service
@@ -129,10 +128,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             throw new UnauthorizedException("Loan officer does not belong to this institution");
         }
         existingApplication.setLoanOfficer(loanOfficer);
-        existingApplication.setLoanApplicationStatus(LoanApplicationStatus.UNDER_REVIEW);
-        existingApplication.setReviewedBy(loanOfficer.getName());
-        existingApplication.setReviewedAt(LocalDateTime.now());
-
         loanApplicationRepository.save(existingApplication);
     }
 
@@ -201,7 +196,8 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 new InvalidRequestException("Loan application with the id '" + loanApplicationId + "' does not exist"));
         LoanProduct loanProduct = loanProductRepository.findById(existingApplication.getLoanProductId())
                 .orElseThrow(() -> new InvalidRequestException("Loan product not found"));
-
+// savings account is not active... check for both parties
+// purpose does not match with loan description
         if (loanProduct.getIsActive().equals(false)) {
         }
         if(loanProduct.getRequiresGuarantor().equals(false)){

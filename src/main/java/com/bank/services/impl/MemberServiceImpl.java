@@ -84,8 +84,8 @@ public class MemberServiceImpl implements MemberService {
                     .build();
 
             String emailVerificationToken = UUID.randomUUID().toString();
-            institution.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
-            institution.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
+            member.getUser().setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
+            member.getUser().setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
 
             userRepository.save(member.getUser());
             memberRepository.save(member);

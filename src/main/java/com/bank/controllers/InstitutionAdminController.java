@@ -154,4 +154,11 @@ public class InstitutionAdminController {
         return ResponseEntity.ok(ApiResponse.success(true,
                 "Loan application successfully assigned to the loan officer", null));
     }
+
+    @PostMapping("/approve-loan-application")
+    public ResponseEntity<ApiResponse<String>> approve(@RequestParam String loanApplicationId) {
+        loanApplicationService.approveLoan(loanApplicationId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review",
+                null));
+    }
 }

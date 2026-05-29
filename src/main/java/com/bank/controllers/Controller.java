@@ -16,14 +16,6 @@ public class Controller {
 
 
     @PreAuthorize("hasAnyRole('INSTITUTION_ADMIN', 'LOAN_OFFICER')")
-    @PostMapping("/approve-loan-application")
-    public ResponseEntity<ApiResponse<String>> approve(@RequestParam String loanApplicationId) {
-        loanApplicationService.approveLoan(loanApplicationId);
-        return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review",
-                null));
-    }
-
-    @PreAuthorize("hasAnyRole('INSTITUTION_ADMIN', 'LOAN_OFFICER')")
     @PostMapping("/review-loan-applications")
     public ResponseEntity<ApiResponse<String>> review(@RequestParam String loanApplicationId) {
         loanApplicationService.reviewLoanApplication(loanApplicationId);

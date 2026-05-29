@@ -95,9 +95,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Invalid token");
             throw new InvalidRequestException("Invalid token");
         }
-        if (institution.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+        if (passwordEncoder.matches(verificationTokenFromRequest, institution.getEmailVerificationToken()) && institution.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
             log.debug("Token has expired");
-            throw new RuntimeException("Token has expired");
+            throw new InvalidRequestException("Token has expired");
         }
         institution.setEmailVerifiedAt(LocalDateTime.now());
         institution.setIsVerified(true);
@@ -183,9 +183,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Invalid token");
             throw new InvalidRequestException("Invalid token");
         }
-        if (user.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+        if (passwordEncoder.matches(verificationTokenFromRequest, user.getEmailVerificationToken()) && user.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
             log.debug("Token has expired");
-            throw new RuntimeException("Token has expired");
+            throw new InvalidRequestException("Token has expired");
         }
         user.setEmailVerifiedAt(LocalDateTime.now());
         user.setIsVerified(true);
