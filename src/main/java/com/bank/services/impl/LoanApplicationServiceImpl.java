@@ -5,6 +5,7 @@ import com.bank.auth.util.CurrentUserUtil;
 import com.bank.config.InstitutionContext;
 import com.bank.entities.*;
 import com.bank.enums.LoanApplicationStatus;
+import com.bank.enums.ProfileStatus;
 import com.bank.enums.UserAccountType;
 import com.bank.exceptions.DuplicateResourceException;
 import com.bank.exceptions.InvalidRequestException;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 @Service
@@ -44,15 +46,23 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     public void createApplication(LoanApplicationRequest loanApplicationRequest) {
         final String institutionId = InstitutionContext.getCurrentInstitution();
         log.info("Creating loan application");
-
         User user = currentUserUtil.getLoggedInUser();
 
-        MemberProfile existingMember = memberRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new InvalidRequestException("Member not found"));
+        MemberProfile existingMember = memberRepository.findByUserId(user.getId()).orElseThrow(() ->
+                new InvalidRequestException("Member not found"));
+        if (!existingMember.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
+            log.debug("Member does not have an active profile status");
+            throw new UnauthorizedException("Member does not have an active profile status");
+        }
+
+        boolean qualifiedMember = loanApplicationRepository.existsByMemberAndLoanApplicationStatus
+                (existingMember.getId(), LoanApplicationStatus.FULLY_REPAID);
+        if (!qualifiedMember){
+            throw new InvalidRequestException("You cannot apply for a loan at the moment");
+        }
 
         LoanProduct existingProduct = loanProductRepository.findById(loanApplicationRequest.getLoanProductId())
                 .orElseThrow(() -> new InvalidRequestException("Loan product not found"));
-
         if (loanApplicationRequest.getRequestedAmount().compareTo(existingProduct.getMinAmount()) < 0) {
             log.debug("Requested amount must be greater than the minimum amount");
             throw new InvalidRequestException("Requested amount must be greater than the minimum amount");
@@ -61,40 +71,13 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             log.debug("Requested amount must not be greater than the maximum amount");
             throw new InvalidRequestException("Requested amount must not be greater than the maximum amount");
         }
-        boolean approved = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus(existingMember.getId(), LoanApplicationStatus.APPROVED);
-        if (approved) {
-            log.debug("You have an approved loan");
-            throw new DuplicateResourceException("You have an approved loan");
+        if (existingProduct.getIsActive().equals(false)) {
+            log.debug("Selected loan product is not active");
+            throw new InvalidRequestException("Selected loan product is not active");
         }
-        boolean pending = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus(existingMember.getId(), LoanApplicationStatus.PENDING);
-        if (pending) {
-            log.debug("You have a pending loan application");
-            throw new DuplicateResourceException("You have a pending loan application");
-        }
-        boolean defaulted = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus(existingMember.getId(), LoanApplicationStatus.DEFAULTED);
-        if (defaulted) {
-            log.debug("Cannot apply for a loan at the moment. Pay your outstanding loan");
-            throw new DuplicateResourceException("Cannot apply for a loan at the moment. Pay your outstanding loan");
-        }
-        boolean disbursed = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus(existingMember.getId(), LoanApplicationStatus.DISBURSED);
-        if (disbursed) {
-            log.debug("You have an active loan. Try again after repayment");
-            throw new DuplicateResourceException("You have an active loan. Try again after repayment");
-        }
-        boolean underReview = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus(existingMember.getId(), LoanApplicationStatus.UNDER_REVIEW);
-        if (underReview) {
-            log.debug("Your previous application is still under review");
-            throw new DuplicateResourceException("Your previous application is still under review");
-        }
-        boolean writtenOff = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus(existingMember.getId(), LoanApplicationStatus.WRITTEN_OFF);
-        if (writtenOff) {
-            log.debug("Cannot apply for a loan.");
-            throw new UnauthorizedException("Cannot apply for a loan.");
-        }
-        boolean rejected = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus(existingMember.getId(), LoanApplicationStatus.REJECTED);
-        if (rejected) {
-            log.debug("Rejected!");
-            throw new UnauthorizedException("Rejected");
+        if (!existingProduct.getDescription().contains(loanApplicationRequest.getPurpose())){
+            log.debug("Loan purpose does not match with the loan product description");
+            throw new InvalidRequestException("Loan purpose does not match with the loan product description");
         }
 
         LoanApplication loanApplication = loanApplicationMapper.toEntity(loanApplicationRequest);
@@ -143,8 +126,8 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     @Override
     public void reviewLoanApplication(String loanApplicationId) {
         User userId = currentUserUtil.getLoggedInUser();
-        LoanApplication loanApplication = loanApplicationRepository.findById(loanApplicationId). orElseThrow(() ->
-            new InvalidRequestException("Loan Application with the id '" + loanApplicationId + "' does not exist"));
+        LoanApplication loanApplication = loanApplicationRepository.findById(loanApplicationId).orElseThrow(() ->
+                new InvalidRequestException("Loan Application with the id '" + loanApplicationId + "' does not exist"));
 
         if (loanApplication.getLoanApplicationStatus().equals(LoanApplicationStatus.UNDER_REVIEW)) {
             log.debug("Loan application is already under review");
@@ -156,15 +139,17 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         loanApplicationRepository.save(loanApplication);
     }
 
+
     @Override
     public void approveLoan(String loanApplicationId) {
         LoanApplication existingApplication = loanApplicationRepository.findById(loanApplicationId).orElseThrow(() ->
                 new InvalidRequestException("Loan application with the id '" + loanApplicationId + "' does not exist"));
-        if(!existingApplication.getLoanApplicationStatus().equals(LoanApplicationStatus.UNDER_REVIEW)) {
+        if (!existingApplication.getLoanApplicationStatus().equals(LoanApplicationStatus.UNDER_REVIEW)) {
             throw new InvalidRequestException("Loan application cannot be approved");
         }
         LoanProduct loanProduct = loanProductRepository.findById(existingApplication.getLoanProductId())
                 .orElseThrow(() -> new InvalidRequestException("Loan product not found"));
+
 
         BigDecimal approvedAmount = existingApplication.getApprovedAmount();
 
@@ -187,11 +172,11 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 new InvalidRequestException("Loan application with the id '" + loanApplicationId + "' does not exist"));
         LoanProduct loanProduct = loanProductRepository.findById(existingApplication.getLoanProductId())
                 .orElseThrow(() -> new InvalidRequestException("Loan product not found"));
-// savings account is not active... check for both parties
+// savings account is not active for guarantor
 // purpose does not match with loan description
         if (loanProduct.getIsActive().equals(false)) {
         }
-        if(loanProduct.getRequiresGuarantor().equals(false)){
+        if (loanProduct.getRequiresGuarantor().equals(false)) {
 
         }
     }

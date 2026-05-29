@@ -12,4 +12,5 @@ public interface LoanApplicationRepository extends JpaRepository <LoanApplicatio
     boolean existsByMemberIdAndLoanApplicationStatus(String memberId, LoanApplicationStatus loanStatus);
     Optional<LoanApplication> findById(String loanApplicationId);
     Page<LoanApplication> findByLoanOfficerId(String id, PageRequest pageRequest);
+    boolean existsByMemberAndLoanApplicationStatus(String id, LoanApplicationStatus loanApplicationStatus);
 }
