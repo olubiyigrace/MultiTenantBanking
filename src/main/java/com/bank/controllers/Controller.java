@@ -22,4 +22,12 @@ public class Controller {
         return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review",
                 null));
     }
+
+    @PreAuthorize("hasAnyRole('INSTITUTION_ADMIN', 'LOAN_OFFICER')")
+    @PostMapping("/review-loan-applications")
+    public ResponseEntity<ApiResponse<String>> review(@RequestParam String loanApplicationId) {
+        loanApplicationService.reviewLoanApplication(loanApplicationId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review",
+                null));
+    }
 }
