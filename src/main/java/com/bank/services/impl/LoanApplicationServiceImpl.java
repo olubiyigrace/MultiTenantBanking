@@ -140,19 +140,10 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         return PageResponse.of(loanApplicationResponses);
     }
 
-
-
-
-
-
-
-
     @Override
     public void reviewLoanApplication(String loanApplicationId) {
         User userId = currentUserUtil.getLoggedInUser();
         LoanApplication loanApplication = loanApplicationRepository.findById(loanApplicationId). orElseThrow(() ->
-//        if (loanApplication.isEmpty()) {
-//            log.debug("Loan Application with the id '{}' does not exist", loanApplicationId);
             new InvalidRequestException("Loan Application with the id '" + loanApplicationId + "' does not exist"));
 
         if (loanApplication.getLoanApplicationStatus().equals(LoanApplicationStatus.UNDER_REVIEW)) {
