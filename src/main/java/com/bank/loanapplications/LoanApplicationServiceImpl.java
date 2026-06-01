@@ -1,5 +1,6 @@
 package com.bank.loanapplications;
 
+import com.bank.loanrepaymentschedule.OverdueRepaymentScheduleResponse;
 import com.bank.others.auditlogs.AuditLog;
 import com.bank.others.auditlogs.AuditLogRepository;
 import com.bank.loanproducts.InterestType;
@@ -33,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +51,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
+@Transactional
 @RequiredArgsConstructor
 public class LoanApplicationServiceImpl implements LoanApplicationService {
     private final LoanApplicationRepository loanApplicationRepository;
@@ -242,7 +245,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void disburseLoan(String loanApplicationId) {
         log.info("Disbursing loan");
 
@@ -316,7 +318,8 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         int installments = tenure.intValueExact();
         BigDecimal principalDue = principal.divide(tenure, 2, RoundingMode.HALF_UP);
         BigDecimal interestDue = totalInterest.divide(tenure, 2, RoundingMode.HALF_UP);
-        BigDecimal remainingBalance = principal;
+        BigDecimal totalDue = principalDue.add(interestDue);
+
         List<LoanRepaymentSchedule> schedules = new ArrayList<>();
         for (int i = 1; i <= installments; i++) {
             String installmentNumber = String.format("P%03d", i);
@@ -325,40 +328,42 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                     .installmentNumber(installmentNumber)
                     .principalDue(principalDue)
                     .interestDue(interestDue)
-                    .totalDue(principalDue.add(interestDue))
+                    .totalDue(totalDue)
                     .amountPaid(BigDecimal.ZERO)
-                    .balanceRemaining(remainingBalance)
+                    .balanceRemaining(totalDue)
                     .dueDate(LocalDate.now().plusMonths(i))
                     .loanRepaymentStatus(LoanRepaymentStatus.PENDING)
                     .loanApplication(loanApplication)
                     .build();
-
             schedules.add(schedule);
-            remainingBalance = remainingBalance.subtract(principalDue);
         }
         repaymentRepository.saveAll(schedules);
     }
+
 
     @Override
     public void checkIfRepaid(String loanApplicationId) {
 // savings account is not active for guarantor
 //                    .paidAt(LocalDateTime.now()) set this to null and in repaymentservice, set it to now and status to paid in the repaid method
-
+//if loanrepayment is < totalrefundable, set loan repayment schedule to partial
         //if loan repayment schedule status is paid
 //        //if all loans are paid i.e installments
 //        loanApplication.setLoanApplicationStatus(LoanApplicationStatus.FULLY_REPAID);
 //        loanApplication.setRequiresCollateral(null);
 //        loanApplication.setRequiresGuarantor(null);
+//        amountPaid += payment
+//        balanceRemaining = totalDue - amountPaid
     }
 
     @Override
     public void addDefaulter(String loanApplicationId) {
 //        loanApplication.setLoanApplicationStatus(LoanApplicationStatus.FULLY_REPAID);
-
+        // if loan due date is before local date time.now, set status as overdue
+ // if loan repayment schedule is overdue, add as defaulter
     }
 
+
     @Override
-    @Transactional
     public void writeOff(String loanApplicationId) {
         User currentUser = currentUserUtil.getLoggedInUser();
         log.info("Writing off a defaulted loan");
@@ -400,5 +405,38 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         log.info("Loan application {} written off successfully", loanApplicationId);
     }
 
+    @Override
+    public PageResponse<OverdueRepaymentScheduleResponse> getOverdueRepaymentSchedules(int page, int size) {
+        User currentUser = currentUserUtil.getLoggedInUser();
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").ascending());
+        Page<LoanRepaymentSchedule> schedules = repaymentRepository.findOverdueSchedulesByLoanOfficer(currentUser.getId(), pageable);
+        List<OverdueRepaymentScheduleResponse> content = schedules.getContent().stream().map(this::mapToResponse).toList();
+        return PageResponse.<OverdueRepaymentScheduleResponse>builder()
+                .content(content)
+                .page(schedules.getNumber())
+                .size(schedules.getSize())
+                .totalElements(schedules.getTotalElements())
+                .totalPages(schedules.getTotalPages())
+                .hasNext(schedules.hasNext())
+                .hasPrevious(schedules.hasPrevious())
+                .isFirst(schedules.isFirst())
+                .isLast(schedules.isLast())
+                .build();
+    }
+
+    private OverdueRepaymentScheduleResponse mapToResponse(LoanRepaymentSchedule schedule) {
+        LoanApplication loan = schedule.getLoanApplication();
+        return OverdueRepaymentScheduleResponse.builder()
+                .repaymentScheduleId(schedule.getId())
+                .loanApplicationId(loan.getId())
+                .memberName(loan.getMember().getUser().getName())
+                .installmentAmount(schedule.getTotalDue())
+                .amountPaid(schedule.getAmountPaid())
+                .balanceRemaining(schedule.getBalanceRemaining())
+                .dueDate(schedule.getDueDate())
+                .repaymentStatus(schedule.getLoanRepaymentStatus())
+                .build();
+    }
 }
 

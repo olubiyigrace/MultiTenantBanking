@@ -1,5 +1,6 @@
 package com.bank.loanapplications;
 
+import com.bank.loanrepaymentschedule.OverdueRepaymentScheduleResponse;
 import com.bank.others.utils.PageResponse;
 
 public interface LoanApplicationService {
@@ -14,4 +15,5 @@ public interface LoanApplicationService {
     void checkIfRepaid(String loanApplicationId);
     void addDefaulter(String loanApplicationId);
     void writeOff(String loanApplicationId);
+    PageResponse<OverdueRepaymentScheduleResponse> getOverdueRepaymentSchedules(int page, int size);
 }

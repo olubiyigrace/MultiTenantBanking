@@ -1,6 +1,5 @@
 package com.bank.savingsaccount;
 
-import com.bank.loanapplications.LoanApplicationStatus;
 import com.bank.others.auditlogs.AuditLog;
 import com.bank.others.auditlogs.AuditLogRepository;
 import com.bank.others.config.InstitutionContext;

@@ -1,5 +1,6 @@
 package com.bank.controllers;
 
+import com.bank.loanrepaymentschedule.OverdueRepaymentScheduleResponse;
 import com.bank.memberprofiles.MemberRequest;
 import com.bank.loanapplications.LoanApplicationResponse;
 import com.bank.others.utils.PageResponse;
@@ -33,5 +34,13 @@ public class LoanOfficerController {
             @RequestParam(name = "size", defaultValue = "10") final int size) {
         return ResponseEntity.ok(ApiResponse.success(true, "Assigned loan applications retrieved successfully",
                 loanApplicationService.getAllAssignedApplications(page, size)));
+    }
+
+    @GetMapping("/all-overdue-repayment")
+    public ResponseEntity<ApiResponse<PageResponse<OverdueRepaymentScheduleResponse>>> getOverdueRepayments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(ApiResponse.success(true, "Overdue payments retrieved successfully",
+                loanApplicationService.getOverdueRepaymentSchedules(page, size)));
     }
 }
