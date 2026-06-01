@@ -1,14 +1,26 @@
 package com.bank.controllers;
 
-import com.bank.auth.requests.RegisterUserRequest;
-import com.bank.auth.response.UserResponse;
-import com.bank.auth.service.AuthenticationService;
-import com.bank.responses.PageResponse;
-import com.bank.enums.ProfileStatus;
-import com.bank.requests.LoanProductRequest;
-import com.bank.responses.*;
-import com.bank.services.*;
-import com.bank.utils.ApiResponse;
+import com.bank.others.utils.responses.TotalInterestCollectedResponse;
+import com.bank.others.utils.responses.TotalLoansOutstandingResponse;
+import com.bank.others.utils.responses.TotalLoansOverdueResponse;
+import com.bank.others.utils.responses.TotalSavingsResponse;
+import com.bank.loanapplications.LoanApplicationResponse;
+import com.bank.loanapplications.LoanRejectionRequest;
+import com.bank.loanproducts.LoanProductResponse;
+import com.bank.memberprofiles.MemberResponse;
+import com.bank.users.RegisterUserRequest;
+import com.bank.users.UserResponse;
+import com.bank.others.auth.AuthenticationService;
+import com.bank.institutions.InstitutionService;
+import com.bank.loanapplications.LoanApplicationService;
+import com.bank.loancollaterals.CollateralService;
+import com.bank.loanproducts.LoanProductService;
+import com.bank.memberprofiles.MemberService;
+import com.bank.others.utils.PageResponse;
+import com.bank.memberprofiles.ProfileStatus;
+import com.bank.loanproducts.LoanProductRequest;
+import com.bank.savingsaccount.SavingsService;
+import com.bank.others.utils.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +42,7 @@ public class InstitutionAdminController {
     private final AuthenticationService authenticationService;
     private final InstitutionService institutionService;
     private final LoanApplicationService loanApplicationService;
+    private final CollateralService collateralService;
 
     @PostMapping("/register-user")
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody RegisterUserRequest registerUserRequest)
@@ -86,8 +99,8 @@ public class InstitutionAdminController {
     @GetMapping("/all-members")
     public ResponseEntity<ApiResponse<PageResponse<MemberResponse>>> getMembers(
             @RequestParam (required = false) ProfileStatus profileStatus,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(true, "Members retrieved successfully",
                 memberService.getAllMembers(profileStatus, page, size)));
     }
@@ -131,7 +144,7 @@ public class InstitutionAdminController {
                 "Total overdue loans calculated successfully", savingsService.getTotalLoansOverdue()));
     }
 
-    @GetMapping("/total-interest")
+    @GetMapping("/total-loan-interest")
     public ResponseEntity<ApiResponse<TotalInterestCollectedResponse>> getTotalInterest(
             @RequestParam(value = "month", required = false) final Month month,
             @RequestParam(value = "year", required = false) final Year year) {
@@ -147,6 +160,13 @@ public class InstitutionAdminController {
                 loanApplicationService.getAllApplications(page, size)));
     }
 
+    @PostMapping("/review-loan-applications")
+    public ResponseEntity<ApiResponse<String>> review(@RequestParam String loanApplicationId) {
+        loanApplicationService.reviewLoanApplication(loanApplicationId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review",
+                null));
+    }
+
     @PostMapping("/assign-loan-applications")
     public ResponseEntity<ApiResponse<String>> assignApplication(@RequestParam String loanApplicationId,
                                                                  @RequestParam String loanOfficerId) {
@@ -158,7 +178,26 @@ public class InstitutionAdminController {
     @PostMapping("/approve-loan-application")
     public ResponseEntity<ApiResponse<String>> approve(@RequestParam String loanApplicationId) {
         loanApplicationService.approveLoan(loanApplicationId);
-        return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review",
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application approved successfully",
                 null));
+    }
+
+    @PostMapping("/reject-loan-application")
+    public ResponseEntity<ApiResponse<String>> reject(@RequestParam String loanApplicationId, @Valid @RequestBody LoanRejectionRequest loanRejectionRequest) {
+        loanApplicationService.rejectLoan(loanApplicationId, loanRejectionRequest);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application rejected successfully",
+                null));
+    }
+
+    @PostMapping("/delete-collateral")
+    public ResponseEntity<ApiResponse<String>> deleteCollateral(@RequestParam String loanCollateralId){
+        collateralService.deleteCollateral(loanCollateralId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Collateral deleted successfully", null));
+    }
+
+    @PostMapping("/write-off-loan")
+    public ResponseEntity<ApiResponse<String>> writeOffLoan(@RequestParam String loanApplicationId){
+        loanApplicationService.writeOff(loanApplicationId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application successfully written-off", null));
     }
 }

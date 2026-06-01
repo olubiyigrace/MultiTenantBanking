@@ -1,16 +1,21 @@
 package com.bank.controllers;
 
-import com.bank.auth.requests.*;
-import com.bank.auth.response.LoginResponse;
-import com.bank.auth.service.AuthenticationService;
-import com.bank.requests.RegisterInstitutionRequest;
-import com.bank.utils.ApiResponse;
+import com.bank.others.auth.LoginRequest;
+import com.bank.others.auth.ChangePasswordRequest;
+import com.bank.others.auth.ForgotPasswordRequest;
+import com.bank.others.auth.ResetPasswordRequest;
+import com.bank.others.auth.LoginResponse;
+import com.bank.others.auth.AuthenticationService;
+import com.bank.others.auth.RefreshTokenRequest;
+import com.bank.institutions.RegisterInstitutionRequest;
+import com.bank.others.utils.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -57,7 +62,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully", null));
     }
 
-    @GetMapping("/resend-user-verification")
+    @GetMapping("/reverify-user")
     public ResponseEntity<ApiResponse<String>> resendUserVerification(@RequestParam final String email) {
         authenticationService.resendUserVerificationToken(email);
         return ResponseEntity.ok(ApiResponse.success(true,

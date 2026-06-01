@@ -1,0 +1,50 @@
+package com.bank.savingsaccount;
+
+
+import com.bank.others.AbstractEntity;
+import com.bank.institutions.Institution;
+import com.bank.memberprofiles.MemberProfile;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+@Entity
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@SuperBuilder
+@Table(name = "savings_accounts")
+public class SavingsAccount extends AbstractEntity {
+    private BigDecimal balance;
+    private BigDecimal minimumBalance;
+    private BigDecimal interestRatePercent;
+    private BigDecimal targetAmount;
+    private LocalDate maturityDate;
+
+    @Version
+    private Integer version;
+
+    @Column(unique = true)
+    private String accountNumber;
+
+    @Enumerated(EnumType.STRING)
+    private SavingsStatus savingsStatus;
+
+    @Enumerated(EnumType.STRING)
+    private SavingsAccountType savingsAccountType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_savings_account_institution_id"))
+    private Institution institution;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(name = "fk_savings_account_member_profile_id"))
+    private MemberProfile member;
+}

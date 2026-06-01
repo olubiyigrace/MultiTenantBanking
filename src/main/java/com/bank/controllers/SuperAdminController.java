@@ -1,9 +1,10 @@
 package com.bank.controllers;
 
-import com.bank.responses.PageResponse;
-import com.bank.responses.*;
-import com.bank.services.InstitutionService;
-import com.bank.utils.ApiResponse;
+import com.bank.others.utils.responses.*;
+import com.bank.institutions.InstitutionResponse;
+import com.bank.others.utils.PageResponse;
+import com.bank.institutions.InstitutionService;
+import com.bank.others.utils.ApiResponse;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
