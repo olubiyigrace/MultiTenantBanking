@@ -1,5 +1,5 @@
 package com.bank.others.securities;
-//    http://localhost:3060/swagger-ui/index.html#/
+//    http://localhost:8080/swagger-ui/index.html#/
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

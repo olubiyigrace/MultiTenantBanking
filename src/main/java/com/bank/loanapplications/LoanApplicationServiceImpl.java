@@ -213,6 +213,9 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         if (application.getRecommendationStatus() == RecommendationStatus.RECOMMENDED_APPROVAL) {
             throw new DuplicateResourceException("Loan application already recommended for approval");
         }
+        if (!application.getLoanApplicationStatus().equals(LoanApplicationStatus.UNDER_REVIEW)) {
+            throw new InvalidRequestException("Only loan applications under review can be given recommendation");
+        }
         application.setRecommendationStatus(RecommendationStatus.RECOMMENDED_APPROVAL);
         loanApplicationRepository.save(application);
     }
@@ -241,6 +244,10 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         if (application.getRecommendationStatus() == RecommendationStatus.RECOMMENDED_REJECTION) {
             throw new DuplicateResourceException("Already recommended for rejection");
         }
+        if (application.getLoanApplicationStatus() != LoanApplicationStatus.UNDER_REVIEW) {
+            throw new InvalidRequestException("Only loan applications under review can be given recommendation");
+        }
+
         application.setRecommendationStatus(RecommendationStatus.RECOMMENDED_REJECTION);
         loanApplicationRepository.save(application);
     }

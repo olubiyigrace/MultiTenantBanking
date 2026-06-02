@@ -52,8 +52,8 @@ public class LoanOfficerController {
 
     @GetMapping("/all-overdue-repayment")
     public ResponseEntity<ApiResponse<PageResponse<OverdueRepaymentScheduleResponse>>> getOverdueRepayments(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size",defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(true, "Overdue payments retrieved successfully",
                 loanApplicationService.getOverdueRepaymentSchedules(page, size)));
     }

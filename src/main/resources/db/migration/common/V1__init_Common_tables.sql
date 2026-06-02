@@ -212,6 +212,15 @@ create table loan_applications
         ('FULLY REPAID':: character varying)::text,
         ('DEFAULTED':: character varying)::text,
         ('WRITTEN_OFF':: character varying)::text
+        ])
+) ,
+    recommendation_status varchar(255)
+      constraint loan_applications_recommendation_status_check
+            check (
+                (recommendation_status)::text = ANY (
+        ARRAY[
+        ('RECOMMENDED_APPROVAL':: character varying)::text,
+        ('RECOMMENDED_REJECTION':: character varying)::text
         ])),
     constraint fk_loan_application_institution_id
         foreign key (institution_id) references institutions(id),
@@ -273,7 +282,7 @@ create table loan_products
 (
     id                     varchar(255)   not null primary key,
     created_at             timestamp(6)   not null,
-    max_tenure_months      numeric(38, 2)  not null,
+    max_tenure_months      numeric(38, 2) not null,
     min_amount             numeric(38, 2) not null,
     max_amount             numeric(38, 2) not null,
     interest_rate_percent  numeric(5, 2)  not null,
