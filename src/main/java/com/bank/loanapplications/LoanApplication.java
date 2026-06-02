@@ -40,6 +40,9 @@ public class LoanApplication extends AbstractEntity {
     private LoanApplicationStatus loanApplicationStatus;
 
     @Enumerated(EnumType.STRING)
+    private RecommendationStatus recommendationStatus;
+
+    @Enumerated(EnumType.STRING)
     private InterestType interestType;
 
     private String loanProductId;

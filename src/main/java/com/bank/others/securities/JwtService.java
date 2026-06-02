@@ -22,7 +22,6 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtService {
-
     private final JwtProperties jwtProperties;
     private PrivateKey privateKey;
     private PublicKey publicKey;

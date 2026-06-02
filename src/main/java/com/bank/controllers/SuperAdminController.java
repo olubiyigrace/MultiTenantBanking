@@ -50,36 +50,36 @@ public class SuperAdminController {
     }
 
     @GetMapping("/all-institutions")
-    public ResponseEntity<PageResponse<InstitutionResponse>> getAllInstitution(
+    public ResponseEntity<ApiResponse<PageResponse<InstitutionResponse>>> getAllInstitution(
             @RequestParam(name = "page", defaultValue = "0") final int page,
             @RequestParam(name = "size", defaultValue = "10") final int size) {
-        return ResponseEntity.ok(institutionService.findAllInstitution(page, size));
+        return ResponseEntity.ok(ApiResponse.success(true, "Institutions retrieved successfully", institutionService.findAllInstitution(page, size)));
     }
 
     @GetMapping("/total-members")
-    public ResponseEntity<TotalMembersStatisticsResponse> getMembersStatistics() {
-        return ResponseEntity.ok(institutionService.getMembersStatistics());
+    public ResponseEntity<ApiResponse<TotalMembersStatisticsResponse>> getMembersStatistics() {
+        return ResponseEntity.ok(ApiResponse.success(true, "Total members retrieved successfully", institutionService.getMembersStatistics()));
     }
 
     @GetMapping("/savings")
-    public ResponseEntity<TotalSavingsStatisticsResponse> getSavingsStatistics()  {
-        return ResponseEntity.ok(institutionService.getSavingsStatistics());
+    public ResponseEntity<ApiResponse<TotalSavingsStatisticsResponse>> getSavingsStatistics()  {
+        return ResponseEntity.ok(ApiResponse.success(true, "Total savings calculated successfully", institutionService.getSavingsStatistics()));
     }
 
     @GetMapping("/total-loans-outstanding")
-    public ResponseEntity<TotalLoansOutstandingStatisticsResponse> getLoansOutstandingStatistics()  {
-        return ResponseEntity.ok(institutionService.getLoansOutstandingStatistics());
+    public ResponseEntity<ApiResponse<TotalLoansOutstandingStatisticsResponse>> getLoansOutstandingStatistics()  {
+        return ResponseEntity.ok(ApiResponse.success(true, "Total outstanding loans calculated successfully", institutionService.getLoansOutstandingStatistics()));
     }
 
     @GetMapping("/total-deposits")
-    public ResponseEntity<TotalDepositsStatisticsResponse> getDepositsStatistics()  {
-        return ResponseEntity.ok(institutionService.getDepositsStatistics());
+    public ResponseEntity<ApiResponse<TotalDepositsStatisticsResponse>> getDepositsStatistics()  {
+        return ResponseEntity.ok(ApiResponse.success(true, "Total deposits calculated successfully", institutionService.getDepositsStatistics()));
     }
 
     @GetMapping("/total-loan-disbursed")
-    public ResponseEntity<TotalLoansDisbursedStatisticsResponse> getLoansDisbursedStatistics(
+    public ResponseEntity<ApiResponse<TotalLoansDisbursedStatisticsResponse>> getLoansDisbursedStatistics(
             @RequestParam(value = "month", required = false) final Month month,
             @RequestParam(value = "year", required = false) final Year year) {
-        return ResponseEntity.ok(institutionService.getLoansDisbursedStatistics(month, year));
+        return ResponseEntity.ok(ApiResponse.success(true, "Total loan disbursed in " + month + " " + year + " calculated successfully", institutionService.getLoansDisbursedStatistics(month, year)));
     }
 }

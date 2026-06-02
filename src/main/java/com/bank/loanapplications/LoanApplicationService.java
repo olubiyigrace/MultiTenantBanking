@@ -9,7 +9,9 @@ public interface LoanApplicationService {
     void reviewLoanApplication(String loanApplicationId);
     void assignApplication(String loanApplicationId, String loanOfficerId);
     PageResponse<LoanApplicationResponse> getAllAssignedApplications(int page, int size);
+    void recommendApproval(String loanApplicationId);
     void approveLoan(String loanApplicationId);
+    void recommendRejection(String loanApplicationId);
     void rejectLoan(String loanApplicationId, LoanRejectionRequest loanRejectionRequest);
     void disburseLoan(String loanApplicationId);
     void checkIfRepaid(String loanApplicationId);

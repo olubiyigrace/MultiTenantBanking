@@ -2,6 +2,7 @@ package com.bank.savingsaccount;
 
 import com.bank.others.auditlogs.AuditLog;
 import com.bank.others.auditlogs.AuditLogRepository;
+import com.bank.others.auditlogs.AuditLogRequestFilter;
 import com.bank.others.config.InstitutionContext;
 import com.bank.institutions.Institution;
 import com.bank.others.exceptions.InvalidRequestException;
@@ -99,7 +100,7 @@ public class SavingsServiceImpl implements SavingsService {
                 .action("FREEZE")
                 .entityId(existingAccount.getId())
                 .oldValue(oldStatus.name())
-                .ipAddress("none")
+                .ipAddress(AuditLogRequestFilter.CLIENT_IP.get())
                 .newValue(SavingsStatus.FROZEN.name())
                 .build();
         auditLogRepository.save(auditLog);

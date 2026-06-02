@@ -36,6 +36,20 @@ public class LoanOfficerController {
                 loanApplicationService.getAllAssignedApplications(page, size)));
     }
 
+    @PostMapping("/recommend-approval")
+    public ResponseEntity<ApiResponse<String>> recommendApproval(@RequestParam String loanApplicationId) {
+        loanApplicationService.recommendApproval(loanApplicationId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application approval recommended",
+                null));
+    }
+
+    @PostMapping("/recommend-rejection")
+    public ResponseEntity<ApiResponse<String>> recommendRejection(@RequestParam String loanApplicationId) {
+        loanApplicationService.recommendRejection(loanApplicationId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application approval recommended",
+                null));
+    }
+
     @GetMapping("/all-overdue-repayment")
     public ResponseEntity<ApiResponse<PageResponse<OverdueRepaymentScheduleResponse>>> getOverdueRepayments(
             @RequestParam(defaultValue = "0") int page,

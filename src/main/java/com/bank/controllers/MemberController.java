@@ -32,7 +32,7 @@ public class MemberController {
         loanApplicationService.createApplication(loanApplicationRequest);
         return ResponseEntity.ok(ApiResponse.success(true,"Loan application created successfully! " +
                 "If selected loan product requires a collateral or a guarantor, or if it requires both collateral and " +
-                "guarantor, add them now for your loan application to be reviewed.", null));
+                "guarantor, add them within a period of 7 days for your loan application to be reviewed.", null));
     }
 
     @PostMapping("/add-collateral")
@@ -42,9 +42,9 @@ public class MemberController {
     }
 
     @PostMapping("/files-upload")
-    public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> uploadFile(@RequestParam("file") MultipartFile file) {
         String url = cloudinaryService.uploadFile(file);
-        return ResponseEntity.ok(Map.of("url", url));
+        return ResponseEntity.ok(ApiResponse.success(true, "File uploaded successfully", Map.of("url", url)));
     }
 
     @PostMapping("/create-guarantor")

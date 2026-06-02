@@ -7,6 +7,7 @@ import com.bank.loanproducts.InterestType;
 import com.bank.loanrepaymentschedule.LoanRepaymentSchedule;
 import com.bank.loanrepaymentschedule.LoanRepaymentStatus;
 import com.bank.loanrepaymentschedule.RepaymentRepository;
+import com.bank.others.auditlogs.AuditLogRequestFilter;
 import com.bank.savingsaccount.SavingsAccount;
 import com.bank.users.UserRepository;
 import com.bank.others.utils.CurrentUserUtil;
@@ -34,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -206,6 +206,18 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     }
 
     @Override
+    public void recommendApproval(String loanApplicationId) {
+        LoanApplication application = loanApplicationRepository.findById(loanApplicationId)
+                .orElseThrow(() -> new InvalidRequestException("Loan application not found"));
+
+        if (application.getRecommendationStatus() == RecommendationStatus.RECOMMENDED_APPROVAL) {
+            throw new DuplicateResourceException("Loan application already recommended for approval");
+        }
+        application.setRecommendationStatus(RecommendationStatus.RECOMMENDED_APPROVAL);
+        loanApplicationRepository.save(application);
+    }
+
+    @Override
     public void approveLoan(String loanApplicationId) {
         log.info("Approving loan application");
         LoanApplication existingApplication = loanApplicationRepository.findById(loanApplicationId).orElseThrow(() ->
@@ -220,6 +232,17 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         existingApplication.setApprovedAmount(existingApplication.getRequestedAmount());
         loanApplicationRepository.save(existingApplication);
         log.info("Loan approved");
+    }
+
+    public void recommendRejection(String loanApplicationId) {
+        LoanApplication application = loanApplicationRepository.findById(loanApplicationId)
+                .orElseThrow(() -> new InvalidRequestException("Loan application not found"));
+
+        if (application.getRecommendationStatus() == RecommendationStatus.RECOMMENDED_REJECTION) {
+            throw new DuplicateResourceException("Already recommended for rejection");
+        }
+        application.setRecommendationStatus(RecommendationStatus.RECOMMENDED_REJECTION);
+        loanApplicationRepository.save(application);
     }
 
     @Override
@@ -397,7 +420,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 .action("WRITE_OFF")
                 .entityId(existingApplication.getId())
                 .oldValue(oldStatus.name())
-                .ipAddress("none")
+                .ipAddress(AuditLogRequestFilter.CLIENT_IP.get())
                 .newValue(LoanApplicationStatus.WRITTEN_OFF.name())
                 .build();
 
@@ -408,21 +431,10 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     @Override
     public PageResponse<OverdueRepaymentScheduleResponse> getOverdueRepaymentSchedules(int page, int size) {
         User currentUser = currentUserUtil.getLoggedInUser();
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").ascending());
-        Page<LoanRepaymentSchedule> schedules = repaymentRepository.findOverdueSchedulesByLoanOfficer(currentUser.getId(), pageable);
-        List<OverdueRepaymentScheduleResponse> content = schedules.getContent().stream().map(this::mapToResponse).toList();
-        return PageResponse.<OverdueRepaymentScheduleResponse>builder()
-                .content(content)
-                .page(schedules.getNumber())
-                .size(schedules.getSize())
-                .totalElements(schedules.getTotalElements())
-                .totalPages(schedules.getTotalPages())
-                .hasNext(schedules.hasNext())
-                .hasPrevious(schedules.hasPrevious())
-                .isFirst(schedules.isFirst())
-                .isLast(schedules.isLast())
-                .build();
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("dueDate").ascending());
+        Page<LoanRepaymentSchedule> schedules = repaymentRepository.findOverdueSchedulesByLoanOfficer(currentUser.getId(), pageRequest);
+        Page<OverdueRepaymentScheduleResponse> content = schedules.map(this::mapToResponse);
+        return PageResponse.of(content);
     }
 
     private OverdueRepaymentScheduleResponse mapToResponse(LoanRepaymentSchedule schedule) {
