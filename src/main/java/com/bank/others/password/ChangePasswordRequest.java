@@ -1,4 +1,4 @@
-package com.bank.others.auth;
+package com.bank.others.password;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

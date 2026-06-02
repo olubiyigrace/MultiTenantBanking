@@ -1,6 +1,11 @@
 package com.bank.others.auth;
 
 import com.bank.institutions.RegisterInstitutionRequest;
+import com.bank.others.login.LoginRequest;
+import com.bank.others.login.LoginResponse;
+import com.bank.others.password.ChangePasswordRequest;
+import com.bank.others.password.ForgotPasswordRequest;
+import com.bank.others.password.ResetPasswordRequest;
 import com.bank.users.RegisterUserRequest;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;

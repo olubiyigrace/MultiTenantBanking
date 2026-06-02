@@ -1,5 +1,6 @@
-package com.bank.others.auth;
+package com.bank.others.logout;
 
+import com.bank.others.usersession.UserSession;
 import jakarta.persistence.*;
 import lombok.*;
 

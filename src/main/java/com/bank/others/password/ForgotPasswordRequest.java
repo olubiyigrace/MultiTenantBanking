@@ -1,4 +1,4 @@
-package com.bank.others.auth;
+package com.bank.others.password;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

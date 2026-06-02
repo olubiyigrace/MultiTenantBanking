@@ -117,12 +117,12 @@ public class MemberServiceImpl implements MemberService {
     private String generateMemberNumber() {
         MemberProfile lastMember = memberRepository.findTopByOrderByCreatedAtDesc().orElse(null);
         if (lastMember == null) {
-            return "M0000000000001";
+            return "M001";
         }
         String lastMemberNumber = lastMember.getMemberNumber();
         long numericPart = Long.parseLong(lastMemberNumber.substring(1));
         long nextNumber = numericPart + 1;
-        return String.format("M%013d", nextNumber);
+        return String.format("M%03d", nextNumber);
     }
 
     private String generateAccountNumber() {

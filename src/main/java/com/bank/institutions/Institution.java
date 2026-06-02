@@ -1,6 +1,6 @@
 package com.bank.institutions;
 
-import com.bank.others.AbstractEntity;
+import com.bank.others.entity.AbstractEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;

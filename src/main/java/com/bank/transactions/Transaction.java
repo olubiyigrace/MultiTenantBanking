@@ -1,6 +1,6 @@
 package com.bank.transactions;
 
-import com.bank.others.AbstractEntity;
+import com.bank.others.entity.AbstractEntity;
 import com.bank.users.User;
 import com.bank.institutions.Institution;
 import com.bank.savingsaccount.SavingsAccount;

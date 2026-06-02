@@ -1,4 +1,4 @@
-package com.bank.others.utils.responses;
+package com.bank.loanrepaymentschedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,8 @@ import java.math.BigDecimal;
 @Data
 @AllArgsConstructor
 @Builder
-public class TotalLoansOverdueResponse {
+public class TotalLoansOutstandingResponse {
     private String institutionId;
     private String institutionName;
-    private BigDecimal totalLoansOverdue;
+    private BigDecimal totalLoansOutstanding;
 }

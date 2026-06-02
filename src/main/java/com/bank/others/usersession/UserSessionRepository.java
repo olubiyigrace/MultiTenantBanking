@@ -1,4 +1,4 @@
-package com.bank.others.auth;
+package com.bank.others.usersession;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

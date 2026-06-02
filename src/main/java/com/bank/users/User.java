@@ -1,6 +1,6 @@
 package com.bank.users;
 
-import com.bank.others.AbstractEntity;
+import com.bank.others.entity.AbstractEntity;
 import com.bank.institutions.Institution;
 import com.bank.memberprofiles.MemberProfile;
 import com.fasterxml.jackson.annotation.JsonFormat;

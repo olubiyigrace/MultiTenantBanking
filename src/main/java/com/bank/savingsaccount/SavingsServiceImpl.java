@@ -7,10 +7,9 @@ import com.bank.institutions.Institution;
 import com.bank.others.exceptions.InvalidRequestException;
 import com.bank.institutions.InstitutionRepository;
 import com.bank.others.utils.CurrentUserUtil;
-import com.bank.others.utils.responses.TotalInterestCollectedResponse;
-import com.bank.others.utils.responses.TotalLoansOutstandingResponse;
-import com.bank.others.utils.responses.TotalLoansOverdueResponse;
-import com.bank.others.utils.responses.TotalSavingsResponse;
+import com.bank.loanapplications.TotalInterestCollectedResponse;
+import com.bank.loanrepaymentschedule.TotalLoansOutstandingResponse;
+import com.bank.loanrepaymentschedule.TotalLoansOverdueResponse;
 import com.bank.users.User;
 import com.sun.jdi.request.DuplicateRequestException;
 import lombok.RequiredArgsConstructor;
@@ -116,7 +115,6 @@ public class SavingsServiceImpl implements SavingsService {
             log.debug("Savings account has already been closed");
             throw new DuplicateRequestException("Savings account has already been closed");
         }
-//check that memberProfileStatus is exited.
         if (existingAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
             log.info("Account cannot be closed");
             throw new InvalidRequestException("Account cannot be closed");

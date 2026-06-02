@@ -1,10 +1,10 @@
 package com.bank.controllers;
 
-import com.bank.others.auth.LoginRequest;
-import com.bank.others.auth.ChangePasswordRequest;
-import com.bank.others.auth.ForgotPasswordRequest;
-import com.bank.others.auth.ResetPasswordRequest;
-import com.bank.others.auth.LoginResponse;
+import com.bank.others.login.LoginRequest;
+import com.bank.others.password.ChangePasswordRequest;
+import com.bank.others.password.ForgotPasswordRequest;
+import com.bank.others.password.ResetPasswordRequest;
+import com.bank.others.login.LoginResponse;
 import com.bank.others.auth.AuthenticationService;
 import com.bank.others.auth.RefreshTokenRequest;
 import com.bank.institutions.RegisterInstitutionRequest;

@@ -1,7 +1,16 @@
 package com.bank.institutions;
 
-import com.bank.others.utils.responses.*;
+import com.bank.loanapplications.TotalLoansDisbursedResponse;
+import com.bank.loanapplications.TotalLoansDisbursedStatisticsResponse;
+import com.bank.loanrepaymentschedule.TotalLoansOutstandingResponse;
+import com.bank.loanrepaymentschedule.TotalLoansOutstandingStatisticsResponse;
+import com.bank.memberprofiles.TotalMemberResponse;
+import com.bank.memberprofiles.TotalMembersStatisticsResponse;
 import com.bank.memberprofiles.MemberRepository;
+import com.bank.savingsaccount.TotalSavingsResponse;
+import com.bank.savingsaccount.TotalSavingsStatisticsResponse;
+import com.bank.transactions.TotalDepositsResponse;
+import com.bank.transactions.TotalDepositsStatisticsResponse;
 import com.bank.users.UserMapper;
 import com.bank.users.UserResponse;
 import com.bank.others.utils.PageResponse;

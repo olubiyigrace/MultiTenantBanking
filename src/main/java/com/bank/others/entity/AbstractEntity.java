@@ -1,4 +1,4 @@
-package com.bank.others;
+package com.bank.others.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;

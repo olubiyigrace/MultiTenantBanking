@@ -1,14 +1,16 @@
-package com.bank.others.utils.responses;
+package com.bank.transactions;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @Builder
-public class TotalMemberResponse {
+public class TotalDepositsResponse {
     private String institutionId;
     private String institutionName;
-    private Long totalMembers;
+    private BigDecimal totalDeposits;
 }

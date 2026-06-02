@@ -1,10 +1,14 @@
 package com.bank.controllers;
 
-import com.bank.others.utils.responses.*;
+import com.bank.loanapplications.TotalLoansDisbursedStatisticsResponse;
+import com.bank.loanrepaymentschedule.TotalLoansOutstandingStatisticsResponse;
+import com.bank.memberprofiles.TotalMembersStatisticsResponse;
 import com.bank.institutions.InstitutionResponse;
 import com.bank.others.utils.PageResponse;
 import com.bank.institutions.InstitutionService;
 import com.bank.others.utils.ApiResponse;
+import com.bank.savingsaccount.TotalSavingsStatisticsResponse;
+import com.bank.transactions.TotalDepositsStatisticsResponse;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

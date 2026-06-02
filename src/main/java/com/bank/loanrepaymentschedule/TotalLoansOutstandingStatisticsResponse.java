@@ -1,4 +1,4 @@
-package com.bank.others.utils.responses;
+package com.bank.loanrepaymentschedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,10 +1,10 @@
 package com.bank.others.securities;
 
-import com.bank.others.auth.UserSession;
-import com.bank.others.auth.UserSessionRepository;
+import com.bank.others.usersession.UserSession;
+import com.bank.others.usersession.UserSessionRepository;
 import com.bank.others.config.InstitutionContext;
 import com.bank.others.exceptions.UnauthorizedException;
-import com.bank.others.auth.LogoutTokenRepository;
+import com.bank.others.logout.LogoutTokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

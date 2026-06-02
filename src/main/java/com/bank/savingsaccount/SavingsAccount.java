@@ -1,7 +1,7 @@
 package com.bank.savingsaccount;
 
 
-import com.bank.others.AbstractEntity;
+import com.bank.others.entity.AbstractEntity;
 import com.bank.institutions.Institution;
 import com.bank.memberprofiles.MemberProfile;
 import jakarta.persistence.*;

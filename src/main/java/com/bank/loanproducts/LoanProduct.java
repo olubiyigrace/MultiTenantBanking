@@ -1,6 +1,6 @@
 package com.bank.loanproducts;
 
-import com.bank.others.AbstractEntity;
+import com.bank.others.entity.AbstractEntity;
 import com.bank.institutions.Institution;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

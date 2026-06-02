@@ -1,7 +1,7 @@
 package com.bank.loanguarantors;
 
 
-import com.bank.others.AbstractEntity;
+import com.bank.others.entity.AbstractEntity;
 import com.bank.loanapplications.LoanApplication;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;

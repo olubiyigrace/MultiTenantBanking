@@ -1,4 +1,4 @@
-package com.bank.others.auth;
+package com.bank.others.usersession;
 
 import com.bank.users.User;
 import jakarta.persistence.*;

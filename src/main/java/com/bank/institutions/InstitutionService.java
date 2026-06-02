@@ -1,7 +1,11 @@
 package com.bank.institutions;
 
 
-import com.bank.others.utils.responses.*;
+import com.bank.loanapplications.TotalLoansDisbursedStatisticsResponse;
+import com.bank.loanrepaymentschedule.TotalLoansOutstandingStatisticsResponse;
+import com.bank.memberprofiles.TotalMembersStatisticsResponse;
+import com.bank.savingsaccount.TotalSavingsStatisticsResponse;
+import com.bank.transactions.TotalDepositsStatisticsResponse;
 import com.bank.users.UserResponse;
 import com.bank.others.utils.PageResponse;
 import jakarta.mail.MessagingException;

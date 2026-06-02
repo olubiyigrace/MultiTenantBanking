@@ -1,9 +1,9 @@
 package com.bank.controllers;
 
-import com.bank.others.utils.responses.TotalInterestCollectedResponse;
-import com.bank.others.utils.responses.TotalLoansOutstandingResponse;
-import com.bank.others.utils.responses.TotalLoansOverdueResponse;
-import com.bank.others.utils.responses.TotalSavingsResponse;
+import com.bank.loanapplications.TotalInterestCollectedResponse;
+import com.bank.loanrepaymentschedule.TotalLoansOutstandingResponse;
+import com.bank.loanrepaymentschedule.TotalLoansOverdueResponse;
+import com.bank.savingsaccount.TotalSavingsResponse;
 import com.bank.loanapplications.LoanApplicationResponse;
 import com.bank.loanapplications.LoanRejectionRequest;
 import com.bank.loanproducts.LoanProductResponse;
