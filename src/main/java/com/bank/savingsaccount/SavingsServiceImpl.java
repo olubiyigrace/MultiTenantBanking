@@ -1,5 +1,7 @@
 package com.bank.savingsaccount;
 
+import com.bank.memberprofiles.MemberProfile;
+import com.bank.memberprofiles.MemberRepository;
 import com.bank.others.auditlogs.AuditLog;
 import com.bank.others.auditlogs.AuditLogRepository;
 import com.bank.others.auditlogs.AuditLogRequestFilter;
@@ -7,6 +9,7 @@ import com.bank.others.config.InstitutionContext;
 import com.bank.institutions.Institution;
 import com.bank.others.exceptions.InvalidRequestException;
 import com.bank.institutions.InstitutionRepository;
+import com.bank.others.exceptions.UnauthorizedException;
 import com.bank.others.utils.CurrentUserUtil;
 import com.bank.loanapplications.TotalInterestCollectedResponse;
 import com.bank.loanrepaymentschedule.TotalLoansOutstandingResponse;
@@ -17,8 +20,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
@@ -28,13 +33,105 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class SavingsServiceImpl implements SavingsService {
     private final SavingsRepository savingsRepository;
     private final JdbcTemplate jdbcTemplate;
     private final InstitutionRepository institutionRepository;
     private final AuditLogRepository auditLogRepository;
     private final CurrentUserUtil currentUserUtil;
+    private final MemberRepository memberRepository;
+    private final SavingsMapper savingsMapper;
 
+
+    @Override
+    public void createAnotherSavingsAccount(SavingsAccountRequest savingsAccountRequest) {
+        User loggedInUser = currentUserUtil.getLoggedInUser();
+
+        MemberProfile member = memberRepository.findById(loggedInUser.getMemberProfile().getId())
+                .orElseThrow(() -> new InvalidRequestException("You have no member profile"));
+
+        List<SavingsAccount> activeAccounts = savingsRepository.findByMemberIdAndSavingsStatus
+                (member.getId(), SavingsStatus.ACTIVE);
+
+        boolean hasRegular = activeAccounts.stream().anyMatch(savingsAccount ->
+                savingsAccount.getSavingsAccountType() == SavingsAccountType.REGULAR);
+        boolean hasFixed = activeAccounts.stream().anyMatch(savingsAccount ->
+                savingsAccount.getSavingsAccountType() == SavingsAccountType.FIXED);
+        boolean hasTarget = activeAccounts.stream().anyMatch(savingsAccount ->
+                savingsAccount.getSavingsAccountType() == SavingsAccountType.TARGET);
+
+        if (!hasRegular) {
+            throw new UnauthorizedException(
+                    "You must have an active regular savings account before creating another savings account");
+        }
+        if (savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.REGULAR && hasRegular) {
+            throw new InvalidRequestException("You already have a regular savings account");
+        }
+        if (savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.FIXED && hasFixed) {
+            throw new InvalidRequestException("You already have a fixed savings account");
+        }
+        if (savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.TARGET && hasTarget) {
+            throw new InvalidRequestException("You already have a target savings account");
+        }
+
+        SavingsAccount regularAccount = activeAccounts.stream()
+                .filter(savingsAccount -> savingsAccount.getSavingsAccountType() == SavingsAccountType.REGULAR)
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestException("Regular savings account not found"));
+
+        BigDecimal openingBalance = savingsAccountRequest.getBalance();
+        if (openingBalance == null || openingBalance.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidRequestException("Opening balance must be greater than zero");
+        }
+        if (regularAccount.getBalance().compareTo(openingBalance) < 0) {
+            throw new InvalidRequestException("Insufficient balance");
+        }
+
+        if (savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.FIXED) {
+            if (savingsAccountRequest.getMaturityDate() == null) {
+                throw new InvalidRequestException("Maturity date is required for a fixed savings account");
+            }
+            if (openingBalance.compareTo(BigDecimal.valueOf(50000)) < 1) {
+                throw new InvalidRequestException("Minimum opening balance for a fixed savings account is ₦50,000");
+            }
+        }
+
+        if (savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.TARGET) {
+            if (savingsAccountRequest.getTargetAmount() == null || savingsAccountRequest.getTargetAmount()
+                            .compareTo(BigDecimal.ZERO) <= 0) {
+                throw new InvalidRequestException("Target amount is required");
+            }
+            if (openingBalance.compareTo(BigDecimal.valueOf(50000)) < 1) {
+                throw new InvalidRequestException("Minimum opening balance for a target savings account is ₦50,000");
+            }
+        }
+        regularAccount.setBalance(regularAccount.getBalance().subtract(openingBalance));
+        savingsRepository.save(regularAccount);
+
+        SavingsAccount newAccount = savingsMapper.toEntity(savingsAccountRequest);
+        newAccount.setMember(member);
+        newAccount.setInstitution(Institution.builder().id(loggedInUser.getInstitutionId()).build());
+        newAccount.setAccountNumber(generateAccountNumber());
+        newAccount.setSavingsStatus(SavingsStatus.ACTIVE);
+        newAccount.setBalance(openingBalance);
+
+        if (newAccount.getSavingsAccountType() == SavingsAccountType.FIXED ||
+                newAccount.getSavingsAccountType() == SavingsAccountType.TARGET) {
+            newAccount.setMinimumBalance(BigDecimal.valueOf(50000));
+            newAccount.setInterestRatePercent(BigDecimal.valueOf(0.027));
+        }
+        savingsRepository.save(newAccount);
+    }
+
+    private String generateAccountNumber() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder accountNumber = new StringBuilder();
+        for (int i = 0; i < 9; i++) {
+            accountNumber.append(random.nextInt(10));
+        }
+        return accountNumber.toString();
+    }
 
     @Override
     public void activateAccount(String savingsId) {

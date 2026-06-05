@@ -63,7 +63,7 @@ public class MemberServiceImpl implements MemberService {
         member.setMemberNumber(generateMemberNumber());
 
         Institution institution = Institution.builder().id(institutionId).build();
-        member.setInstitution(institution);
+        member.setInstitution(Institution.builder().id(institutionId).build());
         member.getUser().setInstitution(institution);
 
         SavingsAccount savingsAccount = SavingsAccount.builder()

@@ -8,6 +8,7 @@ import java.time.Month;
 import java.time.Year;
 
 public interface SavingsService {
+    void createAnotherSavingsAccount(SavingsAccountRequest savingsAccountRequest);
     void activateAccount(String savingsId);
     void freezeAccount(String savingsId);
     void closeAccount(String savingsId);

@@ -8,6 +8,8 @@ import com.bank.loanapplications.LoanApplicationService;
 import com.bank.others.utils.ApiResponse;
 import com.bank.loanguarantors.GuarantorRequest;
 import com.bank.loanguarantors.GuarantorService;
+import com.bank.savingsaccount.SavingsAccountRequest;
+import com.bank.savingsaccount.SavingsService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class MemberController {
     private final CollateralService collateralService;
     private final CloudinaryService cloudinaryService;
     private final GuarantorService guarantorService;
+    private final SavingsService savingsService;
 
     @PostMapping("/create-loan-application")
     public ResponseEntity<ApiResponse<String>> create(@Valid @RequestBody LoanApplicationRequest loanApplicationRequest){
@@ -34,6 +37,12 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(true,"Loan application created successfully! " +
                 "If selected loan product requires a collateral or a guarantor, or if it requires both collateral and " +
                 "guarantor, add them within a period of 7 days for your loan application to be reviewed.", null));
+    }
+
+    @PostMapping("/create-savings-account")
+    public ResponseEntity<ApiResponse<String>> createNewSavingsAccount(@Valid @RequestBody SavingsAccountRequest savingsAccountRequest){
+        savingsService.createAnotherSavingsAccount(savingsAccountRequest);
+        return ResponseEntity.ok(ApiResponse.success(true, "Savings account created and added successfully", null));
     }
 
     @PostMapping("/add-collateral")
