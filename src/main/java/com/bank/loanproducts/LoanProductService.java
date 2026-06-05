@@ -8,8 +8,6 @@ public interface LoanProductService {
     PageResponse<LoanProductResponse> getAll(final int page, final int size);
     void update(String id, LoanProductRequest loanProductRequest);
     void delete(String id);
-
     void activateLoanProduct(String loanProductId);
-
     void deactivateLoanProduct(String loanProductId);
 }

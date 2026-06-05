@@ -34,68 +34,68 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class MemberServiceImpl implements MemberService {
-        private final MemberRepository memberRepository;
-        private final MemberMapper memberMapper;
-        private final UserRepository userRepository;
-        private final SavingsRepository savingsRepository;
-        private final PasswordEncoder passwordEncoder;
-        private final EmailService emailService;
+    private final MemberRepository memberRepository;
+    private final MemberMapper memberMapper;
+    private final UserRepository userRepository;
+    private final SavingsRepository savingsRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
 
-        @Transactional
-        public void createMember(MemberRequest memberRequest) throws MessagingException {
-            final String institutionId = InstitutionContext.getCurrentInstitution();
+    @Transactional
+    public void createMember(MemberRequest memberRequest) throws MessagingException {
+        final String institutionId = InstitutionContext.getCurrentInstitution();
 
-            Optional<MemberProfile> existingMember = memberRepository.findByBvn(memberRequest.getBvn());
-            if (existingMember.isPresent()) {
-                log.debug("Member already exists");
-                throw new DuplicateResourceException("Member already exists");
-            }
-
-            Optional<User> existingUser = userRepository.findByEmail(memberRequest.getRegisterUserRequest().getEmail());
-            if (existingUser.isPresent()) {
-                log.debug("User already exists");
-                throw new DuplicateResourceException("User already exists");
-            }
-
-            MemberProfile member = memberMapper.toEntity(memberRequest);
-            member.setMemberNumber(generateMemberNumber());
-
-            Institution institution = Institution.builder().id(institutionId).build();
-            member.setInstitution(institution);
-            member.getUser().setInstitution(institution);
-
-            SavingsAccount savingsAccount = SavingsAccount.builder()
-                    .accountNumber(generateAccountNumber())
-                    .balance(memberRequest.getSavingsAccountRequest().getBalance())
-                    .targetAmount(memberRequest.getSavingsAccountRequest().getTargetAmount())
-                    .maturityDate(memberRequest.getSavingsAccountRequest().getMaturityDate())
-                    .interestRatePercent(BigDecimal.valueOf(0.01))
-                    .minimumBalance(BigDecimal.valueOf(0.0))
-                    .savingsAccountType(SavingsAccountType.REGULAR)
-                    .member(member)
-                    .institution(institution)
-                    .build();
-
-            String emailVerificationToken = UUID.randomUUID().toString();
-            member.getUser().setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
-            member.getUser().setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
-
-            userRepository.save(member.getUser());
-            memberRepository.save(member);
-            savingsRepository.save(savingsAccount);
-
-            Map<String, Object> model = new HashMap<>();
-            model.put("name", memberRequest.getRegisterUserRequest().getName());
-            model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?token=" + emailVerificationToken);
-
-            emailService.sendVerificationEmail(
-                    memberRequest.getRegisterUserRequest().getEmail(),
-                    "Verify your account",
-                    "userverification",
-                    model
-            );
+        Optional<MemberProfile> existingMember = memberRepository.findByBvn(memberRequest.getBvn());
+        if (existingMember.isPresent()) {
+            log.debug("Member already exists");
+            throw new DuplicateResourceException("Member already exists");
         }
+
+        Optional<User> existingUser = userRepository.findByEmail(memberRequest.getRegisterUserRequest().getEmail());
+        if (existingUser.isPresent()) {
+            log.debug("User already exists");
+            throw new DuplicateResourceException("User already exists");
+        }
+
+        MemberProfile member = memberMapper.toEntity(memberRequest);
+        member.setMemberNumber(generateMemberNumber());
+
+        Institution institution = Institution.builder().id(institutionId).build();
+        member.setInstitution(institution);
+        member.getUser().setInstitution(institution);
+
+        SavingsAccount savingsAccount = SavingsAccount.builder()
+                .accountNumber(generateAccountNumber())
+                .balance(memberRequest.getSavingsAccountRequest().getBalance())
+                .targetAmount(memberRequest.getSavingsAccountRequest().getTargetAmount())
+                .maturityDate(memberRequest.getSavingsAccountRequest().getMaturityDate())
+                .interestRatePercent(BigDecimal.valueOf(0.01))
+                .minimumBalance(BigDecimal.valueOf(0.0))
+                .savingsAccountType(SavingsAccountType.REGULAR)
+                .member(member)
+                .institution(institution)
+                .build();
+
+        String emailVerificationToken = UUID.randomUUID().toString();
+        member.getUser().setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
+        member.getUser().setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
+
+        userRepository.save(member.getUser());
+        memberRepository.save(member);
+        savingsRepository.save(savingsAccount);
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("name", memberRequest.getRegisterUserRequest().getName());
+        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?token=" + emailVerificationToken);
+
+        emailService.sendVerificationEmail(
+                memberRequest.getRegisterUserRequest().getEmail(),
+                "Verify your account",
+                "userverification",
+                model
+        );
+    }
 
     @Override
     public PageResponse<MemberResponse> getAllMembers(ProfileStatus profileStatus, int page, int size) {

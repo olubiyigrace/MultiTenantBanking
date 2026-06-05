@@ -153,14 +153,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         ) {
             throw new InvalidRequestException("SUPER_ADMIN and INSTITUTION_ADMIN cannot be selected as an account type");
         }
-        final User newUser = userMapper.toEntity(registerUserRequest);
-        newUser.setInstitution(Institution.builder().id(institutionId).build());
 
         final User user = userMapper.toEntity(registerUserRequest);
+        user.setInstitution(Institution.builder().id(institutionId).build());
         String emailVerificationToken = UUID.randomUUID().toString();
         user.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
         user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
-        userRepository.save(newUser);
+        userRepository.save(user);
         log.info("User created successfully!");
 
         Map<String, Object> model = new HashMap<>();
@@ -189,7 +188,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Token has expired");
             throw new InvalidRequestException("Token has expired");
         }
-        user.setEmailVerifiedAt(LocalDateTime.now());
         user.setIsVerified(true);
         user.setEmailVerifiedAt(LocalDateTime.now());
         user.setEmailVerificationToken("used");
@@ -237,13 +235,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("User not verified");
             throw new InvalidRequestException("User not verified");
         }
+        if (user.getUserAccountType() != UserAccountType.SUPER_ADMIN) {
+            String institutionId = user.getInstitutionId();
 
-        Institution institution = institutionRepository.findById(user.getInstitutionId())
-                .orElseThrow(() -> new InvalidRequestException("Institution not found"));
-        if (institution.getInstitutionStatus() == InstitutionStatus.SUSPENDED) {
-            throw new InvalidRequestException("Your institution has been suspended. Contact support.");
+            if (institutionId == null || institutionId.isBlank()) {
+                throw new InvalidRequestException("User is not associated with an institution");
+            }
+
+            Institution institution = institutionRepository.findById(institutionId)
+                    .orElseThrow(() -> new InvalidRequestException("Institution not found"));
+            if (institution.getInstitutionStatus() == InstitutionStatus.SUSPENDED) {
+                throw new InvalidRequestException(
+                        "Your institution has been suspended. Contact support.");
+            }
         }
-
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             log.debug("Incorrect password");
             throw new InvalidRequestException("Incorrect password");
@@ -268,7 +273,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         final String tokenType = "Bearer";
 
         Map<String, Object> model = new HashMap<>();
-        model.put("name", request.getUsername());
+        model.put("name", users.getName());
         model.put("resetUrl", "https://multitenantbank.com/api/v1/auth/reset-password?token=" + token);
         model.put("revokeUrl", "https://multitenantbanking.com/api/v1/auth/revoke-session?token=" + accessToken);
 
@@ -323,6 +328,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         userRepository.save(user);
 
         Map<String, Object> model = new HashMap<>();
+        model.put("name", user.getName());
         model.put("resetUrl", "https://multitenantbanking.com/api/v1/auth/reset-password?token=" + token);
 
         emailService.sendVerificationEmail(
@@ -387,9 +393,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new InvalidRequestException("Invalid authorization header");
         }
         String token = authHeader.substring(7);
-        UserSession userSession = userSessionRepository
-                .findByAccessToken(token)
-                .orElseThrow(() -> new InvalidRequestException("Session ended"));
+        UserSession userSession = userSessionRepository.findByAccessToken(token)
+                .orElseThrow(() -> new InvalidRequestException("Session already ended"));
         Instant expiryDate = jwtService.extractExpiration(token).toInstant();
 
         LogoutToken logoutToken = LogoutToken.builder()
@@ -407,7 +412,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void revokeSession(String accessToken) {
         UserSession session = userSessionRepository.findByAccessToken(accessToken)
-                .orElseThrow(() -> new InvalidRequestException("Session ended"));
+                .orElseThrow(() -> new DuplicateResourceException("Session already ended"));
         session.setRevoked(true);
         session.setAccessToken("used");
         userSessionRepository.save(session);

@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-//@Tag(name = "Authentication", description = "Authentication API")
 public class AuthController {
     private final AuthenticationService authenticationService;
 
@@ -42,7 +41,7 @@ public class AuthController {
     }
 
     @GetMapping("/reverify-institution")
-    public ResponseEntity<ApiResponse<String>> resendUserVerificationEmail(@RequestParam final String email) {
+    public ResponseEntity<ApiResponse<String>> resendInstitutionVerificationEmail(@RequestParam final String email) {
         authenticationService.reverifyInstitutionEmail(email);
         return ResponseEntity.ok(ApiResponse.success(true,
                 "Resent! Check your email to complete your registration.", null));

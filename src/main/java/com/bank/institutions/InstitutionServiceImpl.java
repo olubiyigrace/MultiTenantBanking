@@ -50,7 +50,6 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final UserMapper userMapper;
-    private final MemberRepository memberRepository;
 
     @Override
     public void approveInstitution(final String institutionId) throws MessagingException {

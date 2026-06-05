@@ -50,7 +50,7 @@ create table users
     email_verified_at               timestamp(6),
     reset_password_token_expiry     timestamp(6),
     phone                           varchar(255) not null,
-    institution_id                  varchar(255) not null,
+    institution_id                  varchar(255),
     user_account_type               varchar(255) not null
         constraint users_user_account_type_check
             check (

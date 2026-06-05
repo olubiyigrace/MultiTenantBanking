@@ -6,6 +6,6 @@ import java.util.Optional;
 
 public interface SavingsRepository extends JpaRepository<SavingsAccount, String> {
     boolean existsByMemberIdAndSavingsStatus(String memberId, SavingsStatus savingsStatus);
-    boolean existsByMemberIdAndSavingsStatusAndSavingsAccountType(String id, SavingsStatus savingsStatus, SavingsAccountType savingsAccountType);
     Optional<SavingsAccount> findByMemberId(String memberId);
+    SavingsAccount findByMemberIdAndSavingsStatusAndSavingsAccountType(String id, SavingsStatus savingsStatus, SavingsAccountType savingsAccountType);
 }

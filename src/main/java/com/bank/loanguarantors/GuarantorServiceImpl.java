@@ -1,9 +1,14 @@
 package com.bank.loanguarantors;
 
+import com.bank.loanapplications.LoanApplication;
+import com.bank.loanapplications.LoanApplicationResponse;
+import com.bank.loanproducts.LoanProduct;
 import com.bank.others.exceptions.UnauthorizedException;
+import com.bank.others.services.EmailService;
 import com.bank.others.utils.CurrentUserUtil;
 import com.bank.loanapplications.LoanApplicationStatus;
 import com.bank.memberprofiles.ProfileStatus;
+import com.bank.savingsaccount.SavingsAccount;
 import com.bank.savingsaccount.SavingsAccountType;
 import com.bank.savingsaccount.SavingsStatus;
 import com.bank.others.exceptions.InvalidRequestException;
@@ -14,15 +19,25 @@ import com.bank.memberprofiles.MemberRepository;
 import com.bank.others.utils.PageResponse;
 import com.bank.savingsaccount.SavingsRepository;
 import com.bank.users.User;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class GuarantorServiceImpl implements GuarantorService {
     private final GuarantorRepository guarantorRepository;
     private final MemberRepository memberRepository;
@@ -31,69 +46,132 @@ public class GuarantorServiceImpl implements GuarantorService {
     private final LoanProductRepository loanProductRepository;
     private final GuarantorMapper guarantorMapper;
     private final SavingsRepository savingsRepository;
+    private final EmailService emailService;
 
 
     @Override
-    public void createGuarantor(GuarantorRequest guarantorRequest) {
+    public void createGuarantor(GuarantorRequest guarantorRequest) throws MessagingException {
         User loggedInUser = currentUserUtil.getLoggedInUser();
 
-        boolean hasApplication = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus
-                (loggedInUser.getMemberProfile().getId(), LoanApplicationStatus.PENDING);
-        if (!hasApplication) {
-            log.debug("No pending loan application");
-            throw new InvalidRequestException("No pending loan application");
-        }
-        boolean requiresGuarantor = loanProductRepository.existsByInstitutionIdAndRequiresGuarantor(loggedInUser.getInstitutionId(), true);
-        if (!requiresGuarantor) {
-            log.debug("Loan product does not require a guarantor");
-            throw new InvalidRequestException("Loan product does not require a guarantor");
+        MemberProfile applicantProfile = loggedInUser.getMemberProfile();
+        LoanApplication loanApplication = loanApplicationRepository.findByMemberIdAndLoanApplicationStatus
+                        (applicantProfile.getId(), LoanApplicationStatus.PENDING)
+                .orElseThrow(() -> new InvalidRequestException("No pending loan application found"));
+
+        LoanProduct loanProduct = loanProductRepository.findById(loanApplication.getLoanProductId()).orElseThrow(() ->
+                        new InvalidRequestException("Loan product does not exist"));
+        if (!loanProduct.getRequiresGuarantor()) {
+            throw new InvalidRequestException("This loan product does not require a guarantor");
         }
 
-        MemberProfile existingMember = memberRepository.findById(guarantorRequest.getGuarantorMemberId())
-                .orElseThrow(() -> new InvalidRequestException("Guarantor member id does not exist"));
-
-        if (!existingMember.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
-            log.debug("Guarantor does not have an active profile status");
-            throw new UnauthorizedException("Guarantor does not have an active profile status");
+        MemberProfile guarantorMember = memberRepository.findById(guarantorRequest.getGuarantorMemberId())
+                .orElseThrow(() -> new InvalidRequestException("Guarantor member does not exist"));
+        if (guarantorMember.getId().equals(applicantProfile.getId())) {
+            throw new InvalidRequestException("You cannot assign yourself as a guarantor");
         }
 
-        boolean hasSavings = savingsRepository.existsByMemberIdAndSavingsStatusAndSavingsAccountType(existingMember.getId(), SavingsStatus.ACTIVE, SavingsAccountType.FIXED);
-        if (!hasSavings) {
-            throw new InvalidRequestException("Guarantor has no active and/or fixed savings account to cover up for your loan");
+        if (!ProfileStatus.ACTIVE.equals(guarantorMember.getProfileStatus())) {
+            throw new InvalidRequestException("Guarantor profile is not active");
         }
-        Optional<LoanGuarantor> existingGuarantor = guarantorRepository.findByGuarantorMemberIdAndGuarantorStatus
-                (guarantorRequest.getGuarantorMemberId(), GuarantorStatus.ACCEPTED);
-        if (existingGuarantor.isPresent()) {
-            throw new InvalidRequestException("Guarantor is already existing for another loan applicant");
+
+        boolean hasActiveLoan = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus
+                (guarantorMember.getId(), LoanApplicationStatus.APPROVED);
+        if (hasActiveLoan) {
+            throw new InvalidRequestException("Guarantor already has an active loan");
         }
-        LoanGuarantor loanGuarantor = guarantorMapper.toEntity(guarantorRequest);
-        guarantorRepository.save(loanGuarantor);
+
+        boolean hasFullyRepaidLoan = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus
+                (guarantorMember.getId(), LoanApplicationStatus.FULLY_REPAID);
+        boolean hasAnyLoanHistory = loanApplicationRepository.existsByMemberId(guarantorMember.getId());
+        if (!hasFullyRepaidLoan && hasAnyLoanHistory) {
+            throw new InvalidRequestException("Guarantor must have a fully repaid loan or no loan history");
+        }
+
+        SavingsAccount fixedSavings = savingsRepository.findByMemberIdAndSavingsStatusAndSavingsAccountType(
+                        guarantorMember.getId(), SavingsStatus.ACTIVE, SavingsAccountType.FIXED);
+        if (fixedSavings == null) {
+            throw new InvalidRequestException("Guarantor must have an active fixed savings account");
+        }
+
+//        BigDecimal totalRepayable = loanApplication.getTotalRepayable();
+//        if (fixedSavings.getBalance().compareTo(totalRepayable) < 0) {
+//            throw new InvalidRequestException("Guarantor savings balance is insufficient");
+//        }
+//
+//        LocalDate loanEndDate = LocalDate.now().plusMonths(loanApplication.getTenureMonths().longValue());
+//        LocalDate requiredMaturityDate = loanEndDate.plusMonths(2);
+//
+//        if (fixedSavings.getMaturityDate().isBefore(requiredMaturityDate)) {
+//            throw new InvalidRequestException("Guarantor fixed savings must mature at least 2 months after" +
+//                    " the applicant's loan tenure");
+//        }
+
+        boolean alreadyGuarantor = guarantorRepository.existsByGuarantorMemberIdAndGuarantorStatus
+                (guarantorMember.getId(), GuarantorStatus.ACCEPTED);
+        boolean pendingGuarantor = guarantorRepository.existsByGuarantorMemberIdAndGuarantorStatus(
+                guarantorMember.getId(), GuarantorStatus.PENDING
+        );
+
+        if (alreadyGuarantor) {
+            throw new InvalidRequestException("This member is already an active guarantor");
+        }
+        if(pendingGuarantor){
+            throw new InvalidRequestException("This member is already a pending guarantor");
+        }
+
+        LoanGuarantor applicant = guarantorMapper.toEntity(guarantorRequest);
+        applicant.setLoanApplication(LoanApplication.builder().id(loanApplication.getId()).build());
+        applicant.setGuarantorStatus(GuarantorStatus.PENDING);
+        applicant.setRespondedAt(LocalDateTime.now());
+
+        guarantorRepository.save(applicant);
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("name", guarantorMember.getUser().getName());
+        model.put("applicantName", loggedInUser.getName());
+        model.put("loanApplicationId", applicant.getLoanApplication().getId());
+        model.put("institutionName", loggedInUser.getInstitution().getInstitutionName());
+
+        emailService.sendVerificationEmail(
+                guarantorMember.getUser().getEmail(),
+                "Action Required: Guarantor Request for Loan Application",
+                "guarantorrequest",
+                model
+        );
+        log.info("Guarantor request created successfully");
     }
 
+    @Override
+    public void acceptGuarantorRequest(String loanApplicationId){
+        log.info("Accepting guarantor request");
+        User loggedInUser = currentUserUtil.getLoggedInUser();
 
-        //guarantor must have a fixed savings that is greater that applicant's total repayable and expiry is before applicant's maxTenure month
-        //guarantor memberId must not have an existing ACTIVE LoanStatus
-        // guarantor must have a null or fully repaid loanStatus
-        // guarantor member status must be Active
-        // guarantor must have a record of LoanStatus.FULLY_REPAID
+        LoanGuarantor existingGuarantor = guarantorRepository.findById(loggedInUser.getId()).orElseThrow(() ->
+                new InvalidRequestException("You have not been requested to be a guarantor"));
+        existingGuarantor.setGuarantorStatus(GuarantorStatus.ACCEPTED);
+        existingGuarantor.setRespondedAt(LocalDateTime.now());
+
+        log.info("Guarantor request accepted");
+    }
 
     @Override
-    public void verifyGuarantor(String guarantorMemberId){
+    public void rejectGuarantorRequest(String loanApplicationId){
+        log.info("Rejecting guarantor request");
+        User loggedInUser = currentUserUtil.getLoggedInUser();
 
-       // if(guarantorMemberId.getIsVerified.equals(true)), set guarantor status to ACTIVE
+        LoanGuarantor existingGuarantor = guarantorRepository.findById(loggedInUser.getId()).orElseThrow(() ->
+                new InvalidRequestException("You have not been requested to be a guarantor"));
+        existingGuarantor.setGuarantorStatus(GuarantorStatus.REJECTED);
+        existingGuarantor.setRespondedAt(LocalDateTime.now());
+
+        log.info("Guarantor request rejected");
     }
 
     @Override
     public PageResponse<GuarantorResponse> getAllGuarantors(int page, int size) {
-        return null;
-    }
-
-    @Override
-    public void updateGuarantor(String id, GuarantorRequest guarantorRequest) {
-    }
-
-    @Override
-    public void deleteGuarantor(String id) {
-
+        final PageRequest pageRequest = PageRequest.of(page, size);
+        final Page<LoanGuarantor> loanGuarantors = guarantorRepository.findAll(pageRequest);
+        final Page<GuarantorResponse> guarantorResponses = loanGuarantors.map(guarantorMapper::toResponse);
+        return PageResponse.of(guarantorResponses);
     }
 }

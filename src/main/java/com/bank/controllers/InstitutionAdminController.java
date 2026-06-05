@@ -1,6 +1,8 @@
 package com.bank.controllers;
 
 import com.bank.loanapplications.TotalInterestCollectedResponse;
+import com.bank.loanguarantors.GuarantorResponse;
+import com.bank.loanguarantors.GuarantorService;
 import com.bank.loanrepaymentschedule.TotalLoansOutstandingResponse;
 import com.bank.loanrepaymentschedule.TotalLoansOverdueResponse;
 import com.bank.savingsaccount.TotalSavingsResponse;
@@ -43,6 +45,7 @@ public class InstitutionAdminController {
     private final InstitutionService institutionService;
     private final LoanApplicationService loanApplicationService;
     private final CollateralService collateralService;
+    private final GuarantorService guarantorService;
 
     @PostMapping("/register-user")
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody RegisterUserRequest registerUserRequest)
@@ -132,6 +135,18 @@ public class InstitutionAdminController {
                 savingsService.getTotalSavings()));
     }
 
+    @PostMapping("/activate-loan-product")
+    public ResponseEntity<ApiResponse<String>> activateLoanProduct(@Valid @RequestParam String loanProductId){
+        loanProductService.activateLoanProduct(loanProductId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan product activated successfully", null));
+    }
+
+    @PostMapping("/deactivate-loan-product")
+    public ResponseEntity<ApiResponse<String>> deactivateLoanProduct(@Valid @RequestParam String loanProductId){
+        loanProductService.deactivateLoanProduct(loanProductId);
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan product deactivated successfully", null));
+    }
+
     @GetMapping("/total-outstanding-loans")
     public ResponseEntity<ApiResponse<TotalLoansOutstandingResponse>> getTotalLoansOutstanding() {
         return ResponseEntity.ok(ApiResponse.success(true,
@@ -199,5 +214,13 @@ public class InstitutionAdminController {
     public ResponseEntity<ApiResponse<String>> writeOffLoan(@RequestParam String loanApplicationId){
         loanApplicationService.writeOff(loanApplicationId);
         return ResponseEntity.ok(ApiResponse.success(true, "Loan application successfully written-off", null));
+    }
+
+    @GetMapping("/all-guarantors")
+    public ResponseEntity<ApiResponse<PageResponse<GuarantorResponse>>> allGuarantors(
+            @RequestParam(name = "page", defaultValue = "0") final int page,
+            @RequestParam(name = "size", defaultValue = "10") final int size) {
+        return ResponseEntity.ok(ApiResponse.success(true, "Guarantors retrieved successfully",
+                guarantorService.getAllGuarantors(page, size)));
     }
 }

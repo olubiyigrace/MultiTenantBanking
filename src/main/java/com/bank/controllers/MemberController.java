@@ -8,6 +8,7 @@ import com.bank.loanapplications.LoanApplicationService;
 import com.bank.others.utils.ApiResponse;
 import com.bank.loanguarantors.GuarantorRequest;
 import com.bank.loanguarantors.GuarantorService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class MemberController {
     private final GuarantorService guarantorService;
 
     @PostMapping("/create-loan-application")
-    public ResponseEntity<ApiResponse<String>> create(LoanApplicationRequest loanApplicationRequest){
+    public ResponseEntity<ApiResponse<String>> create(@Valid @RequestBody LoanApplicationRequest loanApplicationRequest){
         loanApplicationService.createApplication(loanApplicationRequest);
         return ResponseEntity.ok(ApiResponse.success(true,"Loan application created successfully! " +
                 "If selected loan product requires a collateral or a guarantor, or if it requires both collateral and " +
@@ -48,8 +49,20 @@ public class MemberController {
     }
 
     @PostMapping("/create-guarantor")
-    public ResponseEntity<ApiResponse<String>> createGuarantor(GuarantorRequest guarantorRequest){
+    public ResponseEntity<ApiResponse<String>> createGuarantor(@Valid @RequestBody GuarantorRequest guarantorRequest) throws MessagingException {
         guarantorService.createGuarantor(guarantorRequest);
         return ResponseEntity.ok(ApiResponse.success(true,"Guarantor added successfully!", null));
+    }
+
+    @PostMapping("/accept-guarantor-request")
+    public ResponseEntity<ApiResponse<String>> accept(@RequestParam String loanApplicationId){
+        guarantorService.acceptGuarantorRequest(loanApplicationId);
+        return ResponseEntity.ok(ApiResponse.success(true,"guarantor request accepted successfully", null));
+    }
+
+    @PostMapping("/reject-guarantor-request")
+    public ResponseEntity<ApiResponse<String>> reject(@RequestParam String loanApplicationId){
+        guarantorService.rejectGuarantorRequest(loanApplicationId);
+        return ResponseEntity.ok(ApiResponse.success(true,"guarantor request rejected successfully", null));
     }
 }

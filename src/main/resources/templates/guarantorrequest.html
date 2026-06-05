@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Guarantor Request Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f7;
+            color: #333333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: #1f2937;
+        }
+
+        h3 {
+            color: #1f2937;
+            margin-top: 25px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        .action-box {
+            background-color: #f9fafb;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #888888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Dear <span th:text="${name}">Guarantor</span>,</h2>
+
+    <p>
+        We hope this message finds you well.
+    </p>
+
+    <p>
+        This is to notify you that
+        <strong th:text="${applicantName}">Applicant Name</strong>
+        with the loan Application id
+        <strong th:text="${loanApplicationId}">Application Id</strong>
+        has nominated you as a guarantor for their loan application with
+        <strong th:text="${institutionName}">Institution Name</strong>.
+    </p>
+
+    <p>
+        As a guarantor, your acceptance of this request carries certain responsibilities and obligations.
+        Before making your decision, please carefully review the following conditions:
+    </p>
+
+    <h3>Guarantor Terms and Conditions</h3>
+
+    <ul>
+        <li>
+            <strong>Loan Eligibility Restriction</strong><br>
+            While serving as an active guarantor, you may only apply for loan products that require collateral.
+        </li>
+
+        <li>
+            <strong>Liability in the Event of Loan Default</strong><br>
+            If the borrower fails to repay the loan and the loan remains outstanding after the due date,
+            the institution reserves the right to recover the outstanding balance from your fixed savings account
+            in accordance with the institution's loan recovery policy.
+        </li>
+
+        <li>
+            <strong>One Active Guarantee at a Time</strong><br>
+            An active guarantor may not guarantee more than one borrower simultaneously.
+            You must be released from your current guarantor obligation before accepting another guarantor request.
+        </li>
+    </ul>
+
+    <div class="action-box">
+        <h3>Required Action</h3>
+
+        <p>
+            Please login to your account via the mobile application or web portal
+            to review this guarantor request and indicate whether you wish to:
+        </p>
+
+        <ul>
+            <li><strong>Accept</strong> the guarantor request.</li>
+            <li><strong>Reject</strong> the guarantor request.</li>
+        </ul>
+
+        <p>
+            Your response is required before the loan application can proceed to the next stage of processing.
+        </p>
+    </div>
+
+    <p>
+        If you have any questions regarding your responsibilities as a guarantor,
+        please contact our support team for assistance.
+    </p>
+
+    <p>
+        Thank you for your prompt attention to this matter.
+    </p>
+
+    <p>
+        Kind regards,<br>
+        <strong>Loan Management Team</strong><br>
+        <span th:text="${institutionName}">MultiTenantBank</span>
+    </p>
+
+    <div class="footer">
+        <p>This is an automated notification. Please do not reply directly to this email.</p>
+    </div>
+
+</div>
+
+</body>
+</html>

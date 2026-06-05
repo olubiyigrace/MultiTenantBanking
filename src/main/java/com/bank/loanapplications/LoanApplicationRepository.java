@@ -11,4 +11,6 @@ public interface LoanApplicationRepository extends JpaRepository <LoanApplicatio
     Optional<LoanApplication> findById(String loanApplicationId);
     Page<LoanApplication> findByLoanOfficerId(String id, PageRequest pageRequest);
     Optional<LoanApplication> findByMemberIdAndLoanApplicationStatus(String id, LoanApplicationStatus loanApplicationStatus);
+    boolean existsByMemberId(String id);
+    Optional<LoanApplication> findByMemberId(String memberId);
 }

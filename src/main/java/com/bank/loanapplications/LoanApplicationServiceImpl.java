@@ -74,16 +74,25 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         log.info("Creating loan application");
         User user = currentUserUtil.getLoggedInUser();
 
+        boolean hasExistingApplication = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus
+                (user.getMemberProfile().getId(), LoanApplicationStatus.PENDING);
+        if (hasExistingApplication) {
+            throw new InvalidRequestException("You have a pending application");
+        }
+
+// do cannot apply for a loan is memberprofile.getId.compare to LocalDate. now is not greater than 6 months
         MemberProfile existingMember = memberRepository.findByUserId(user.getId()).orElseThrow(() ->
                 new InvalidRequestException("Member not found"));
         if (!existingMember.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
-            log.debug("Member does not have an active profile status");
-            throw new UnauthorizedException("Member does not have an active profile status");
+            log.debug("You do not have an active profile status");
+            throw new UnauthorizedException("You do not have an active profile status");
         }
 
         boolean eligibleMember = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus
                 (existingMember.getId(), LoanApplicationStatus.FULLY_REPAID);
-        if (!eligibleMember) {
+        boolean hasAnyLoanHistory = loanApplicationRepository.existsByMemberId(existingMember.getId());
+
+        if (!eligibleMember && hasAnyLoanHistory) {
             throw new InvalidRequestException("You are not eligible to apply for a loan at the moment");
         }
 
@@ -92,7 +101,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         if (!hasSavings) {
             throw new InvalidRequestException("You have no active savings account at the moment");
         }
-
         LoanProduct existingProduct = loanProductRepository.findById(loanApplicationRequest.getLoanProductId())
                 .orElseThrow(() -> new InvalidRequestException("Loan product not found"));
 
@@ -154,10 +162,10 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
         LoanGuarantor loanGuarantor = guarantorRepository.findByLoanApplicationId(loanApplicationId);
         if (loanGuarantor.getGuarantorStatus().equals(GuarantorStatus.REJECTED)){
-            throw new InvalidRequestException("Guarantor has been rejected ");
+            throw new InvalidRequestException("Guarantor rejected request ");
         }
         if (!loanGuarantor.getGuarantorStatus().equals(GuarantorStatus.ACCEPTED)){
-            throw new InvalidRequestException("Guarantor is still pending ");
+            throw new InvalidRequestException("Guarantor is yet to approve or decline request ");
         }
         if (loanProduct.getRequiresGuarantor().equals(true) && loanGuarantor.getId().isBlank()) {
             throw new InvalidRequestException("User has not provided a guarantor as required by the loan product");
