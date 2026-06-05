@@ -258,7 +258,7 @@ create table loan_guarantors
 (
     id                  varchar(255) not null primary key,
     created_at          timestamp(6) not null,
-    responded_at        timestamp(6) not null,
+    responded_at        timestamp(6),
     loan_application_id varchar(255) not null,
     guarantor_member_id varchar(255) not null,
     guarantor_status    varchar(255) not null

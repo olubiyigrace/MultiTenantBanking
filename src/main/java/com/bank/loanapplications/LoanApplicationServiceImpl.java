@@ -127,6 +127,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             throw new InvalidRequestException("You can only apply for a loan product that requires only a collateral");
         }
         LoanApplication loanApplication = loanApplicationMapper.toEntity(loanApplicationRequest);
+        loanApplication.setRequestedAmount(loanApplicationRequest.getRequestedAmount());
         loanApplication.setInstitution(Institution.builder().id(institutionId).build());
         loanApplication.setMember(MemberProfile.builder().id(existingMember.getId()).build());
         loanApplication.setLoanApplicationStatus(LoanApplicationStatus.PENDING);

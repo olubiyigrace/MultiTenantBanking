@@ -1,6 +1,7 @@
 package com.bank.memberprofiles;
 
 import com.bank.others.exceptions.InvalidRequestException;
+import com.bank.savingsaccount.SavingsStatus;
 import com.bank.users.UserRepository;
 import com.bank.others.config.InstitutionContext;
 import com.bank.institutions.Institution;
@@ -70,9 +71,10 @@ public class MemberServiceImpl implements MemberService {
                 .balance(memberRequest.getSavingsAccountRequest().getBalance())
                 .targetAmount(memberRequest.getSavingsAccountRequest().getTargetAmount())
                 .maturityDate(memberRequest.getSavingsAccountRequest().getMaturityDate())
-                .interestRatePercent(BigDecimal.valueOf(0.01))
+                .interestRatePercent(BigDecimal.valueOf(0.0005))
                 .minimumBalance(BigDecimal.valueOf(0.0))
                 .savingsAccountType(SavingsAccountType.REGULAR)
+                .savingsStatus(SavingsStatus.ACTIVE)
                 .member(member)
                 .institution(institution)
                 .build();

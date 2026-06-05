@@ -1,9 +1,7 @@
 package com.bank.loanguarantors;
 
 import com.bank.loanapplications.LoanApplication;
-import com.bank.loanapplications.LoanApplicationResponse;
 import com.bank.loanproducts.LoanProduct;
-import com.bank.others.exceptions.UnauthorizedException;
 import com.bank.others.services.EmailService;
 import com.bank.others.utils.CurrentUserUtil;
 import com.bank.loanapplications.LoanApplicationStatus;
@@ -24,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,18 +90,18 @@ public class GuarantorServiceImpl implements GuarantorService {
             throw new InvalidRequestException("Guarantor must have an active fixed savings account");
         }
 
-//        BigDecimal totalRepayable = loanApplication.getTotalRepayable();
-//        if (fixedSavings.getBalance().compareTo(totalRepayable) < 0) {
-//            throw new InvalidRequestException("Guarantor savings balance is insufficient");
-//        }
-//
-//        LocalDate loanEndDate = LocalDate.now().plusMonths(loanApplication.getTenureMonths().longValue());
-//        LocalDate requiredMaturityDate = loanEndDate.plusMonths(2);
-//
-//        if (fixedSavings.getMaturityDate().isBefore(requiredMaturityDate)) {
-//            throw new InvalidRequestException("Guarantor fixed savings must mature at least 2 months after" +
-//                    " the applicant's loan tenure");
-//        }
+        BigDecimal requestedAmount = loanApplication.getTotalRepayable();
+        if (fixedSavings.getBalance().compareTo(requestedAmount) < 2) {
+            throw new InvalidRequestException("Guarantor savings balance is insufficient");
+        }
+
+        LocalDate loanEndDate = LocalDate.now().plusMonths(loanApplication.getTenureMonths().longValue());
+        LocalDate requiredMaturityDate = loanEndDate.plusMonths(2);
+
+        if (fixedSavings.getMaturityDate().isBefore(requiredMaturityDate)) {
+            throw new InvalidRequestException("Guarantor fixed savings must mature at least 2 months after" +
+                    " the applicant's loan tenure");
+        }
 
         boolean alreadyGuarantor = guarantorRepository.existsByGuarantorMemberIdAndGuarantorStatus
                 (guarantorMember.getId(), GuarantorStatus.ACCEPTED);
@@ -122,13 +119,12 @@ public class GuarantorServiceImpl implements GuarantorService {
         LoanGuarantor applicant = guarantorMapper.toEntity(guarantorRequest);
         applicant.setLoanApplication(LoanApplication.builder().id(loanApplication.getId()).build());
         applicant.setGuarantorStatus(GuarantorStatus.PENDING);
-        applicant.setRespondedAt(LocalDateTime.now());
-
         guarantorRepository.save(applicant);
 
         Map<String, Object> model = new HashMap<>();
         model.put("name", guarantorMember.getUser().getName());
         model.put("applicantName", loggedInUser.getName());
+        model.put("amount", requestedAmount);
         model.put("loanApplicationId", applicant.getLoanApplication().getId());
         model.put("institutionName", loggedInUser.getInstitution().getInstitutionName());
 
