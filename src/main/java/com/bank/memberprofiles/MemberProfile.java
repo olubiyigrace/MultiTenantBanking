@@ -23,7 +23,7 @@ import java.util.List;
 @SuperBuilder
 @Table(name = "member_profiles")
 public class MemberProfile extends AbstractEntity {
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String bvn;
 
     @Column(nullable = false)
@@ -50,12 +50,9 @@ public class MemberProfile extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     private ProfileStatus profileStatus;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_member_profile_user_id"))
     private User user;
-
-    @OneToMany(mappedBy = "member")
-    private List<SavingsAccount> savingsAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_member_profile_institution_id"))

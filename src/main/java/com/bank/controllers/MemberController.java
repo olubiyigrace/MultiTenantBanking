@@ -31,6 +31,7 @@ public class MemberController {
     private final GuarantorService guarantorService;
     private final SavingsService savingsService;
 
+
     @PostMapping("/create-loan-application")
     public ResponseEntity<ApiResponse<String>> create(@Valid @RequestBody LoanApplicationRequest loanApplicationRequest){
         loanApplicationService.createApplication(loanApplicationRequest);
@@ -57,7 +58,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(true, "File uploaded successfully", Map.of("url", url)));
     }
 
-    @PostMapping("/create-guarantor")
+    @PostMapping("/add-guarantor")
     public ResponseEntity<ApiResponse<String>> createGuarantor(@Valid @RequestBody GuarantorRequest guarantorRequest) throws MessagingException {
         guarantorService.createGuarantor(guarantorRequest);
         return ResponseEntity.ok(ApiResponse.success(true,"Guarantor added successfully!", null));

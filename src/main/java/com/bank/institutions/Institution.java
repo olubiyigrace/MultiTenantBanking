@@ -1,11 +1,14 @@
 package com.bank.institutions;
 
+import com.bank.memberprofiles.MemberProfile;
 import com.bank.others.entity.AbstractEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -34,6 +37,7 @@ public class Institution extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     private InstitutionType institutionType;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private InstitutionStatus institutionStatus = InstitutionStatus.PENDING;
 
@@ -61,4 +65,8 @@ public class Institution extends AbstractEntity {
     private String emailVerificationToken;
     private LocalDateTime emailVerificationTokenExpiry;
     private LocalDateTime emailVerifiedAt;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "institution")
+    private List<MemberProfile> memberProfiles = new ArrayList<>();
 }

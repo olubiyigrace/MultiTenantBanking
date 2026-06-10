@@ -1,12 +1,18 @@
 package com.bank.savingsaccount;
 
+import com.bank.loanapplications.LoanApplication;
+import com.bank.loanapplications.LoanApplicationRepository;
+import com.bank.loanapplications.LoanApplicationStatus;
+import com.bank.loanguarantors.GuarantorRepository;
+import com.bank.loanguarantors.GuarantorStatus;
 import com.bank.memberprofiles.MemberProfile;
 import com.bank.memberprofiles.MemberRepository;
+import com.bank.memberprofiles.ProfileStatus;
 import com.bank.others.auditlogs.AuditLog;
 import com.bank.others.auditlogs.AuditLogRepository;
 import com.bank.others.auditlogs.AuditLogRequestFilter;
-import com.bank.others.config.InstitutionContext;
 import com.bank.institutions.Institution;
+import com.bank.others.config.InstitutionContext;
 import com.bank.others.exceptions.InvalidRequestException;
 import com.bank.institutions.InstitutionRepository;
 import com.bank.others.exceptions.UnauthorizedException;
@@ -28,6 +34,7 @@ import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -37,19 +44,21 @@ import java.util.List;
 public class SavingsServiceImpl implements SavingsService {
     private final SavingsRepository savingsRepository;
     private final JdbcTemplate jdbcTemplate;
-    private final InstitutionRepository institutionRepository;
     private final AuditLogRepository auditLogRepository;
     private final CurrentUserUtil currentUserUtil;
     private final MemberRepository memberRepository;
     private final SavingsMapper savingsMapper;
+    private final LoanApplicationRepository loanApplicationRepository;
+    private final GuarantorRepository guarantorRepository;
 
 
     @Override
     public void createAnotherSavingsAccount(SavingsAccountRequest savingsAccountRequest) {
         User loggedInUser = currentUserUtil.getLoggedInUser();
+        String institutionId = InstitutionContext.getCurrentInstitution();
 
-        MemberProfile member = memberRepository.findById(loggedInUser.getMemberProfile().getId())
-                .orElseThrow(() -> new InvalidRequestException("You have no member profile"));
+        MemberProfile member = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(), institutionId)
+                        .orElseThrow(() -> new InvalidRequestException("You have no member profile"));
 
         List<SavingsAccount> activeAccounts = savingsRepository.findByMemberIdAndSavingsStatus
                 (member.getId(), SavingsStatus.ACTIVE);
@@ -85,7 +94,7 @@ public class SavingsServiceImpl implements SavingsService {
             throw new InvalidRequestException("Opening balance must be greater than zero");
         }
         if (regularAccount.getBalance().compareTo(openingBalance) < 0) {
-            throw new InvalidRequestException("Insufficient balance");
+            throw new InvalidRequestException("Insufficient balance. Deposit sufficient amount in your regular savings account");
         }
 
         if (savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.FIXED) {
@@ -111,7 +120,7 @@ public class SavingsServiceImpl implements SavingsService {
 
         SavingsAccount newAccount = savingsMapper.toEntity(savingsAccountRequest);
         newAccount.setMember(member);
-        newAccount.setInstitution(Institution.builder().id(loggedInUser.getInstitutionId()).build());
+        newAccount.setInstitution(member.getInstitution());
         newAccount.setAccountNumber(generateAccountNumber());
         newAccount.setSavingsStatus(SavingsStatus.ACTIVE);
         newAccount.setBalance(openingBalance);
@@ -152,6 +161,9 @@ public class SavingsServiceImpl implements SavingsService {
             throw new DuplicateRequestException("Savings account already activated");
         }
         existingAccount.setSavingsStatus(SavingsStatus.ACTIVE);
+        MemberProfile member = existingAccount.getMember();
+        member.setProfileStatus(ProfileStatus.ACTIVE);
+        memberRepository.save(member);
         savingsRepository.save(existingAccount);
 
         AuditLog auditLog = AuditLog.builder()
@@ -188,7 +200,10 @@ public class SavingsServiceImpl implements SavingsService {
             throw new DuplicateRequestException("Savings account already frozen");
         }
         existingAccount.setSavingsStatus(SavingsStatus.FROZEN);
+        MemberProfile member = existingAccount.getMember();
+        member.setProfileStatus(ProfileStatus.SUSPENDED);
         savingsRepository.save(existingAccount);
+        memberRepository.save(member);
 
         AuditLog auditLog = AuditLog.builder()
                 .institution(existingAccount.getInstitution())
@@ -206,39 +221,58 @@ public class SavingsServiceImpl implements SavingsService {
 
     @Override
     public void closeAccount(String savingsId) {
-        log.info("Closing savings account");
-        SavingsAccount existingAccount = savingsRepository.findById(savingsId).orElseThrow(() ->
-                new InvalidRequestException("Savings account does not exist"));
-        if (existingAccount.getSavingsStatus() == SavingsStatus.CLOSED) {
-            log.debug("Savings account has already been closed");
+        log.info("Closing savings account: {}", savingsId);
+
+        SavingsAccount existingAccount = savingsRepository.findById(savingsId)
+                .orElseThrow(() -> new InvalidRequestException("Savings account does not exist"));
+
+        if (SavingsStatus.CLOSED.equals(existingAccount.getSavingsStatus())) {
+            log.debug("Savings account {} has already been closed", savingsId);
             throw new DuplicateRequestException("Savings account has already been closed");
         }
-        if (existingAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
-            log.info("Account cannot be closed");
-            throw new InvalidRequestException("Account cannot be closed");
+        if (existingAccount.getBalance().compareTo(BigDecimal.ZERO) != 0) {
+            throw new InvalidRequestException("Account balance must be zero before closure");
         }
-        existingAccount.setSavingsStatus(SavingsStatus.CLOSED);
-        savingsRepository.save(existingAccount);
+        if (!existingAccount.getSavingsStatus().equals(SavingsStatus.ACTIVE)){
+            throw new InvalidRequestException("Only an active account can be closed");
+        }
 
-        log.info("Savings account closed");
+        Optional<LoanApplication> activeLoan = loanApplicationRepository.findByMemberId(existingAccount.getMember().getId());
+        if (activeLoan.isPresent() && !activeLoan.equals(LoanApplicationStatus.FULLY_REPAID)){
+            throw new InvalidRequestException("Member has an outstanding loan");
+        }
+
+        boolean activeGuarantor = guarantorRepository.existsByGuarantorMemberIdAndGuarantorStatus(existingAccount.getMember().getId(), GuarantorStatus.ACCEPTED);
+            if(activeGuarantor){
+                throw new InvalidRequestException("Member is an active guarantor");
+            }
+        existingAccount.setSavingsStatus(SavingsStatus.CLOSED);
+        MemberProfile member = existingAccount.getMember();
+        member.setProfileStatus(ProfileStatus.EXITED);
+        savingsRepository.save(existingAccount);
+        memberRepository.save(member);
+
+        log.info("Savings account {} closed successfully", savingsId);
     }
 
     @Override
     public TotalSavingsResponse getTotalSavings() {
         log.info("Getting total savings for current institution");
+        User loggedInUser = currentUserUtil.getLoggedInUser();
         String institutionId = InstitutionContext.getCurrentInstitution();
 
-        Institution institution = institutionRepository.findById(institutionId)
-                .orElseThrow(() -> new InvalidRequestException("Institution does not exist"));
+        MemberProfile memberProfile = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(), institutionId)
+                .orElseThrow(() -> new InvalidRequestException("Member profile not found"));
+
+        Institution institution = memberProfile.getInstitution();
 
         BigDecimal totalSavings = calculateTotalSavings(institutionId);
         return TotalSavingsResponse.builder()
-                .institutionId(institution.getId())
+                .institutionId(institutionId)
                 .institutionName(institution.getInstitutionName())
                 .totalSavingsBalance(totalSavings)
                 .build();
     }
-
     private BigDecimal calculateTotalSavings(String institutionId) {
         try {
             String sql = "SELECT COALESCE(SUM(balance), 0) FROM savings_accounts WHERE institution_id = ?";
@@ -252,12 +286,16 @@ public class SavingsServiceImpl implements SavingsService {
     @Override
     public TotalLoansOutstandingResponse getTotalLoansOutstanding() {
         log.info("Getting total loans outstanding");
+        User loggedInUser = currentUserUtil.getLoggedInUser();
         String institutionId = InstitutionContext.getCurrentInstitution();
 
-        Institution institution = institutionRepository.findById(institutionId).orElseThrow(() -> new InvalidRequestException("Institution does not exist"));
+        MemberProfile memberProfile = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(), institutionId)
+                .orElseThrow(() -> new InvalidRequestException("Member profile not found"));
+        Institution institution = memberProfile.getInstitution();
+
         BigDecimal loansOutstanding = getLoansOutstanding();
         return TotalLoansOutstandingResponse.builder()
-                .institutionId(institution.getId())
+                .institutionId(institutionId)
                 .institutionName(institution.getInstitutionName())
                 .totalLoansOutstanding(loansOutstanding)
                 .build();
@@ -281,12 +319,16 @@ public class SavingsServiceImpl implements SavingsService {
     @Override
     public TotalLoansOverdueResponse getTotalLoansOverdue() {
         log.info("Getting total loans overdue");
+        User loggedInUser = currentUserUtil.getLoggedInUser();
         String institutionId = InstitutionContext.getCurrentInstitution();
 
-        Institution institution = institutionRepository.findById(institutionId).orElseThrow(() -> new InvalidRequestException("Institution does not exist"));
+        MemberProfile memberProfile = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(), institutionId)
+                .orElseThrow(() -> new InvalidRequestException("Member profile not found"));
+        Institution institution = memberProfile.getInstitution();
+
         BigDecimal loansOverdue = calculateTotalLoansOverdue(institutionId);
         return TotalLoansOverdueResponse.builder()
-                .institutionId(institution.getId())
+                .institutionId(institutionId)
                 .institutionName(institution.getInstitutionName())
                 .totalLoansOverdue(loansOverdue)
                 .build();
@@ -314,12 +356,16 @@ public class SavingsServiceImpl implements SavingsService {
     @Override
     public TotalInterestCollectedResponse getTotalInterestCollected(Month month, Year year) {
         log.info("Getting total interest for the month");
+        User loggedInUser = currentUserUtil.getLoggedInUser();
         String institutionId = InstitutionContext.getCurrentInstitution();
 
-        Institution institution = institutionRepository.findById(institutionId).orElseThrow(() -> new InvalidRequestException("Institution does not exist"));
+        MemberProfile memberProfile = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(), institutionId)
+                .orElseThrow(() -> new InvalidRequestException("Member profile not found"));
+        Institution institution = memberProfile.getInstitution();
+
         BigDecimal interestCollected = getTotalInterest(month, year);
         return TotalInterestCollectedResponse.builder()
-                .institutionId(institution.getId())
+                .institutionId(institutionId)
                 .institutionName(institution.getInstitutionName())
                 .interestCollected(interestCollected)
                 .build();

@@ -1,5 +1,6 @@
 package com.bank.loanapplications;
 
+import com.bank.institutions.Institution;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,5 @@ public interface LoanApplicationRepository extends JpaRepository <LoanApplicatio
     Optional<LoanApplication> findByMemberIdAndLoanApplicationStatus(String id, LoanApplicationStatus loanApplicationStatus);
     boolean existsByMemberId(String id);
     Optional<LoanApplication> findByMemberId(String memberId);
+    Page<LoanApplication> findByInstitution(Institution institution, PageRequest pageRequest);
 }

@@ -1,9 +1,11 @@
 package com.bank.loanproducts;
 
+import com.bank.others.utils.CurrentUserUtil;
 import com.bank.others.utils.PageResponse;
 import com.bank.others.config.InstitutionContext;
 import com.bank.institutions.Institution;
 import com.bank.others.exceptions.InvalidRequestException;
+import com.bank.users.User;
 import com.sun.jdi.request.DuplicateRequestException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.util.Optional;
 public class LoanProductServiceImpl implements LoanProductService {
     private final LoanProductRepository loanProductRepository;
     private final LoanProductMapper loanProductMapper;
+    private final CurrentUserUtil currentUserUtil;
 
     @Override
     public void create(LoanProductRequest loanProductRequest) {
@@ -37,7 +40,7 @@ public class LoanProductServiceImpl implements LoanProductService {
         }
         LoanProduct newLoanProduct = loanProductMapper.toEntity(loanProductRequest);
         newLoanProduct.setInstitution(Institution.builder().id(institutionId).build());
-        newLoanProduct.setIsActive(false);
+        newLoanProduct.setIsActive(true);
         loanProductRepository.save(newLoanProduct);
         log.debug("Loan product created");
     }
@@ -47,7 +50,7 @@ public class LoanProductServiceImpl implements LoanProductService {
         Optional<LoanProduct> existingLoanProduct = loanProductRepository.findById(id);
         if (existingLoanProduct.isEmpty()){
             log.debug("Loan product does not exist");
-            throw new DuplicateRequestException("Loan product does not exist");
+            throw new InvalidRequestException("Loan product does not exist");
         }
         LoanProduct foundLoanProduct = existingLoanProduct.get();
         return loanProductMapper.toResponse(foundLoanProduct);
@@ -55,8 +58,9 @@ public class LoanProductServiceImpl implements LoanProductService {
 
     @Override
     public PageResponse<LoanProductResponse> getAll(int page, int size) {
+        User loggedInUser = currentUserUtil.getLoggedInUser();
         final PageRequest pageRequest = PageRequest.of(page, size);
-        final Page<LoanProduct> loanProducts = loanProductRepository.findAll(pageRequest);
+        final Page<LoanProduct> loanProducts = loanProductRepository.findByInstitution(loggedInUser.getInstitution(), pageRequest);
         final Page<LoanProductResponse> loanProductResponse = loanProducts.map(loanProductMapper::toResponse);
         return PageResponse.of(loanProductResponse);
     }
@@ -66,7 +70,7 @@ public class LoanProductServiceImpl implements LoanProductService {
     public void update(String id, LoanProductRequest loanProductRequest) {
         Optional<LoanProduct> existingLoanProduct = loanProductRepository.findById(id);
         if (existingLoanProduct.isEmpty()){
-            throw new DuplicateRequestException("Loan product does not exist");
+            throw new InvalidRequestException("Loan product does not exist");
         }
         LoanProduct foundLoanProduct = existingLoanProduct.get();
         loanProductRepository.save(foundLoanProduct);
@@ -78,7 +82,7 @@ public class LoanProductServiceImpl implements LoanProductService {
         Optional<LoanProduct> existingLoanProduct = loanProductRepository.findById(id);
         if (existingLoanProduct.isEmpty()) {
             log.debug("Loan product not found");
-            throw new DuplicateRequestException("Loan product does not exist");
+            throw new InvalidRequestException("Loan product does not exist");
         }
             LoanProduct foundLoanProduct = existingLoanProduct.get();
             loanProductRepository.delete(foundLoanProduct);

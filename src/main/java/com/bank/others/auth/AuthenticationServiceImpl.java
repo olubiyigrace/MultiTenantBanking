@@ -1,26 +1,27 @@
 package com.bank.others.auth;
 
+import com.bank.institutions.*;
+import com.bank.memberprofiles.MemberProfile;
+import com.bank.memberprofiles.MemberRepository;
+import com.bank.memberprofiles.ProfileStatus;
+import com.bank.others.login.*;
 import com.bank.others.password.ChangePasswordRequest;
 import com.bank.others.password.ForgotPasswordRequest;
 import com.bank.others.password.ResetPasswordRequest;
 import com.bank.others.usersession.UserSession;
 import com.bank.others.usersession.UserSessionRepository;
-import com.bank.others.login.LoginRequest;
-import com.bank.others.login.LoginResponse;
 import com.bank.others.logout.LogoutToken;
 import com.bank.others.logout.LogoutTokenRepository;
 import com.bank.others.utils.CurrentUserUtil;
 import com.bank.others.services.EmailService;
 import com.bank.others.config.InstitutionContext;
-import com.bank.institutions.Institution;
+import com.bank.savingsaccount.SavingsAccount;
+import com.bank.savingsaccount.SavingsRepository;
+import com.bank.savingsaccount.SavingsStatus;
 import com.bank.users.*;
-import com.bank.institutions.InstitutionStatus;
 import com.bank.others.exceptions.DuplicateResourceException;
 import com.bank.others.exceptions.InvalidRequestException;
 import com.bank.others.exceptions.UnauthorizedException;
-import com.bank.institutions.InstitutionMapper;
-import com.bank.institutions.InstitutionRepository;
-import com.bank.institutions.RegisterInstitutionRequest;
 import com.bank.others.securities.JwtService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,10 +29,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -45,7 +42,6 @@ import java.util.*;
 @Slf4j
 @Transactional
 public class AuthenticationServiceImpl implements AuthenticationService {
-    private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final InstitutionRepository institutionRepository;
@@ -56,6 +52,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final CurrentUserUtil currentUserUtil;
     private final LogoutTokenRepository logoutTokenRepository;
     private final UserSessionRepository userSessionRepository;
+    private final MemberRepository memberRepository;
+    private final SavingsRepository savingsRepository;
 
 
     @Override
@@ -101,7 +99,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         institution.setEmailVerifiedAt(LocalDateTime.now());
         institution.setIsVerified(true);
-        institution.setEmailVerifiedAt(LocalDateTime.now());
         institution.setEmailVerificationToken("used");
         institution.setEmailVerificationTokenExpiry(null);
         institutionRepository.save(institution);
@@ -138,9 +135,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void createUser(RegisterUserRequest registerUserRequest) throws MessagingException {
-        final String institutionId = InstitutionContext.getCurrentInstitution();
+        User loggedInUser = currentUserUtil.getLoggedInUser();
 
-        log.info("Creating user for institution: {}", institutionId);
+        log.info("Creating user for institution: {}", loggedInUser.getInstitutionId());
         if (userRepository.existsByEmail(registerUserRequest.getEmail())) {
             log.debug("User with the email '{}' already exists.", registerUserRequest.getEmail());
             throw new DuplicateResourceException("User with the email '" + registerUserRequest.getEmail() + "' already exists.");
@@ -155,7 +152,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         final User user = userMapper.toEntity(registerUserRequest);
-        user.setInstitution(Institution.builder().id(institutionId).build());
+        user.setInstitution(Institution.builder().id(loggedInUser.getInstitutionId()).build());
         String emailVerificationToken = UUID.randomUUID().toString();
         user.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
         user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
@@ -192,7 +189,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setEmailVerifiedAt(LocalDateTime.now());
         user.setEmailVerificationToken("used");
         user.setEmailVerificationTokenExpiry(null);
+
+        List<MemberProfile> profiles = memberRepository.findByUserId(user.getId());
+        for (MemberProfile profile : profiles) {
+            profile.setProfileStatus(ProfileStatus.ACTIVE);
+
+            savingsRepository.findByMember(profile)
+                    .ifPresent(account -> {
+                        account.setSavingsStatus(SavingsStatus.ACTIVE);
+                        savingsRepository.save(account);
+                    });
+        }
+        memberRepository.saveAll(profiles);
         userRepository.save(user);
+
         log.info("User verified successfully");
     }
 
@@ -228,62 +238,146 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public LoginResponse login(final LoginRequest request) throws MessagingException {
+    public SelectInstitutionResponse preLogin(SelectInstitutionRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("Username not found"));
-        if (user.getIsVerified() == false) {
-            log.debug("User not verified");
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new InvalidRequestException("Invalid credentials");
+        }
+        if (!Boolean.TRUE.equals(user.getIsVerified())) {
             throw new InvalidRequestException("User not verified");
         }
-        if (user.getUserAccountType() != UserAccountType.SUPER_ADMIN) {
-            String institutionId = user.getInstitutionId();
+        if (user.getUserAccountType() == UserAccountType.SUPER_ADMIN) {
+            String loginToken = jwtService.generateLoginToken(user.getId());
+            return SelectInstitutionResponse.builder()
+                    .loginType("SINGLE")
+                    .loginToken(loginToken)
+                    .institutions(List.of())
+                    .build();
+        }
 
-            if (institutionId == null || institutionId.isBlank()) {
-                throw new InvalidRequestException("User is not associated with an institution");
-            }
-
-            Institution institution = institutionRepository.findById(institutionId)
+        if (user.getUserAccountType() != UserAccountType.MEMBER) {
+            Institution institution = institutionRepository.findById(user.getInstitutionId())
                     .orElseThrow(() -> new InvalidRequestException("Institution not found"));
-            if (institution.getInstitutionStatus() == InstitutionStatus.SUSPENDED) {
-                throw new InvalidRequestException(
-                        "Your institution has been suspended. Contact support.");
+            String loginToken = jwtService.generateLoginToken(user.getId());
+            if (institution.getInstitutionStatus() != InstitutionStatus.ACTIVE){
+                throw new InvalidRequestException("Your institution is not active");
             }
+            return SelectInstitutionResponse.builder()
+                    .loginType("SINGLE")
+                    .loginToken(loginToken)
+                    .institutions(List.of(
+                            new UserInstitutionsResponse(
+                                    institution.getId(),
+                                    institution.getInstitutionName(),
+                                    institution.getInstitutionType(),
+                                    institution.getInstitutionStatus())
+                    )).build();
         }
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.debug("Incorrect password");
-            throw new InvalidRequestException("Incorrect password");
+        List<MemberProfile> profiles = memberRepository.findByUserId(user.getId());
+        List<UserInstitutionsResponse> institutions = profiles.stream()
+                        .map(p -> new UserInstitutionsResponse(
+                                p.getInstitution().getId(),
+                                p.getInstitution().getInstitutionName(),
+                                p.getInstitution().getInstitutionType(),
+                                p.getInstitution().getInstitutionStatus()
+                        ))
+                        .toList();
+
+        String loginToken = jwtService.generateLoginToken(user.getId());
+        return SelectInstitutionResponse.builder()
+                .loginType("MULTI")
+                .loginToken(loginToken)
+                .institutions(institutions)
+                .build();
+    }
+
+    public LoginResponse login(LoginRequest request) throws MessagingException {
+        jwtService.validateLoginToken(request.getLoginToken());
+        String userId = jwtService.getUserIdFromLoginToken(request.getLoginToken());
+        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Institution institution;
+        if (user.getUserAccountType().equals(UserAccountType.SUPER_ADMIN)) {
+            String token = UUID.randomUUID().toString();
+            user.setResetPasswordToken(passwordEncoder.encode(token));
+            user.setResetPasswordTokenExpiry(LocalDateTime.now().plusMinutes(10));
+            userRepository.save(user);
+
+            String accessToken = jwtService.generateAccessToken(
+                    "not_required",
+                    user.getId(),
+                    user.getUserAccountType().name());
+
+            String refreshToken = jwtService.generateRefreshToken(
+                   "not_required",
+                    user.getId(),
+                    user.getUserAccountType().name());
+
+            Map<String, Object> model = new HashMap<>();
+            model.put("name", user.getName());
+            model.put("resetUrl", "https://multitenantbank.com/api/v1/auth/reset-password?token=" + token);
+            model.put("revokeUrl", "https://multitenantbanking.com/api/v1/auth/revoke-session?token=" + accessToken);
+
+            emailService.sendVerificationEmail(
+                    user.getUsername(),
+                    "New Login Alert!",
+                    "login",
+                    model);
+
+            UserSession session = UserSession.builder()
+                    .accessToken(accessToken)
+                    .revoked(false)
+                    .expiryDate(jwtService.extractExpiration(accessToken).toInstant())
+                    .user(user)
+                    .build();
+            userSessionRepository.save(session);
+
+            return LoginResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .tokenType("Bearer")
+                    .build();
         }
-        final Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                ));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (user.getUserAccountType() != UserAccountType.MEMBER) {
+            if (!user.getInstitutionId().equals(request.getInstitutionId())) {
+                throw new InvalidRequestException("User not assigned to this institution");
+            }
+            institution = institutionRepository.findById(user.getInstitutionId())
+                    .orElseThrow(() -> new InvalidRequestException("Institution not found"));
+        } else {
+            MemberProfile profile = memberRepository.findByUserIdAndInstitutionId(userId, request.getInstitutionId())
+                    .orElseThrow(() -> new InvalidRequestException("Not a member of this institution"));
+            institution = profile.getInstitution();
+        }
         String token = UUID.randomUUID().toString();
         user.setResetPasswordToken(passwordEncoder.encode(token));
         user.setResetPasswordTokenExpiry(LocalDateTime.now().plusMinutes(10));
         userRepository.save(user);
-        log.info("User logged in successfully");
 
-        final User users = (User) authentication.getPrincipal();
-        final String accessToken = jwtService.generateAccessToken(users.getInstitutionId(), users.getId(),
-                users.getUserAccountType().name());
-        final String refreshToken = jwtService.generateRefreshToken(users.getInstitutionId(),
-                users.getId(), users.getUserAccountType().name());
-        final String tokenType = "Bearer";
+        String accessToken = jwtService.generateAccessToken(
+                institution.getId(),
+                user.getId(),
+                user.getUserAccountType().name());
+
+        String refreshToken = jwtService.generateRefreshToken(
+                institution.getId(),
+                user.getId(),
+                user.getUserAccountType().name());
 
         Map<String, Object> model = new HashMap<>();
-        model.put("name", users.getName());
+        model.put("name", user.getName());
         model.put("resetUrl", "https://multitenantbank.com/api/v1/auth/reset-password?token=" + token);
         model.put("revokeUrl", "https://multitenantbanking.com/api/v1/auth/revoke-session?token=" + accessToken);
 
         emailService.sendVerificationEmail(
-                request.getUsername(),
+                user.getUsername(),
                 "New Login Alert!",
                 "login",
                 model);
 
-       UserSession session = UserSession.builder()
+        UserSession session = UserSession.builder()
                 .accessToken(accessToken)
                 .revoked(false)
                 .expiryDate(jwtService.extractExpiration(accessToken).toInstant())
@@ -294,10 +388,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .tokenType(tokenType)
+                .tokenType("Bearer")
                 .build();
     }
-
 
     @Override
     public void changePassword(ChangePasswordRequest request) {
@@ -405,6 +498,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         logoutTokenRepository.save(logoutToken);
 
         userSession.setRevoked(true);
+        userSession.setAccessToken("used");
         userSessionRepository.save(userSession);
     }
 
@@ -413,8 +507,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public void revokeSession(String accessToken) {
         UserSession session = userSessionRepository.findByAccessToken(accessToken)
                 .orElseThrow(() -> new DuplicateResourceException("Session already ended"));
+        if (session.isRevoked()){
+            throw new UnauthorizedException("Session has been revoked");
+        }
+
+        Instant expiryDate = jwtService.extractExpiration(accessToken).toInstant();
+        LogoutToken logoutToken = LogoutToken.builder()
+                .token(accessToken)
+                .expiryDate(expiryDate)
+                .userSession(session)
+                .build();
+
         session.setRevoked(true);
         session.setAccessToken("used");
+        logoutTokenRepository.save(logoutToken);
         userSessionRepository.save(session);
     }
 }

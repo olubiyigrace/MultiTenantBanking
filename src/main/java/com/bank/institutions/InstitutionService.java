@@ -16,7 +16,6 @@ import java.time.Year;
 public interface InstitutionService {
     void approveInstitution(final String institutionId) throws MessagingException;
     void activateInstitution(final String institutionId);
-    void deactivateInstitution(final String institutionId);
     void suspendInstitution(final String institutionId);
     PageResponse<InstitutionResponse> findAllInstitution(final int page, final int size);
     TotalMembersStatisticsResponse getMembersStatistics();
@@ -24,5 +23,4 @@ public interface InstitutionService {
     TotalLoansOutstandingStatisticsResponse getLoansOutstandingStatistics();
     TotalDepositsStatisticsResponse getDepositsStatistics();
     TotalLoansDisbursedStatisticsResponse getLoansDisbursedStatistics(Month month, Year year);
-    PageResponse<UserResponse> getAllUsers(final int page, final int size);
 }

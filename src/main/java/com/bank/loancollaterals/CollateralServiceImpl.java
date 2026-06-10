@@ -1,5 +1,7 @@
 package com.bank.loancollaterals;
 
+import com.bank.memberprofiles.MemberProfile;
+import com.bank.memberprofiles.MemberRepository;
 import com.bank.others.utils.CurrentUserUtil;
 import com.bank.loanapplications.LoanApplication;
 import com.bank.loanproducts.LoanProductRepository;
@@ -23,14 +25,18 @@ public class CollateralServiceImpl implements CollateralService {
     private final CurrentUserUtil currentUserUtil;
     private final CollateralMapper collateralMapper;
     private final LoanProductRepository loanProductRepository;
+    private final MemberRepository memberRepository;
 
 
     @Override
     public void createCollateral(LoanCollateralRequest loanCollateralRequest) {
         User loggedInUser = currentUserUtil.getLoggedInUser();
-        LoanApplication application = loanApplicationRepository.findByMemberIdAndLoanApplicationStatus
-                        (loggedInUser.getMemberProfile().getId(), LoanApplicationStatus.PENDING).orElseThrow(() ->
-                new InvalidRequestException("No pending loan application found."));
+        MemberProfile memberProfile = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(),
+                loggedInUser.getInstitutionId()).orElseThrow(() -> new InvalidRequestException("Member profile not found"));
+
+        LoanApplication application = loanApplicationRepository.findByMemberIdAndLoanApplicationStatus(
+                        memberProfile.getId(), LoanApplicationStatus.PENDING).orElseThrow(() ->
+                        new InvalidRequestException("No pending loan application found."));
 
         boolean requiresCollateral = loanProductRepository.existsByInstitutionIdAndRequiresCollateral(loggedInUser.getInstitutionId(), true);
         if (!requiresCollateral) {
@@ -38,7 +44,7 @@ public class CollateralServiceImpl implements CollateralService {
             throw new InvalidRequestException("Loan product does not require a collateral");
         }
 
-       if(loanCollateralRequest.getEstimatedValue().compareTo(application.getTotalRepayable()) < 0){
+       if(loanCollateralRequest.getEstimatedValue().compareTo(application.getRequestedAmount()) < 0){
            throw new InvalidRequestException("Collateral estimated value must be greater than the requested amount");
        }
         LoanCollateral loanCollateral = collateralMapper.toEntity(loanCollateralRequest);

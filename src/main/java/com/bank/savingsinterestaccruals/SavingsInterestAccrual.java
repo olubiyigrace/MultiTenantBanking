@@ -20,7 +20,7 @@ public class SavingsInterestAccrual {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "savings_account_id", foreignKey = @ForeignKey(name = "fk_savings_interest_accrual_savings_account_id"))
     private SavingsAccount savingsAccount;
 

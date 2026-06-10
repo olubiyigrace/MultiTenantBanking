@@ -45,7 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(jwt) && logoutTokenRepository.existsById(jwt)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("User logged out");
+                response.getWriter().write("Session ended");
                 return;
             }
             if (StringUtils.hasText(jwt) && jwtService.validateToken(jwt)) {

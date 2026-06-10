@@ -1,5 +1,7 @@
 package com.bank.others.config;
 
+import org.springframework.stereotype.Component;
+
 public class InstitutionContext {
     private static final ThreadLocal<String> CURRENT_INSTITUTION = new ThreadLocal<>();
 
@@ -11,3 +13,4 @@ public class InstitutionContext {
     }
     public static void clear(){CURRENT_INSTITUTION.remove();}
 }
+

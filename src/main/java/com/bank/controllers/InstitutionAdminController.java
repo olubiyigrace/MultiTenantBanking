@@ -1,8 +1,6 @@
 package com.bank.controllers;
 
 import com.bank.loanapplications.TotalInterestCollectedResponse;
-import com.bank.loanguarantors.GuarantorResponse;
-import com.bank.loanguarantors.GuarantorService;
 import com.bank.loanrepaymentschedule.TotalLoansOutstandingResponse;
 import com.bank.loanrepaymentschedule.TotalLoansOverdueResponse;
 import com.bank.savingsaccount.TotalSavingsResponse;
@@ -42,10 +40,8 @@ public class InstitutionAdminController {
     private final MemberService memberService;
     private final SavingsService savingsService;
     private final AuthenticationService authenticationService;
-    private final InstitutionService institutionService;
     private final LoanApplicationService loanApplicationService;
     private final CollateralService collateralService;
-    private final GuarantorService guarantorService;
 
     @PostMapping("/register-user")
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody RegisterUserRequest registerUserRequest)
@@ -55,12 +51,13 @@ public class InstitutionAdminController {
                 "Almost there! Check your email to complete your registration.", null));
     }
 
-    @GetMapping("/all-users")
-    public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> getAllUsers(
-            @RequestParam(name = "page", defaultValue = "0") final int page,
-            @RequestParam(name = "size", defaultValue = "10") final int size) {
-        return ResponseEntity.ok(ApiResponse.success(true, "Users retrieved successfully",
-                institutionService.getAllUsers(page, size)));
+    @GetMapping("/all-members")
+    public ResponseEntity<ApiResponse<PageResponse<MemberResponse>>> getMembers(
+            @RequestParam (required = false) ProfileStatus profileStatus,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(ApiResponse.success(true, "Members retrieved successfully",
+                memberService.getAllMembers(profileStatus, page, size)));
     }
 
     @PostMapping("/create-products")
@@ -97,15 +94,6 @@ public class InstitutionAdminController {
         loanProductService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(true, "Loan product deleted successfully",
                 null));
-    }
-
-    @GetMapping("/all-members")
-    public ResponseEntity<ApiResponse<PageResponse<MemberResponse>>> getMembers(
-            @RequestParam (required = false) ProfileStatus profileStatus,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success(true, "Members retrieved successfully",
-                memberService.getAllMembers(profileStatus, page, size)));
     }
 
     @PostMapping("/activate-savings-account")
@@ -147,26 +135,6 @@ public class InstitutionAdminController {
         return ResponseEntity.ok(ApiResponse.success(true, "Loan product deactivated successfully", null));
     }
 
-    @GetMapping("/total-outstanding-loans")
-    public ResponseEntity<ApiResponse<TotalLoansOutstandingResponse>> getTotalLoansOutstanding() {
-        return ResponseEntity.ok(ApiResponse.success(true,
-                "Total outstanding loans calculated successfully", savingsService.getTotalLoansOutstanding()));
-    }
-
-    @GetMapping("/total-overdue-loans")
-    public ResponseEntity<ApiResponse<TotalLoansOverdueResponse>> getTotalLoansOverdue() {
-        return ResponseEntity.ok(ApiResponse.success(true,
-                "Total overdue loans calculated successfully", savingsService.getTotalLoansOverdue()));
-    }
-
-    @GetMapping("/total-loan-interest")
-    public ResponseEntity<ApiResponse<TotalInterestCollectedResponse>> getTotalInterest(
-            @RequestParam(value = "month", required = false) final Month month,
-            @RequestParam(value = "year", required = false) final Year year) {
-        return ResponseEntity.ok(ApiResponse.success(true, "Total interest calculated successfully",
-                savingsService.getTotalInterestCollected(month, year)));
-    }
-
     @GetMapping("/all-loan-applications")
     public ResponseEntity<ApiResponse<PageResponse<LoanApplicationResponse>>> getAllLoanApplications(
             @RequestParam(name = "page", defaultValue = "0") final int page,
@@ -175,7 +143,7 @@ public class InstitutionAdminController {
                 loanApplicationService.getAllApplications(page, size)));
     }
 
-    @PostMapping("/review-loan-applications")
+    @PostMapping("/review-loan-application")
     public ResponseEntity<ApiResponse<String>> review(@RequestParam String loanApplicationId) {
         loanApplicationService.reviewLoanApplication(loanApplicationId);
         return ResponseEntity.ok(ApiResponse.success(true, "Loan application is now under review",
@@ -204,6 +172,26 @@ public class InstitutionAdminController {
                 null));
     }
 
+    @GetMapping("/total-outstanding-loans")
+    public ResponseEntity<ApiResponse<TotalLoansOutstandingResponse>> getTotalLoansOutstanding() {
+        return ResponseEntity.ok(ApiResponse.success(true,
+                "Total outstanding loans calculated successfully", savingsService.getTotalLoansOutstanding()));
+    }
+
+    @GetMapping("/total-overdue-loans")
+    public ResponseEntity<ApiResponse<TotalLoansOverdueResponse>> getTotalLoansOverdue() {
+        return ResponseEntity.ok(ApiResponse.success(true,
+                "Total overdue loans calculated successfully", savingsService.getTotalLoansOverdue()));
+    }
+
+    @GetMapping("/total-loan-interest")
+    public ResponseEntity<ApiResponse<TotalInterestCollectedResponse>> getTotalInterest(
+            @RequestParam(value = "month", required = false) final Month month,
+            @RequestParam(value = "year", required = false) final Year year) {
+        return ResponseEntity.ok(ApiResponse.success(true, "Total interest calculated successfully",
+                savingsService.getTotalInterestCollected(month, year)));
+    }
+
     @PostMapping("/delete-collateral")
     public ResponseEntity<ApiResponse<String>> deleteCollateral(@RequestParam String loanCollateralId){
         collateralService.deleteCollateral(loanCollateralId);
@@ -214,13 +202,5 @@ public class InstitutionAdminController {
     public ResponseEntity<ApiResponse<String>> writeOffLoan(@RequestParam String loanApplicationId){
         loanApplicationService.writeOff(loanApplicationId);
         return ResponseEntity.ok(ApiResponse.success(true, "Loan application successfully written-off", null));
-    }
-
-    @GetMapping("/all-guarantors")
-    public ResponseEntity<ApiResponse<PageResponse<GuarantorResponse>>> allGuarantors(
-            @RequestParam(name = "page", defaultValue = "0") final int page,
-            @RequestParam(name = "size", defaultValue = "10") final int size) {
-        return ResponseEntity.ok(ApiResponse.success(true, "Guarantors retrieved successfully",
-                guarantorService.getAllGuarantors(page, size)));
     }
 }

@@ -1,12 +1,10 @@
 package com.bank.controllers;
 
-import com.bank.others.login.LoginRequest;
+import com.bank.others.login.*;
 import com.bank.others.password.ChangePasswordRequest;
 import com.bank.others.password.ForgotPasswordRequest;
 import com.bank.others.password.ResetPasswordRequest;
-import com.bank.others.login.LoginResponse;
 import com.bank.others.auth.AuthenticationService;
-import com.bank.others.auth.RefreshTokenRequest;
 import com.bank.institutions.RegisterInstitutionRequest;
 import com.bank.others.utils.ApiResponse;
 import jakarta.mail.MessagingException;
@@ -24,9 +22,7 @@ public class AuthController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/register-institution")
-    public ResponseEntity<ApiResponse<String>> registerInstitution(
-            @Valid @RequestBody final RegisterInstitutionRequest registerInstitutionRequest)
-            throws MessagingException {
+    public ResponseEntity<ApiResponse<String>> registerInstitution(@Valid @RequestBody final RegisterInstitutionRequest registerInstitutionRequest) throws MessagingException {
         authenticationService.registerInstitution(registerInstitutionRequest);
         return ResponseEntity.ok(ApiResponse.success(true,
                 "Almost there! Check your email to complete your registration.", null));
@@ -47,9 +43,14 @@ public class AuthController {
                 "Resent! Check your email to complete your registration.", null));
     }
 
+    @PostMapping("/pre-login")
+    public ResponseEntity<ApiResponse<SelectInstitutionResponse>> preLogin(@Valid @RequestBody final SelectInstitutionRequest request){
+        final SelectInstitutionResponse response = authenticationService.preLogin(request);
+        return ResponseEntity.ok(ApiResponse.success(true, "login successful", response));
+    }
+
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody final LoginRequest request)
-            throws MessagingException {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody final LoginRequest request) throws MessagingException {
         final LoginResponse response = authenticationService.login(request);
         return ResponseEntity.ok(ApiResponse.success(true, "login successful", response));
     }
@@ -61,7 +62,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(true, "User registered successfully", null));
     }
 
-    @GetMapping("/reverify-user")
+    @GetMapping("/resend-verification-token")
     public ResponseEntity<ApiResponse<String>> resendUserVerification(@RequestParam final String email) {
         authenticationService.resendUserVerificationToken(email);
         return ResponseEntity.ok(ApiResponse.success(true,

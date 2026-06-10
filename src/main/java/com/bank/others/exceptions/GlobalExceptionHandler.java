@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
                 .forEach(error -> {
                     final String fieldName = ((FieldError) error).getField();
                     final String errorCode = error.getCode();
-                    final String defaultMessage = error.getDefaultMessage(); // todo add translation later
+                    final String defaultMessage = error.getDefaultMessage();
 
                     errors.add(ErrorResponse.ValidationError.builder()
                             .field(fieldName)

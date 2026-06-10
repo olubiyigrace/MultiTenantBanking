@@ -23,7 +23,7 @@ public class LoanCollateral extends AbstractEntity {
     private BigDecimal estimatedValue;
     private String documentUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "loan_application_id", foreignKey = @ForeignKey(name = "fk_loan_collateral_loan_application_id"))
     private LoanApplication loanApplication;
 }

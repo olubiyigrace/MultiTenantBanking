@@ -2,6 +2,7 @@ package com.bank.loanguarantors;
 
 import com.bank.loanapplications.LoanApplication;
 import com.bank.loanproducts.LoanProduct;
+import com.bank.others.config.InstitutionContext;
 import com.bank.others.services.EmailService;
 import com.bank.others.utils.CurrentUserUtil;
 import com.bank.loanapplications.LoanApplicationStatus;
@@ -29,6 +30,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -49,14 +51,17 @@ public class GuarantorServiceImpl implements GuarantorService {
     @Override
     public void createGuarantor(GuarantorRequest guarantorRequest) throws MessagingException {
         User loggedInUser = currentUserUtil.getLoggedInUser();
+        String institutionId = InstitutionContext.getCurrentInstitution();
 
-        MemberProfile applicantProfile = loggedInUser.getMemberProfile();
+        MemberProfile applicantProfile = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(), institutionId)
+                .orElseThrow(() -> new InvalidRequestException("Member profile not found"));
+
         LoanApplication loanApplication = loanApplicationRepository.findByMemberIdAndLoanApplicationStatus
                         (applicantProfile.getId(), LoanApplicationStatus.PENDING)
                 .orElseThrow(() -> new InvalidRequestException("No pending loan application found"));
 
         LoanProduct loanProduct = loanProductRepository.findById(loanApplication.getLoanProductId()).orElseThrow(() ->
-                        new InvalidRequestException("Loan product does not exist"));
+                new InvalidRequestException("Loan product does not exist"));
         if (!loanProduct.getRequiresGuarantor()) {
             throw new InvalidRequestException("This loan product does not require a guarantor");
         }
@@ -85,12 +90,12 @@ public class GuarantorServiceImpl implements GuarantorService {
         }
 
         SavingsAccount fixedSavings = savingsRepository.findByMemberIdAndSavingsStatusAndSavingsAccountType(
-                        guarantorMember.getId(), SavingsStatus.ACTIVE, SavingsAccountType.FIXED);
-        if (fixedSavings == null) {
+                guarantorMember.getId(), SavingsStatus.ACTIVE, SavingsAccountType.FIXED);
+        if (fixedSavings.equals(false)) {
             throw new InvalidRequestException("Guarantor must have an active fixed savings account");
         }
 
-        BigDecimal requestedAmount = loanApplication.getTotalRepayable();
+        BigDecimal requestedAmount = loanApplication.getRequestedAmount();
         if (fixedSavings.getBalance().compareTo(requestedAmount) < 2) {
             throw new InvalidRequestException("Guarantor savings balance is insufficient");
         }
@@ -112,7 +117,7 @@ public class GuarantorServiceImpl implements GuarantorService {
         if (alreadyGuarantor) {
             throw new InvalidRequestException("This member is already an active guarantor");
         }
-        if(pendingGuarantor){
+        if (pendingGuarantor) {
             throw new InvalidRequestException("This member is already a pending guarantor");
         }
 
@@ -126,7 +131,7 @@ public class GuarantorServiceImpl implements GuarantorService {
         model.put("applicantName", loggedInUser.getName());
         model.put("amount", requestedAmount);
         model.put("loanApplicationId", applicant.getLoanApplication().getId());
-        model.put("institutionName", loggedInUser.getInstitution().getInstitutionName());
+        model.put("institutionName", guarantorMember.getInstitution().getInstitutionName());
 
         emailService.sendVerificationEmail(
                 guarantorMember.getUser().getEmail(),
@@ -138,7 +143,7 @@ public class GuarantorServiceImpl implements GuarantorService {
     }
 
     @Override
-    public void acceptGuarantorRequest(String loanApplicationId){
+    public void acceptGuarantorRequest(String loanApplicationId) {
         log.info("Accepting guarantor request");
         User loggedInUser = currentUserUtil.getLoggedInUser();
 
@@ -151,7 +156,7 @@ public class GuarantorServiceImpl implements GuarantorService {
     }
 
     @Override
-    public void rejectGuarantorRequest(String loanApplicationId){
+    public void rejectGuarantorRequest(String loanApplicationId) {
         log.info("Rejecting guarantor request");
         User loggedInUser = currentUserUtil.getLoggedInUser();
 
@@ -161,13 +166,5 @@ public class GuarantorServiceImpl implements GuarantorService {
         existingGuarantor.setRespondedAt(LocalDateTime.now());
 
         log.info("Guarantor request rejected");
-    }
-
-    @Override
-    public PageResponse<GuarantorResponse> getAllGuarantors(int page, int size) {
-        final PageRequest pageRequest = PageRequest.of(page, size);
-        final Page<LoanGuarantor> loanGuarantors = guarantorRepository.findAll(pageRequest);
-        final Page<GuarantorResponse> guarantorResponses = loanGuarantors.map(guarantorMapper::toResponse);
-        return PageResponse.of(guarantorResponses);
     }
 }

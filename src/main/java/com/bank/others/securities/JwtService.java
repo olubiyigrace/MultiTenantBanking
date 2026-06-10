@@ -1,5 +1,6 @@
 package com.bank.others.securities;
 
+import com.bank.others.exceptions.InvalidRequestException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.annotation.Nonnull;
@@ -92,12 +93,12 @@ public class JwtService {
     }
 
     public boolean validateToken(final String token) {
-            Jwts.parser()
-                    .verifyWith(publicKey)
-                    .build()
-                    .parseSignedClaims(token);
-            return true;
-}
+        Jwts.parser()
+                .verifyWith(publicKey)
+                .build()
+                .parseSignedClaims(token);
+        return true;
+    }
     private Claims getClaimsFromToken(final String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(publicKey)
@@ -129,6 +130,33 @@ public class JwtService {
                 .getPayload();
 
         return claimsResolver.apply(claims);
+    }
+
+    public String generateLoginToken(String userId) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + (5 * 60 * 1000));
+        return Jwts.builder()
+                .subject(userId)
+                .claim("type", "login_token")
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(privateKey, Jwts.SIG.RS256)
+                .compact();
+    }
+
+    public void validateLoginToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        String type = claims.get("type", String.class);
+        if (!"login_token".equals(type)) {
+            throw new InvalidRequestException("Invalid login token");
+        }
+        if (claims.getExpiration().before(new Date())) {
+            throw new InvalidRequestException("Login token expired");
+        }
+    }
+
+    public String getUserIdFromLoginToken(String token) {
+        return getClaimsFromToken(token).getSubject();
     }
 
     private PrivateKey loadPrivateKey(final String privateKeyPath) throws Exception {

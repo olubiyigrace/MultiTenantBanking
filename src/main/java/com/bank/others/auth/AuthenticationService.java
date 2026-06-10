@@ -1,8 +1,7 @@
 package com.bank.others.auth;
 
 import com.bank.institutions.RegisterInstitutionRequest;
-import com.bank.others.login.LoginRequest;
-import com.bank.others.login.LoginResponse;
+import com.bank.others.login.*;
 import com.bank.others.password.ChangePasswordRequest;
 import com.bank.others.password.ForgotPasswordRequest;
 import com.bank.others.password.ResetPasswordRequest;
@@ -15,7 +14,8 @@ public interface AuthenticationService {
     void verifyEmail(final String verificationTokenFromRequest, final String email);
     void reverifyInstitutionEmail(final String email);
     void createUser(RegisterUserRequest registerUserRequest) throws MessagingException;
-    LoginResponse login(final LoginRequest request) throws MessagingException;
+    SelectInstitutionResponse preLogin(final SelectInstitutionRequest request);
+    LoginResponse login(LoginRequest request) throws MessagingException;
     void verifyUser(final String verificationTokenFromRequest, final String email);
     void resendUserVerificationToken(final String email);
     LoginResponse refreshToken(final RefreshTokenRequest refreshTokenRequest);

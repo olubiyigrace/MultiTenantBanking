@@ -36,7 +36,7 @@ public class LoanRepaymentSchedule {
     @Enumerated(EnumType.STRING)
     private LoanRepaymentStatus loanRepaymentStatus;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "loan_application_id", foreignKey = @ForeignKey(name = "fk_loan_repayment_schedule_loan_application_id"))
     private LoanApplication loanApplication;
 }

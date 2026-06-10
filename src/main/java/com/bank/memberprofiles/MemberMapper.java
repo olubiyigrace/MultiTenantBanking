@@ -24,7 +24,6 @@ public class MemberMapper {
                 .nextOfKinPhone(memberRequest.getNextOfKinPhone())
                 .dateOfBirth(memberRequest.getDateOfBirth())
                 .createdAt(LocalDateTime.now())
-                .profileStatus(ProfileStatus.ACTIVE)
                 .user(User.builder()
                         .name(memberRequest.getRegisterUserRequest().getName())
                         .username(memberRequest.getRegisterUserRequest().getEmail())

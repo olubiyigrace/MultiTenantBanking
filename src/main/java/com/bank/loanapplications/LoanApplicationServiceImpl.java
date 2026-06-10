@@ -9,6 +9,7 @@ import com.bank.loanrepaymentschedule.LoanRepaymentStatus;
 import com.bank.loanrepaymentschedule.RepaymentRepository;
 import com.bank.others.auditlogs.AuditLogRequestFilter;
 import com.bank.savingsaccount.SavingsAccount;
+import com.bank.savingsaccount.SavingsAccountType;
 import com.bank.users.UserRepository;
 import com.bank.others.utils.CurrentUserUtil;
 import com.bank.others.config.InstitutionContext;
@@ -74,18 +75,17 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         log.info("Creating loan application");
         User user = currentUserUtil.getLoggedInUser();
 
-        boolean hasExistingApplication = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus
-                (user.getMemberProfile().getId(), LoanApplicationStatus.PENDING);
-        if (hasExistingApplication) {
-            throw new InvalidRequestException("You have a pending application");
-        }
-
-// do cannot apply for a loan is memberprofile.getId.compare to LocalDate. now is not greater than 6 months
-        MemberProfile existingMember = memberRepository.findByUserId(user.getId()).orElseThrow(() ->
-                new InvalidRequestException("Member not found"));
+        MemberProfile existingMember = memberRepository.findByUserIdAndInstitutionId(user.getId(), user.getInstitutionId())
+                .orElseThrow(() -> new InvalidRequestException("Member not found"));
         if (!existingMember.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
             log.debug("You do not have an active profile status");
             throw new UnauthorizedException("You do not have an active profile status");
+        }
+
+        boolean hasExistingApplication = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus(
+                        existingMember.getId(), LoanApplicationStatus.PENDING);
+        if (hasExistingApplication) {
+            throw new InvalidRequestException("You have a pending application");
         }
 
         boolean eligibleMember = loanApplicationRepository.existsByMemberIdAndLoanApplicationStatus
@@ -101,6 +101,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         if (!hasSavings) {
             throw new InvalidRequestException("You have no active savings account at the moment");
         }
+
         LoanProduct existingProduct = loanProductRepository.findById(loanApplicationRequest.getLoanProductId())
                 .orElseThrow(() -> new InvalidRequestException("Loan product not found"));
 
@@ -115,10 +116,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         if (existingProduct.getIsActive().equals(false)) {
             log.debug("Selected loan product is not active");
             throw new InvalidRequestException("Selected loan product is not active");
-        }
-        if (!existingProduct.getDescription().contains(loanApplicationRequest.getPurpose())) {
-            log.debug("Loan purpose does not match with the loan product description");
-            throw new InvalidRequestException("Loan purpose does not match with the loan product description");
         }
 
         Optional<LoanGuarantor> activeLoanGuarantor = guarantorRepository.findByGuarantorMemberIdAndGuarantorStatus
@@ -137,8 +134,9 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
     @Override
     public PageResponse<LoanApplicationResponse> getAllApplications(int page, int size) {
+        User loggenInuser = currentUserUtil.getLoggedInUser();
         final PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        final Page<LoanApplication> loanApplications = loanApplicationRepository.findAll(pageRequest);
+        final Page<LoanApplication> loanApplications = loanApplicationRepository.findByInstitution(loggenInuser.getInstitution(), pageRequest);
         final Page<LoanApplicationResponse> loanApplicationResponses = loanApplications.map(loanApplicationMapper::toResponse);
         return PageResponse.of(loanApplicationResponses);
     }
@@ -196,7 +194,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         if (!loanOfficer.getUserAccountType().equals(UserAccountType.LOAN_OFFICER)) {
             throw new InvalidRequestException("User is not a loan officer");
         }
-        if (!loanOfficer.getInstitution().getId().equals(institutionId)) {
+        if (!loanOfficer.getInstitutionId().equals(institutionId)) {
             throw new UnauthorizedException("Loan officer does not belong to this institution");
         }
         existingApplication.setLoanOfficer(loanOfficer);
@@ -346,6 +344,9 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 .orElseThrow(() -> new InvalidRequestException("Savings account not found"));
         savingsAccount.setBalance(savingsAccount.getBalance().add(netDisbursement));
 
+        if (!savingsAccount.getSavingsAccountType().equals(SavingsAccountType.REGULAR)){
+            throw new InvalidRequestException("Only a regular account can be used");
+        }
         savingsAccountRepository.save(savingsAccount);
         loanApplicationRepository.save(existingApplication);
         generateRepaymentSchedule(existingApplication,principal,totalInterest,tenure);

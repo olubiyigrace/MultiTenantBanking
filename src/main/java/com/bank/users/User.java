@@ -5,16 +5,14 @@ import com.bank.institutions.Institution;
 import com.bank.memberprofiles.MemberProfile;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -64,8 +62,9 @@ public class User extends AbstractEntity implements UserDetails {
     @JsonFormat(shape= JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
     private LocalDateTime resetPasswordTokenExpiry;
 
-    @OneToOne(mappedBy = "user")
-    private MemberProfile memberProfile;
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    private List<MemberProfile> memberProfiles = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

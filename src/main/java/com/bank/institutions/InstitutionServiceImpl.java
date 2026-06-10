@@ -6,7 +6,7 @@ import com.bank.loanrepaymentschedule.TotalLoansOutstandingResponse;
 import com.bank.loanrepaymentschedule.TotalLoansOutstandingStatisticsResponse;
 import com.bank.memberprofiles.TotalMemberResponse;
 import com.bank.memberprofiles.TotalMembersStatisticsResponse;
-import com.bank.memberprofiles.MemberRepository;
+import com.bank.others.utils.CurrentUserUtil;
 import com.bank.savingsaccount.TotalSavingsResponse;
 import com.bank.savingsaccount.TotalSavingsStatisticsResponse;
 import com.bank.transactions.TotalDepositsResponse;
@@ -50,6 +50,7 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final UserMapper userMapper;
+    private final CurrentUserUtil currentUserUtil;
 
     @Override
     public void approveInstitution(final String institutionId) throws MessagingException {
@@ -58,6 +59,7 @@ public class InstitutionServiceImpl implements InstitutionService {
         if (institution.getIsVerified() != true){
             throw new InvalidRequestException("Institution has not been verified");
         }
+        institution.setInstitutionStatus(InstitutionStatus.ACTIVE);
         institutionRepository.save(institution);
         try {
             createAdminUser(institution);
@@ -66,14 +68,6 @@ public class InstitutionServiceImpl implements InstitutionService {
             rollBackInstitutionStatus(institution);
             throw e;
         }
-    }
-
-    @Override
-    public PageResponse<UserResponse> getAllUsers(int page, int size) {
-        final PageRequest pageRequest = PageRequest.of(page, size);
-        final Page<User> users = userRepository.findAll(pageRequest);
-        final Page<UserResponse> userResponses = users.map(userMapper::toResponse);
-        return PageResponse.of(userResponses);
     }
 
     private void createAdminUser(Institution institution) throws MessagingException {
@@ -89,19 +83,22 @@ public class InstitutionServiceImpl implements InstitutionService {
                 .phone(institution.getAdminPhone())
                 .password(institution.getAdminPassword())
                 .isVerified(false)
-                .userAccountType(UserAccountType.INSTITUTION_ADMIN)
                 .institution(institution)
+                .userAccountType(UserAccountType.INSTITUTION_ADMIN)
                 .build();
 
         String emailVerificationToken = UUID.randomUUID().toString();
         adminUser.setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
         adminUser.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
         userRepository.save(adminUser);
+
         log.info("Admin user created successfully");
 
         Map<String, Object> model = new HashMap<>();
         model.put("name", institution.getAdminName());
-        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?token=" + emailVerificationToken);
+        model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify"
+                + "?token=" + emailVerificationToken
+             );
 
         emailService.sendVerificationEmail(
                 institution.getAdminEmail(),
@@ -120,18 +117,6 @@ public class InstitutionServiceImpl implements InstitutionService {
             throw new InvalidRequestException("Institution was not suspended");
         }
         institution.setInstitutionStatus(InstitutionStatus.ACTIVE);
-        institutionRepository.save(institution);
-    }
-
-    @Override
-    public void deactivateInstitution(String institutionId) {
-        final Institution institution = institutionRepository.findById(institutionId)
-                .orElseThrow(() -> new EntityNotFoundException("Institution with the id '" + institutionId + "' does not exist"));
-        if (institution.getInstitutionStatus() != InstitutionStatus.ACTIVE) {
-            log.debug("Institution is pending");
-            throw new InvalidRequestException("Institution is pending");
-        }
-        institution.setInstitutionStatus(InstitutionStatus.INACTIVE);
         institutionRepository.save(institution);
     }
 

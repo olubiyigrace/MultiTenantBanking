@@ -37,12 +37,6 @@ public class SuperAdminController {
         return ResponseEntity.ok(ApiResponse.success(true, "Institution activated successfully!", null));
     }
 
-    @PatchMapping("/deactivate/{institution-id}")
-    public ResponseEntity<ApiResponse<String>> deactivateInstitution(@PathVariable("institution-id") final String  institutionId) {
-        institutionService.deactivateInstitution(institutionId);
-        return ResponseEntity.ok(ApiResponse.success(true, "Institution deactivated successfully!", null));
-    }
-
     @PatchMapping("/suspend/{institution-id}")
     public ResponseEntity<ApiResponse<String>> suspendInstitution(@PathVariable("institution-id") final String  institutionId) {
         institutionService.suspendInstitution(institutionId);
