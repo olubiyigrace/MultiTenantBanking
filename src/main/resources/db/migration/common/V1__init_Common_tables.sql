@@ -345,7 +345,6 @@ create table transactions
 (
     id                         varchar(255)   not null primary key,
     created_at                 timestamp(6)   not null,
-    createdDate                date not null,
     reference                  varchar(255)   not null,
     description                text           not null,
     amount                     numeric(38, 2) not null,
@@ -397,8 +396,8 @@ create table savings_interest_accruals
     id                 varchar(255)   not null primary key,
     credited_at        timestamp(6)   not null,
     period_start       date           not null,
-    period_end         date           not null,
-    opening_balance    numeric(38, 2) not null,
+    period_end         date,
+    opening_balance    numeric(38, 2),
     interest_amount    numeric(38, 2) not null,
     savings_account_id varchar(255)   not null,
     constraint fk_savings_interest_accrual_savings_account_id

@@ -17,6 +17,7 @@ import com.bank.memberprofiles.MemberProfile;
 import com.bank.memberprofiles.MemberRepository;
 import com.bank.others.utils.PageResponse;
 import com.bank.savingsaccount.SavingsRepository;
+import com.bank.transactions.CurrencyUtil;
 import com.bank.users.User;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -129,7 +130,7 @@ public class GuarantorServiceImpl implements GuarantorService {
         Map<String, Object> model = new HashMap<>();
         model.put("name", guarantorMember.getUser().getName());
         model.put("applicantName", loggedInUser.getName());
-        model.put("amount", requestedAmount);
+        model.put("amount", CurrencyUtil.naira(requestedAmount));
         model.put("loanApplicationId", applicant.getLoanApplication().getId());
         model.put("institutionName", guarantorMember.getInstitution().getInstitutionName());
 

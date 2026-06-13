@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -57,11 +57,11 @@ public class TransactionServiceImpl implements TransactionService{
         transaction.setBalanceBefore(savingsAccount.getBalance());
         savingsAccount.setBalance((savingsAccount.getBalance()).add(transactionRequest.getAmount()));
         transaction.setBalanceAfter(savingsAccount.getBalance());
-        transaction.setCreatedDate(LocalDate.now());
-        transaction.setReference("TXN-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
+        transaction.setReference("TXN-" + LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE)
                 + savingsAccount.getInstitution().getId().replace("-", "")
                 + UUID.randomUUID().toString().replace("-", ""));
         transaction.setTransactionStatus(TransactionStatus.COMPLETED);
+
         savingsRepository.save(savingsAccount);
         transactionRepository.save(transaction);
 

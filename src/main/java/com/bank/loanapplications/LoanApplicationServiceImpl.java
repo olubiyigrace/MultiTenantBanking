@@ -118,11 +118,11 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         LoanProduct existingProduct = loanProductRepository.findByIdAndInstitutionId(loanApplicationRequest.getLoanProductId(), existingMember.getInstitution().getId())
                 .orElseThrow(() -> new InvalidRequestException("Loan product not found for your institution"));
 
-        if (loanApplicationRequest.getRequestedAmount().compareTo(existingProduct.getMinAmount()) < 1) {
+        if (loanApplicationRequest.getRequestedAmount().compareTo(existingProduct.getMinAmount()) > 1) {
             log.debug("Requested amount must be greater than the minimum amount");
             throw new InvalidRequestException("Requested amount must be greater than the minimum amount");
         }
-        if (loanApplicationRequest.getRequestedAmount().compareTo(existingProduct.getMaxAmount()) > 0) {
+        if (loanApplicationRequest.getRequestedAmount().compareTo(existingProduct.getMaxAmount()) < 1) {
             log.debug("Requested amount must not be greater than the maximum amount");
             throw new InvalidRequestException("Requested amount must not be greater than the maximum amount");
         }
@@ -315,9 +315,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
         BigDecimal principal = existingApplication.getApprovedAmount();
         BigDecimal rate = loanProduct.getInterestRatePercent();
-        BigDecimal tenure = loanProduct.getMaxTenureMonths();
 
-        existingApplication.setTenureMonths(tenure);
         existingApplication.setInterestRatePercent(rate);
         existingApplication.setInterestType(loanProduct.getInterestType());
 
@@ -329,17 +327,17 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         BigDecimal totalRepayable;
 
         if (loanProduct.getInterestType() == InterestType.FLAT) {
-            totalInterest = principal.multiply(rate).divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP).multiply(tenure);
+            totalInterest = principal.multiply(rate).divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP).multiply(existingApplication.getTenureMonths());
             totalRepayable = principal.add(totalInterest);
-            monthlyInstallment = totalRepayable.divide(tenure, 2, RoundingMode.HALF_UP);
+            monthlyInstallment = totalRepayable.divide(existingApplication.getTenureMonths(), 2, RoundingMode.HALF_UP);
         }
         else if (loanProduct.getInterestType() == InterestType.REDUCING_BALANCE) {
-            int n = tenure.intValueExact();
+            int n = existingApplication.getTenureMonths().intValueExact();
             BigDecimal monthlyRate = rate.divide(BigDecimal.valueOf(12 * 100), 10, RoundingMode.HALF_UP);
             BigDecimal onePlusRPowerN = (BigDecimal.ONE.add(monthlyRate)).pow(n);
             monthlyInstallment = principal.multiply(monthlyRate).multiply(onePlusRPowerN)
                     .divide(onePlusRPowerN.subtract(BigDecimal.ONE), 2, RoundingMode.HALF_UP);
-            totalRepayable = monthlyInstallment.multiply(tenure);
+            totalRepayable = monthlyInstallment.multiply(existingApplication.getTenureMonths());
             totalInterest = totalRepayable.subtract(principal);
         }
         else {
@@ -363,7 +361,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         }
         savingsAccountRepository.save(savingsAccount);
         loanApplicationRepository.save(existingApplication);
-        generateRepaymentSchedule(existingApplication,principal,totalInterest,tenure);
+        generateRepaymentSchedule(existingApplication,principal,totalInterest,existingApplication.getTenureMonths());
 
         log.info("Loan disbursed successfully");
     }

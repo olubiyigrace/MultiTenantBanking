@@ -37,8 +37,6 @@ public class Transaction extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     private TransactionStatus transactionStatus;
 
-    private LocalDate createdDate;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "performed_by_user_id", foreignKey = @ForeignKey(name = "fk_transaction_performed_by_user_id"))
     private User user;
