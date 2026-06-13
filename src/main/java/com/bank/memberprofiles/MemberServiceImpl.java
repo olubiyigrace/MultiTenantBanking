@@ -91,6 +91,11 @@ public class MemberServiceImpl implements MemberService {
             userRepository.save(member.getUser());
             memberRepository.save(member);
             savingsRepository.save(savingsAccount);
+
+                emailService.sendAccountNumberEmail(
+                        member.getUser().getEmail(),
+                        generateAccountNumber(loggedInUser.getInstitution())
+                );
             } else {
                 throw new InvalidRequestException("Either the bvn or the date of birth is incorrect or both are incorrect");
             }
@@ -117,6 +122,8 @@ public class MemberServiceImpl implements MemberService {
             memberRepository.save(member);
             savingsRepository.save(savingsAccount);
 
+
+
             Map<String, Object> model = new HashMap<>();
             model.put("name", memberRequest.getRegisterUserRequest().getName());
             model.put("verificationUrl", "https://multitenantbanking.com/api/v1/auth/verify?"
@@ -128,6 +135,10 @@ public class MemberServiceImpl implements MemberService {
                     "userverification",
                     model
             );
+
+            emailService.sendAccountNumberEmail(
+                    member.getUser().getEmail(),
+                    generateAccountNumber(loggedInUser.getInstitution()));
         }
     }
 

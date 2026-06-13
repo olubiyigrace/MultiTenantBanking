@@ -39,8 +39,7 @@ public class LoanOfficerController {
     @PostMapping("/recommend-approval")
     public ResponseEntity<ApiResponse<String>> recommendApproval(@RequestParam String loanApplicationId) {
         loanApplicationService.recommendApproval(loanApplicationId);
-        return ResponseEntity.ok(ApiResponse.success(true, "Loan application approval recommended",
-                null));
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan application approval recommended", null));
     }
 
     @PostMapping("/recommend-rejection")

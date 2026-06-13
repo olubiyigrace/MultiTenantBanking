@@ -54,16 +54,16 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(true, "Savings account created and added successfully", null));
     }
 
-    @PostMapping("/add-collateral")
-    public ResponseEntity<ApiResponse<String>> createCollateral(@Valid @RequestBody LoanCollateralRequest loanCollateralRequest){
-        collateralService.createCollateral(loanCollateralRequest);
-        return ResponseEntity.ok(ApiResponse.success(true, "Collateral added successfully", null));
-    }
-
     @PostMapping("/files-upload")
     public ResponseEntity<ApiResponse<Map<String, String>>> uploadFile(@RequestParam("file") MultipartFile file) {
         String url = cloudinaryService.uploadFile(file);
         return ResponseEntity.ok(ApiResponse.success(true, "File uploaded successfully", Map.of("url", url)));
+    }
+
+    @PostMapping("/add-collateral")
+    public ResponseEntity<ApiResponse<String>> createCollateral(@Valid @RequestBody LoanCollateralRequest loanCollateralRequest){
+        collateralService.createCollateral(loanCollateralRequest);
+        return ResponseEntity.ok(ApiResponse.success(true, "Collateral added successfully", null));
     }
 
     @PostMapping("/add-guarantor")

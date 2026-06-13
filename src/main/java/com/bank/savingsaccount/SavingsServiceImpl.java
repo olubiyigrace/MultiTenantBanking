@@ -15,6 +15,7 @@ import com.bank.institutions.Institution;
 import com.bank.others.config.InstitutionContext;
 import com.bank.others.exceptions.InvalidRequestException;
 import com.bank.others.exceptions.UnauthorizedException;
+import com.bank.others.services.EmailService;
 import com.bank.others.utils.CurrentUserUtil;
 import com.bank.loanapplications.TotalInterestCollectedResponse;
 import com.bank.loanrepaymentschedule.TotalLoansOutstandingResponse;
@@ -48,6 +49,7 @@ public class SavingsServiceImpl implements SavingsService {
     private final SavingsMapper savingsMapper;
     private final LoanApplicationRepository loanApplicationRepository;
     private final GuarantorRepository guarantorRepository;
+    private final EmailService emailService;
 
 
     @Override
@@ -131,6 +133,11 @@ public class SavingsServiceImpl implements SavingsService {
             newAccount.setInterestRatePercent(BigDecimal.valueOf(0.027));
         }
         savingsRepository.save(newAccount);
+
+        emailService.sendAccountNumberEmail(
+                loggedInUser.getEmail(),
+                generateAccountNumber(loggedInUser.getInstitution())
+        );
     }
 
     private String generateAccountNumber(Institution institution) {
