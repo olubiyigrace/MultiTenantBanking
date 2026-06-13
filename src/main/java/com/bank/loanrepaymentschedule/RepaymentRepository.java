@@ -21,5 +21,7 @@ public interface RepaymentRepository extends JpaRepository<LoanRepaymentSchedule
         ORDER BY lrs.dueDate ASC
     """)
     Page<LoanRepaymentSchedule> findOverdueSchedulesByLoanOfficer(@Param("loanOfficerId") String loanOfficerId, Pageable pageable);
+
+    LoanRepaymentSchedule findByLoanApplicationId(String loanApplicationId);
 }
 

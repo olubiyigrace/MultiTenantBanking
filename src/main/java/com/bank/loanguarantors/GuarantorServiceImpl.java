@@ -96,7 +96,7 @@ public class GuarantorServiceImpl implements GuarantorService {
         }
 
         BigDecimal requestedAmount = loanApplication.getRequestedAmount();
-        if (fixedSavings.getBalance().compareTo(requestedAmount) < 2) {
+        if (requestedAmount.compareTo(fixedSavings.getBalance()) < 2) {
             throw new InvalidRequestException("Guarantor savings balance is insufficient");
         }
 

@@ -15,6 +15,7 @@ public class InstitutionMapper {
                 .institutionEmail(institutionRequest.getInstitutionEmail())
                 .institutionPhone(institutionRequest.getInstitutionPhone())
                 .institutionRcNumber(institutionRequest.getInstitutionRcNumber())
+                .institutionCode(institutionRequest.getInstitutionCode())
                 .institutionType(institutionRequest.getInstitutionType())
                 .adminName(institutionRequest.getAdminName())
                 .adminEmail(institutionRequest.getAdminEmail())

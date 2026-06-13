@@ -23,12 +23,12 @@ spring:
         smtp:
           auth: true
 #
-#          starttls:
-#            enable: true
-#            required: true
+          starttls:
+            enable: true
+            required: true
 
           ssl:
-            enable: true
+            enable: false
 
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}

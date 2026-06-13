@@ -33,6 +33,11 @@ public class RegisterInstitutionRequest {
     @Column(updatable = false)
     private InstitutionType institutionType;
 
+    @NotBlank(message = "Institution code should not be empty")
+    @Column(updatable = false)
+    @Pattern(regexp = "^[0-9]{4}$", message = "Institution code must be exactly 4 digits")
+    private String institutionCode;
+
 
     @NotBlank(message = "Admin name should not be empty")
     @Pattern(regexp = "^[A-Za-z]+(?:[-\\s][A-Za-z]+)*(?:\\s[A-Za-z]+(?:[-\\s][A-Za-z]+)*)?\\s[A-Za-z]+(?:[-\\s][A-Za-z]+)*$",

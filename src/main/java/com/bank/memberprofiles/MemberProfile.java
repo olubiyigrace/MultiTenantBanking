@@ -44,7 +44,7 @@ public class MemberProfile extends AbstractEntity {
     @Column(nullable = false)
     private LocalDate dateOfBirth;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String memberNumber;
 
     @Enumerated(EnumType.STRING)

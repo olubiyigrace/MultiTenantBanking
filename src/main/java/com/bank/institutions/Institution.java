@@ -31,6 +31,13 @@ public class Institution extends AbstractEntity {
     @Column(nullable = false, unique = true)
     private String institutionEmail;
 
+    @Column(unique = true, nullable = false, length = 4)
+    private String institutionCode;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Long nextMemberSequence = 0L;
+
     @Builder.Default
     private String baseCurrency = "NGN";
 

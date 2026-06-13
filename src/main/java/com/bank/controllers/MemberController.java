@@ -1,5 +1,6 @@
 package com.bank.controllers;
 
+import com.bank.loanproducts.LoanProductResponse;
 import com.bank.others.services.CloudinaryService;
 import com.bank.loanapplications.LoanApplicationRequest;
 import com.bank.loancollaterals.LoanCollateralRequest;
@@ -18,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 @PreAuthorize("hasRole('MEMBER')")
@@ -31,6 +33,12 @@ public class MemberController {
     private final GuarantorService guarantorService;
     private final SavingsService savingsService;
 
+
+    @PostMapping("/select-loan-product")
+    public ResponseEntity<ApiResponse<List<LoanProductResponse>>> selectLoanProduct(){
+        loanApplicationService.getEligibleLoanProducts();
+        return ResponseEntity.ok(ApiResponse.success(true, "loan products retrieved successfully", null));
+    }
 
     @PostMapping("/create-loan-application")
     public ResponseEntity<ApiResponse<String>> create(@Valid @RequestBody LoanApplicationRequest loanApplicationRequest){

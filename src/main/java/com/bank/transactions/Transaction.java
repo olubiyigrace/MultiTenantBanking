@@ -12,6 +12,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -35,6 +36,8 @@ public class Transaction extends AbstractEntity {
 
     @Enumerated(EnumType.STRING)
     private TransactionStatus transactionStatus;
+
+    private LocalDate createdDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "performed_by_user_id", foreignKey = @ForeignKey(name = "fk_transaction_performed_by_user_id"))

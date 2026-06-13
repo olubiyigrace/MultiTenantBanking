@@ -12,7 +12,6 @@ import com.bank.savingsaccount.TotalSavingsStatisticsResponse;
 import com.bank.transactions.TotalDepositsResponse;
 import com.bank.transactions.TotalDepositsStatisticsResponse;
 import com.bank.users.UserMapper;
-import com.bank.users.UserResponse;
 import com.bank.others.utils.PageResponse;
 import com.bank.users.User;
 import com.bank.users.UserAccountType;
@@ -49,8 +48,6 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
-    private final UserMapper userMapper;
-    private final CurrentUserUtil currentUserUtil;
 
     @Override
     public void approveInstitution(final String institutionId) throws MessagingException {

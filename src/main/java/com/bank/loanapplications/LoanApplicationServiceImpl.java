@@ -1,9 +1,9 @@
 package com.bank.loanapplications;
 
+import com.bank.loanproducts.*;
 import com.bank.loanrepaymentschedule.OverdueRepaymentScheduleResponse;
 import com.bank.others.auditlogs.AuditLog;
 import com.bank.others.auditlogs.AuditLogRepository;
-import com.bank.loanproducts.InterestType;
 import com.bank.loanrepaymentschedule.LoanRepaymentSchedule;
 import com.bank.loanrepaymentschedule.LoanRepaymentStatus;
 import com.bank.loanrepaymentschedule.RepaymentRepository;
@@ -22,8 +22,6 @@ import com.bank.loancollaterals.LoanCollateral;
 import com.bank.loanguarantors.GuarantorRepository;
 import com.bank.loanguarantors.GuarantorStatus;
 import com.bank.loanguarantors.LoanGuarantor;
-import com.bank.loanproducts.LoanProduct;
-import com.bank.loanproducts.LoanProductRepository;
 import com.bank.memberprofiles.MemberProfile;
 import com.bank.memberprofiles.MemberRepository;
 import com.bank.memberprofiles.ProfileStatus;
@@ -67,7 +65,23 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     private final SavingsRepository savingsAccountRepository;
     private final RepaymentRepository repaymentRepository;
     private final AuditLogRepository auditLogRepository;
+    private final LoanProductMapper loanProductMapper;
 
+
+    @Override
+    public List<LoanProductResponse> getEligibleLoanProducts() {
+        String institutionId = InstitutionContext.getCurrentInstitution();
+
+        User user = currentUserUtil.getLoggedInUser();
+        MemberProfile member = memberRepository.findByUserIdAndInstitutionId(user.getId(), institutionId)
+                .orElseThrow(() -> new InvalidRequestException("Member not found"));
+
+        return loanProductRepository
+                .findByInstitutionIdAndIsActiveTrue(member.getInstitution().getId())
+                .stream()
+                .map(loanProductMapper::toResponse)
+                .toList();
+    }
 
     @Override
     public void createApplication(LoanApplicationRequest loanApplicationRequest) {
@@ -101,11 +115,10 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         if (!hasSavings) {
             throw new InvalidRequestException("You have no active savings account at the moment");
         }
+        LoanProduct existingProduct = loanProductRepository.findByIdAndInstitutionId(loanApplicationRequest.getLoanProductId(), existingMember.getInstitution().getId())
+                .orElseThrow(() -> new InvalidRequestException("Loan product not found for your institution"));
 
-        LoanProduct existingProduct = loanProductRepository.findById(loanApplicationRequest.getLoanProductId())
-                .orElseThrow(() -> new InvalidRequestException("Loan product not found"));
-
-        if (loanApplicationRequest.getRequestedAmount().compareTo(existingProduct.getMinAmount()) < 0) {
+        if (loanApplicationRequest.getRequestedAmount().compareTo(existingProduct.getMinAmount()) < 1) {
             log.debug("Requested amount must be greater than the minimum amount");
             throw new InvalidRequestException("Requested amount must be greater than the minimum amount");
         }
@@ -125,6 +138,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         }
         LoanApplication loanApplication = loanApplicationMapper.toEntity(loanApplicationRequest);
         loanApplication.setRequestedAmount(loanApplicationRequest.getRequestedAmount());
+        loanApplication.setTenureMonths(existingProduct.getMaxTenureMonths());
         loanApplication.setInstitution(Institution.builder().id(institutionId).build());
         loanApplication.setMember(MemberProfile.builder().id(existingMember.getId()).build());
         loanApplication.setLoanApplicationStatus(LoanApplicationStatus.PENDING);
@@ -383,23 +397,49 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
     @Override
     public void checkIfRepaid(String loanApplicationId) {
-// savings account is not active for guarantor
-//                    .paidAt(LocalDateTime.now()) set this to null and in repaymentservice, set it to now and status to paid in the repaid method
-//if loanrepayment is < totalrefundable, set loan repayment schedule to partial
-        //if loan repayment schedule status is paid
-//        //if all loans are paid i.e installments
-//        loanApplication.setLoanApplicationStatus(LoanApplicationStatus.FULLY_REPAID);
-//        loanApplication.setRequiresCollateral(null);
-//        loanApplication.setRequiresGuarantor(null);
-//        amountPaid += payment
-//        balanceRemaining = totalDue - amountPaid
+        log.info("Checking repaid loan");
+
+        LoanApplication existingApplication = loanApplicationRepository.findById(loanApplicationId)
+                .orElseThrow(() -> new InvalidRequestException("Loan application with id '" + loanApplicationId + "' does not exist"));
+        LoanRepaymentSchedule application = repaymentRepository.findByLoanApplicationId(loanApplicationId);
+        if (existingApplication.getLoanApplicationStatus().equals(LoanApplicationStatus.FULLY_REPAID) &&
+                application.getLoanRepaymentStatus().equals(LoanRepaymentStatus.PAID)) {
+            throw new DuplicateResourceException("Loan application has already been fully repaid");
+        }
+        if (application.getTotalDue().compareTo(application.getAmountPaid()) > 0) {
+            application.setLoanRepaymentStatus(LoanRepaymentStatus.PARTIAL);
+            application.setBalanceRemaining(application.getTotalDue().subtract(application.getAmountPaid()));
+        }
+        if (application.getTotalDue().compareTo(application.getAmountPaid()) == 0) {
+            application.setLoanRepaymentStatus(LoanRepaymentStatus.PAID);
+            existingApplication.setLoanApplicationStatus(LoanApplicationStatus.FULLY_REPAID);
+            application.setBalanceRemaining(application.getTotalDue().subtract(application.getAmountPaid()));
+            application.setPaidAt(LocalDateTime.now());
+        }
+        loanApplicationRepository.save(existingApplication);
+        repaymentRepository.save(application);
     }
 
     @Override
     public void addDefaulter(String loanApplicationId) {
-//        loanApplication.setLoanApplicationStatus(LoanApplicationStatus.FULLY_REPAID);
-        // if loan due date is before local date time.now, set status as overdue
- // if loan repayment schedule is overdue, add as defaulter
+        log.info("Adding a defaulted loan");
+
+        LoanApplication existingApplication = loanApplicationRepository.findById(loanApplicationId)
+                .orElseThrow(() -> new InvalidRequestException("Loan application with id '" + loanApplicationId + "' does not exist"));
+        if (existingApplication.getLoanApplicationStatus() == LoanApplicationStatus.DEFAULTED) {
+            throw new DuplicateResourceException("Loan application has already been marked as defaulted");
+        }
+        if (!existingApplication.getLoanApplicationStatus().equals(LoanApplicationStatus.DISBURSED)){
+            throw new InvalidRequestException("Only a disbursed loan can be added as defaulted");
+        }
+
+        LoanRepaymentSchedule application = repaymentRepository.findByLoanApplicationId(loanApplicationId);
+        if (application.getDueDate().isBefore(LocalDate.now())){
+            application.setLoanRepaymentStatus(LoanRepaymentStatus.OVERDUE);
+            existingApplication.setLoanApplicationStatus(LoanApplicationStatus.DEFAULTED);
+        }
+        loanApplicationRepository.save(existingApplication);
+        repaymentRepository.save(application);
     }
 
 
@@ -424,8 +464,8 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 ("No repayment schedule found for this loan"));
 
         long daysPastDue = ChronoUnit.DAYS.between(repaymentSchedule.getDueDate(), LocalDate.now());
-        if (daysPastDue < 180) {
-            throw new InvalidRequestException("Loan cannot be written off until it is at least 180 days past due");
+        if (daysPastDue < 30) {
+            throw new InvalidRequestException("Loan cannot be written off until it is at least 30 days past due");
         }
         existingApplication.setLoanApplicationStatus(LoanApplicationStatus.WRITTEN_OFF);
         loanApplicationRepository.save(existingApplication);

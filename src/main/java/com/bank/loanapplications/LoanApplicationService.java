@@ -1,9 +1,13 @@
 package com.bank.loanapplications;
 
+import com.bank.loanproducts.LoanProductResponse;
 import com.bank.loanrepaymentschedule.OverdueRepaymentScheduleResponse;
 import com.bank.others.utils.PageResponse;
 
+import java.util.List;
+
 public interface LoanApplicationService {
+    List<LoanProductResponse> getEligibleLoanProducts();
     void createApplication(LoanApplicationRequest loanApplicationRequest);
     PageResponse<LoanApplicationResponse> getAllApplications(int page, int size);
     void reviewLoanApplication(String loanApplicationId);

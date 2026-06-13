@@ -14,7 +14,6 @@ import com.bank.others.auditlogs.AuditLogRequestFilter;
 import com.bank.institutions.Institution;
 import com.bank.others.config.InstitutionContext;
 import com.bank.others.exceptions.InvalidRequestException;
-import com.bank.institutions.InstitutionRepository;
 import com.bank.others.exceptions.UnauthorizedException;
 import com.bank.others.utils.CurrentUserUtil;
 import com.bank.loanapplications.TotalInterestCollectedResponse;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.security.SecureRandom;
 import java.time.Month;
 import java.time.Year;
 import java.util.ArrayList;
@@ -74,6 +72,7 @@ public class SavingsServiceImpl implements SavingsService {
             throw new UnauthorizedException(
                     "You must have an active regular savings account before creating another savings account");
         }
+
         if (savingsAccountRequest.getSavingsAccountType() == SavingsAccountType.REGULAR && hasRegular) {
             throw new InvalidRequestException("You already have a regular savings account");
         }
@@ -115,13 +114,14 @@ public class SavingsServiceImpl implements SavingsService {
                 throw new InvalidRequestException("Minimum opening balance for a target savings account is ₦50,000");
             }
         }
+
         regularAccount.setBalance(regularAccount.getBalance().subtract(openingBalance));
         savingsRepository.save(regularAccount);
 
         SavingsAccount newAccount = savingsMapper.toEntity(savingsAccountRequest);
         newAccount.setMember(member);
         newAccount.setInstitution(member.getInstitution());
-        newAccount.setAccountNumber(generateAccountNumber());
+        newAccount.setAccountNumber(generateAccountNumber(loggedInUser.getInstitution()));
         newAccount.setSavingsStatus(SavingsStatus.ACTIVE);
         newAccount.setBalance(openingBalance);
 
@@ -133,13 +133,10 @@ public class SavingsServiceImpl implements SavingsService {
         savingsRepository.save(newAccount);
     }
 
-    private String generateAccountNumber() {
-        SecureRandom random = new SecureRandom();
-        StringBuilder accountNumber = new StringBuilder();
-        for (int i = 0; i < 9; i++) {
-            accountNumber.append(random.nextInt(10));
-        }
-        return accountNumber.toString();
+    private String generateAccountNumber(Institution institution) {
+        long count = savingsRepository.countByInstitutionId(institution.getId());
+        long nextNumber = count + 1;
+        return  institution.getInstitutionCode() + String.format("%06d", nextNumber);
     }
 
     @Override

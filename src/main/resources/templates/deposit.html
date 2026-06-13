@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit Successful</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, Helvetica, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f6f8; padding:20px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0"
+                   style="background-color:#ffffff; border-radius:8px; overflow:hidden;">
+
+                <tr>
+                    <td style="background-color:#00a859; padding:25px; text-align:center;">
+                        <h1 style="margin:0; color:#ffffff; font-size:24px;">
+                            Deposit Successful
+                        </h1>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:30px;">
+
+                        <p style="margin-top:0; font-size:16px; color:#333;">
+                            Dear
+                            <strong th:text="${name}">Member Name</strong>,
+                        </p>
+
+                        <p style="font-size:15px; color:#333; line-height:1.6;">
+                            Your deposit of
+                            <strong th:text="${amount}">₦0.00</strong>
+                            is successful.
+                            Your available balance is
+                            <strong th:text="${newBalance}">₦0.00</strong>.
+                        </p>
+
+                        <hr style="border:none; border-top:1px solid #e5e5e5; margin:25px 0;">
+
+                        <h3 style="margin:0 0 20px; color:#00a859;">
+                            Deposit Details:
+                        </h3>
+
+                        <table width="100%" cellpadding="8" cellspacing="0" border="0">
+
+                            <tr>
+                                <td width="35%" style="font-weight:bold; color:#555;">
+                                    Name:
+                                </td>
+                                <td style="color:#333;"
+                                    th:text="${name}">
+                                    Member
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="font-weight:bold; color:#555;">
+                                    Bank:
+                                </td>
+                                <td style="color:#333;"
+                                    th:text="${institutionName}">
+                                    Bank Name
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="font-weight:bold; color:#555;">
+                                    Account Number:
+                                </td>
+                                <td style="color:#333;"
+                                    th:text="${accountNumber}">
+                                    0000000000
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="font-weight:bold; color:#555;">
+                                    Amount:
+                                </td>
+                                <td style="color:#333;"
+                                    th:text="${amount}">
+                                    ₦0.00
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="font-weight:bold; color:#555;">
+                                    Transaction Reference:
+                                </td>
+                                <td style="color:#333;"
+                                    th:text="${transactionReference}">
+                                    REF123456789
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="font-weight:bold; color:#555;">
+                                    Transaction Date:
+                                </td>
+                                <td style="color:#333;"
+                                    th:text="${transactionDate}">
+                                    12 Jun 2026 10:30 AM
+                                </td>
+                            </tr>
+
+                        </table>
+
+                        <hr style="border:none; border-top:1px solid #e5e5e5; margin:25px 0;">
+
+                        <p style="font-size:14px; color:#555; line-height:1.6;">
+                            For further enquiries, please contact our customer support:
+                        </p>
+
+                        <p style="font-size:14px; color:#333; line-height:1.8;">
+                            <strong>Phone:</strong>
+                            <span th:text="${institutionPhone}">
+                                08000000000
+                            </span>
+                            <br>
+
+                            <strong>Email:</strong>
+                            <span th:text="${institutionEmail}">
+                                support@institution.com
+                            </span>
+                        </p>
+
+                        <p style="font-size:15px; color:#333;">
+                            Thank you for banking with us.
+                        </p>
+
+                        <p style="font-size:15px; color:#333; margin-bottom:0;">
+                            The
+                            <span th:text="${institutionName}">
+                                Institution
+                            </span>
+                            Team
+                        </p>
+
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="background-color:#fafafa; padding:25px; border-top:1px solid #e5e5e5;">
+
+                        <p style="margin:0 0 10px; font-size:12px; color:#777; text-align:center;">
+                            Copyright ©
+                            <span th:text="${currentYear}">2026</span>
+                            <span th:text="${institutionName}">
+                                Institution
+                            </span> -
+                            <span th:text="${rcNumber}">
+                                RC 000000
+                            </span>
+                            All rights reserved.
+                        </p>
+
+                        <p style="margin:0; font-size:12px; color:#777; line-height:1.6; text-align:center;">
+                        <div class="footer">
+                         <span th:text="${institutionName}">
+                                Institution
+                            </span> is a mobile money platform and is licensed by the Central Bank of Nigeria (CBN) and all deposits are insured by the Nigerian Deposit Insurance Corporation (NDIC).
+                        </div>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
