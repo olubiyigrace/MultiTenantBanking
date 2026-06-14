@@ -11,7 +11,7 @@ create table institutions
     is_verified                     boolean      not null,
     base_currency                   varchar(255) not null,
     institution_code                varchar(255) not null,
-    next_member_sequence            bigint not null default 0,
+    next_member_sequence            bigint       not null default 0,
     email_verification_token        varchar(255),
     email_verification_token_expiry timestamp(6),
     email_verified_at               timestamp(6),
@@ -101,19 +101,20 @@ create table logout_tokens
 
 create table member_profiles
 (
-    id                varchar(255)   not null primary key,
-    created_at        timestamp(6)   not null,
-    member_number     varchar(255)   not null,
-    bvn               varchar(255)   not null,
-    employment_status varchar(255)   not null,
-    next_of_kin_name  varchar(255)   not null,
-    next_of_kin_phone varchar(50)    not null,
-    monthly_income    numeric(38, 2) not null,
-    address           text           not null,
-    date_of_birth     date           not null,
-    institution_id    varchar(255)   not null,
-    user_id           varchar(255)   not null,
-    profile_status    varchar(255)
+    id                        varchar(255)   not null primary key,
+    created_at                timestamp(6)   not null,
+    member_number             varchar(255)   not null,
+    bvn                       varchar(255)   not null,
+    employment_status         varchar(255)   not null,
+    next_of_kin_name          varchar(255)   not null,
+    next_of_kin_phone         varchar(50)    not null,
+    monthly_income            numeric(38, 2) not null,
+    address                   text           not null,
+    date_of_birth             date           not null,
+    institution_id            varchar(255)   not null,
+    account_number_email_sent boolean,
+    user_id                   varchar(255)   not null,
+    profile_status            varchar(255)
         constraint member_profiles_profile_status_check
             check (
                 (profile_status)::text = ANY (

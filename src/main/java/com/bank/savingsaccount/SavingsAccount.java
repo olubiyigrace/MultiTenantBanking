@@ -5,10 +5,7 @@ import com.bank.others.entity.AbstractEntity;
 import com.bank.institutions.Institution;
 import com.bank.memberprofiles.MemberProfile;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
@@ -39,6 +36,10 @@ public class SavingsAccount extends AbstractEntity {
 
     @Enumerated(EnumType.STRING)
     private SavingsAccountType savingsAccountType;
+
+    @Column(name = "account_number_email_sent")
+    @Builder.Default
+    private Boolean accountNumberEmailSent = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institution_id", foreignKey = @ForeignKey(name = "fk_savings_account_institution_id"))

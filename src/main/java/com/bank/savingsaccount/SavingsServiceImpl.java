@@ -135,8 +135,9 @@ public class SavingsServiceImpl implements SavingsService {
         savingsRepository.save(newAccount);
 
         emailService.sendAccountNumberEmail(
-                loggedInUser.getEmail(),
-                generateAccountNumber(loggedInUser.getInstitution())
+                member.getUser().getEmail(),
+                newAccount.getAccountNumber(),
+                member.getInstitution().getInstitutionName()
         );
     }
 

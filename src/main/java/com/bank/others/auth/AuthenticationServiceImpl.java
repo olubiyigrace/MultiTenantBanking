@@ -14,7 +14,6 @@ import com.bank.others.logout.LogoutToken;
 import com.bank.others.logout.LogoutTokenRepository;
 import com.bank.others.utils.CurrentUserUtil;
 import com.bank.others.services.EmailService;
-import com.bank.others.config.InstitutionContext;
 import com.bank.savingsaccount.SavingsAccount;
 import com.bank.savingsaccount.SavingsRepository;
 import com.bank.savingsaccount.SavingsStatus;
@@ -177,11 +176,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new InvalidRequestException("User with the email '" + email + "' does not exist. Visit the website to register"));
+        if (Boolean.TRUE.equals(user.getIsVerified())) {
+            throw new InvalidRequestException("User has already been verified");
+        }
         if (!passwordEncoder.matches(verificationTokenFromRequest, user.getEmailVerificationToken())) {
             log.debug("Invalid token");
             throw new InvalidRequestException("Invalid token");
         }
-        if (passwordEncoder.matches(verificationTokenFromRequest, user.getEmailVerificationToken()) && user.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+        if (user.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
             log.debug("Token has expired");
             throw new InvalidRequestException("Token has expired");
         }
@@ -203,7 +205,24 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         memberRepository.saveAll(profiles);
         userRepository.save(user);
 
-        log.info("User verified successfully");
+        for (MemberProfile member : profiles) {
+                SavingsAccount savingsAccount = savingsRepository.findByMemberId(member.getId())
+                        .orElseThrow(() -> new InvalidRequestException("Savings account not found for member"));
+
+                if (!Boolean.TRUE.equals(
+                        savingsAccount.getAccountNumberEmailSent())) {
+
+                emailService.sendAccountNumberEmail(
+                        user.getEmail(),
+                        savingsAccount.getAccountNumber(),
+                        member.getInstitution().getInstitutionName()
+                );
+                savingsAccount.setAccountNumberEmailSent(true);
+                savingsRepository.save(savingsAccount);
+
+                log.info("User verified successfully");
+            }
+        }
     }
 
     @Override

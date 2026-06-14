@@ -94,7 +94,8 @@ public class MemberServiceImpl implements MemberService {
 
                 emailService.sendAccountNumberEmail(
                         member.getUser().getEmail(),
-                        generateAccountNumber(loggedInUser.getInstitution())
+                        savingsAccount.getAccountNumber(),
+                        member.getInstitution().getInstitutionName()
                 );
             } else {
                 throw new InvalidRequestException("Either the bvn or the date of birth is incorrect or both are incorrect");
@@ -117,12 +118,9 @@ public class MemberServiceImpl implements MemberService {
             String emailVerificationToken = UUID.randomUUID().toString();
             member.getUser().setEmailVerificationToken(passwordEncoder.encode(emailVerificationToken));
             member.getUser().setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(10));
-
             userRepository.save(member.getUser());
             memberRepository.save(member);
             savingsRepository.save(savingsAccount);
-
-
 
             Map<String, Object> model = new HashMap<>();
             model.put("name", memberRequest.getRegisterUserRequest().getName());
@@ -135,16 +133,18 @@ public class MemberServiceImpl implements MemberService {
                     "userverification",
                     model
             );
-
-            emailService.sendAccountNumberEmail(
-                    member.getUser().getEmail(),
-                    generateAccountNumber(loggedInUser.getInstitution()));
         }
     }
 
     private String generateMemberNumber(Institution institution) {
         Long sequence = institutionRepository.getNextMemberSequence(institution.getId());
         return "M" + String.format("%09d", sequence);
+    }
+
+    private String generateAccountNumber(Institution institution) {
+        long count = savingsRepository.countByInstitutionId(institution.getId());
+        long nextNumber = count + 1;
+        return institution.getInstitutionCode() + String.format("%06d", nextNumber);
     }
 
     @Override
@@ -166,13 +166,6 @@ public class MemberServiceImpl implements MemberService {
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User with the username '" + username + "' not found"));
-    }
-
-
-    private String generateAccountNumber(Institution institution) {
-        long count = savingsRepository.countByInstitutionId(institution.getId());
-        long nextNumber = count + 1;
-        return institution.getInstitutionCode() + String.format("%06d", nextNumber);
     }
 }
 
