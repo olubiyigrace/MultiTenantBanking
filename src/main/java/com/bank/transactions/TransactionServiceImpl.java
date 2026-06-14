@@ -59,7 +59,7 @@ public class TransactionServiceImpl implements TransactionService {
         savingsAccount.setBalance((savingsAccount.getBalance()).add(transactionRequest.getAmount()));
         transaction.setBalanceAfter(savingsAccount.getBalance());
         transaction.setReference("TXN-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
-                + savingsAccount.getInstitution().getId().replace("-", "")
+                + savingsAccount.getInstitution().getId().toUpperCase().replace("-", "")
                 + UUID.randomUUID().toString().substring(0, 4).toUpperCase());
         transaction.setTransactionStatus(TransactionStatus.COMPLETED);
         savingsRepository.save(savingsAccount);
@@ -82,6 +82,7 @@ public class TransactionServiceImpl implements TransactionService {
         model.put("transactionReference", transaction.getReference());
         model.put("transactionDate", transactionDate);
         model.put("currentYear", Year.now().getValue());
+        model.put("description", transaction.getDescription());
         model.put("institutionPhone", savingsAccount.getInstitution().getInstitutionPhone());
         model.put("institutionEmail", savingsAccount.getInstitution().getInstitutionEmail());
         model.put("rcNumber", savingsAccount.getInstitution().getInstitutionRcNumber());

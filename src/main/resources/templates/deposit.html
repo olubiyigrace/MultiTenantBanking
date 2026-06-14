@@ -87,6 +87,15 @@
 
                             <tr>
                                 <td style="font-weight:bold; color:#555;">
+                                    Description:
+                                </td>
+                                <td style="color:#333;"
+                                    th:text="${description}">
+                                    Reason
+                                </td>
+                            </tr>
+<tr>
+                                <td style="font-weight:bold; color:#555;">
                                     Transaction Reference:
                                 </td>
                                 <td style="color:#333;"
@@ -112,7 +121,6 @@
                         <p style="font-size:14px; color:#555; line-height:1.6;">
                             For further enquiries, please contact our customer support:
                         </p>
-
                         <p style="font-size:14px; color:#333; line-height:1.8;">
                             <strong>Phone:</strong>
                             <span th:text="${institutionPhone}">
@@ -129,7 +137,6 @@
                         <p style="font-size:15px; color:#333;">
                             Thank you for banking with us.
                         </p>
-
                         <p style="font-size:15px; color:#333; margin-bottom:0;">
                             The
                             <span th:text="${institutionName}">
