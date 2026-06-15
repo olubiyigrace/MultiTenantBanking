@@ -23,6 +23,4 @@ public class InterestScheduler {
             log.error("Daily interest accrual failed", ex);
         }
     }
-
-
 }

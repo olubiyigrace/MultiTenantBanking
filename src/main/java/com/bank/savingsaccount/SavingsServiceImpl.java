@@ -130,7 +130,7 @@ public class SavingsServiceImpl implements SavingsService {
         if (newAccount.getSavingsAccountType() == SavingsAccountType.FIXED ||
                 newAccount.getSavingsAccountType() == SavingsAccountType.TARGET) {
             newAccount.setMinimumBalance(BigDecimal.valueOf(50000));
-            newAccount.setInterestRatePercent(BigDecimal.valueOf(0.027));
+            newAccount.setInterestRatePercent(BigDecimal.valueOf(0.00027397));
         }
         savingsRepository.save(newAccount);
 
@@ -266,10 +266,7 @@ public class SavingsServiceImpl implements SavingsService {
         User loggedInUser = currentUserUtil.getLoggedInUser();
         String institutionId = InstitutionContext.getCurrentInstitution();
 
-        MemberProfile memberProfile = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(), institutionId)
-                .orElseThrow(() -> new InvalidRequestException("Member profile not found"));
-
-        Institution institution = memberProfile.getInstitution();
+        Institution institution = loggedInUser.getInstitution();
 
         BigDecimal totalSavings = calculateTotalSavings(institutionId);
         return TotalSavingsResponse.builder()
@@ -294,9 +291,7 @@ public class SavingsServiceImpl implements SavingsService {
         User loggedInUser = currentUserUtil.getLoggedInUser();
         String institutionId = InstitutionContext.getCurrentInstitution();
 
-        MemberProfile memberProfile = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(), institutionId)
-                .orElseThrow(() -> new InvalidRequestException("Member profile not found"));
-        Institution institution = memberProfile.getInstitution();
+        Institution institution = loggedInUser.getInstitution();
 
         BigDecimal loansOutstanding = getLoansOutstanding();
         return TotalLoansOutstandingResponse.builder()
@@ -327,9 +322,7 @@ public class SavingsServiceImpl implements SavingsService {
         User loggedInUser = currentUserUtil.getLoggedInUser();
         String institutionId = InstitutionContext.getCurrentInstitution();
 
-        MemberProfile memberProfile = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(), institutionId)
-                .orElseThrow(() -> new InvalidRequestException("Member profile not found"));
-        Institution institution = memberProfile.getInstitution();
+        Institution institution = loggedInUser.getInstitution();
 
         BigDecimal loansOverdue = calculateTotalLoansOverdue(institutionId);
         return TotalLoansOverdueResponse.builder()
@@ -364,9 +357,7 @@ public class SavingsServiceImpl implements SavingsService {
         User loggedInUser = currentUserUtil.getLoggedInUser();
         String institutionId = InstitutionContext.getCurrentInstitution();
 
-        MemberProfile memberProfile = memberRepository.findByUserIdAndInstitutionId(loggedInUser.getId(), institutionId)
-                .orElseThrow(() -> new InvalidRequestException("Member profile not found"));
-        Institution institution = memberProfile.getInstitution();
+        Institution institution = loggedInUser.getInstitution();
 
         BigDecimal interestCollected = getTotalInterest(month, year);
         return TotalInterestCollectedResponse.builder()

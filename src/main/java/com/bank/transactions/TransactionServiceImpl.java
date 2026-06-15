@@ -60,7 +60,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setBalanceAfter(savingsAccount.getBalance());
         transaction.setReference("TXN-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
                 + savingsAccount.getInstitution().getId().toUpperCase().replace("-", "")
-                + UUID.randomUUID().toString().substring(0, 4).toUpperCase());
+                + UUID.randomUUID().toString().toUpperCase().replace("-", ""));
         transaction.setTransactionStatus(TransactionStatus.COMPLETED);
         savingsRepository.save(savingsAccount);
         transactionRepository.save(transaction);
@@ -109,7 +109,6 @@ public class TransactionServiceImpl implements TransactionService {
                 default -> suffix = "th";
             }
         }
-        return day + suffix + " "
-                + dateTime.format(DateTimeFormatter.ofPattern("MMMM, yyyy 'at' hh:mma"));
+        return day + suffix + " " + dateTime.format(DateTimeFormatter.ofPattern("MMMM, yyyy 'at' hh:mma"));
     }
 }

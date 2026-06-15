@@ -28,5 +28,7 @@ public class SavingsInterestAccrual {
     private LocalDate periodEnd;
     private BigDecimal openingBalance;
     private BigDecimal interestAmount;
-    private LocalDateTime creditedAt;
+
+    @Builder.Default
+    private LocalDateTime creditedAt = LocalDateTime.now();
 }

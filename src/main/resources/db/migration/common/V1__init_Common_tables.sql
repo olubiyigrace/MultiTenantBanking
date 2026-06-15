@@ -352,9 +352,9 @@ create table transactions
     balance_before             numeric(38, 2) not null,
     balance_after              numeric(38, 2) not null,
     reversed_by_transaction_id varchar(255),
-    performed_by_user_id       varchar(255)   not null,
+    performed_by_user_id       varchar(255),
     savings_account_id         varchar(255)   not null,
-    institution_id             varchar(255)   not null,
+    institution_id             varchar(255),
     transaction_status         varchar(255)   not null
         constraint transactions_transaction_status_check
             check (
