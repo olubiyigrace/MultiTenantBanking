@@ -111,4 +111,19 @@ public class TransactionServiceImpl implements TransactionService {
         }
         return day + suffix + " " + dateTime.format(DateTimeFormatter.ofPattern("MMMM, yyyy 'at' hh:mma"));
     }
+
+    //TARGET SAVINGS WITHDRAWAL, scheduler for reached target amount
+    //scheduler for fixed savings due date
+//    public BigDecimal processTargetWithdrawal(SavingsAccount account) {
+//        boolean targetMet = account.getTotalDeposits().compareTo(account.getTargetAmount()) >= 0;
+//
+//        BigDecimal payout;
+//        if (targetMet) {
+//            payout = account.getBalance().add(account.getAccruedInterest());
+//        } else {
+//            payout = account.getTotalDeposits(); // NO INTEREST
+//            account.setAccruedInterest(BigDecimal.ZERO);
+//        }
+//        return payout;
+//    }
 }

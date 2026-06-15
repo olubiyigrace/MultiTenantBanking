@@ -28,8 +28,7 @@ public class InterestAccrualServiceImpl implements InterestAccrualService {
 //    private static final BigDecimal TARGET_RATE =
 //            new BigDecimal("0.10").divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP);
 
-    private static final BigDecimal REGULAR_CAP =
-            BigDecimal.valueOf(500_000);
+    private static final BigDecimal REGULAR_CAP = BigDecimal.valueOf(500_000);
 
     private final InterestAccrualRepository interestAccrualRepository;
     private final SavingsRepository savingsRepository;
@@ -71,18 +70,14 @@ public class InterestAccrualServiceImpl implements InterestAccrualService {
         creditInterest(account, interest, date, TransactionType.INTEREST_CREDIT);
     }
 
-    // ---------------- TARGET SAVINGS (ACCRUE ONLY) ----------------
+    //PROCESS TARGET ONLY WHEN TARGET AMOUNT IS REACHED AND ADD IT TO TARGET SAVINGS ACCOUNT BUT IF TARGET AMOUNT IS NOT REACHED BEFORE WITHDRAWAL, RETURN ONLY W/OUT INTEREST
 //    private void processTarget(SavingsAccount account, LocalDate date) {
-//
 //        BigDecimal interest = account.getBalance()
 //                .multiply(TARGET_RATE)
 //                .setScale(2, RoundingMode.HALF_UP);
-//
-//        account.setAccruedInterest(
-//                safe(account.getAccruedInterest()).add(interest)
-//        );
-//
+//        account.setAccruedInterest(safe(account.getAccruedInterest()).add(interest));
 //        savingsRepository.save(account);
+//
 //        SavingsInterestAccrual accrual = SavingsInterestAccrual.builder()
 //                .savingsAccount(account)
 //                .periodStart(date)
@@ -91,7 +86,6 @@ public class InterestAccrualServiceImpl implements InterestAccrualService {
 //                .interestAmount(interest)
 //                .creditedAt(LocalDateTime.now())
 //                .build();
-//
 //        interestAccrualRepository.save(accrual);
 //    }
 

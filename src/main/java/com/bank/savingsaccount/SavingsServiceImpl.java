@@ -132,13 +132,18 @@ public class SavingsServiceImpl implements SavingsService {
             newAccount.setMinimumBalance(BigDecimal.valueOf(50000));
             newAccount.setInterestRatePercent(BigDecimal.valueOf(0.00027397));
         }
-        savingsRepository.save(newAccount);
 
-        emailService.sendAccountNumberEmail(
-                member.getUser().getEmail(),
-                newAccount.getAccountNumber(),
-                member.getInstitution().getInstitutionName()
-        );
+        if (!Boolean.TRUE.equals(
+                newAccount.getAccountNumberEmailSent())) {
+
+            emailService.sendAccountNumberEmail(
+                    member.getUser().getEmail(),
+                    newAccount.getAccountNumber(),
+                    loggedInUser.getInstitution().getInstitutionName()
+            );
+            newAccount.setAccountNumberEmailSent(true);
+            savingsRepository.save(newAccount);
+        }
     }
 
     private String generateAccountNumber(Institution institution) {

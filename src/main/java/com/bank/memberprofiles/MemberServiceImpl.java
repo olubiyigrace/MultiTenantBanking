@@ -90,13 +90,18 @@ public class MemberServiceImpl implements MemberService {
             savingsAccount.setSavingsStatus(SavingsStatus.ACTIVE);
             userRepository.save(member.getUser());
             memberRepository.save(member);
-            savingsRepository.save(savingsAccount);
 
-                emailService.sendAccountNumberEmail(
-                        member.getUser().getEmail(),
-                        savingsAccount.getAccountNumber(),
-                        member.getInstitution().getInstitutionName()
-                );
+                if (!Boolean.TRUE.equals(
+                        savingsAccount.getAccountNumberEmailSent())) {
+
+                    emailService.sendAccountNumberEmail(
+                            member.getUser().getEmail(),
+                            savingsAccount.getAccountNumber(),
+                            loggedInUser.getInstitution().getInstitutionName()
+                    );
+                    savingsAccount.setAccountNumberEmailSent(true);
+                    savingsRepository.save(savingsAccount);
+                }
             } else {
                 throw new InvalidRequestException("Either the bvn or the date of birth is incorrect or both are incorrect");
             }
