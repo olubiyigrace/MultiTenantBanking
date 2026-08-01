@@ -38,7 +38,7 @@ public class SuperAdminController {
     }
 
     @PatchMapping("/suspend")
-    public ResponseEntity<ApiResponse<String>> suspendInstitution(@RequestParam String  institutionId) {
+    public ResponseEntity<ApiResponse<String>> suspendInstitution(@RequestParam String institutionId) {
         institutionService.suspendInstitution(institutionId);
         return ResponseEntity.ok(ApiResponse.success(true, "Institution suspended successfully!", null));
     }
@@ -56,17 +56,17 @@ public class SuperAdminController {
     }
 
     @GetMapping("/savings")
-    public ResponseEntity<ApiResponse<TotalSavingsStatisticsResponse>> getSavingsStatistics()  {
+    public ResponseEntity<ApiResponse<TotalSavingsStatisticsResponse>> getSavingsStatistics() {
         return ResponseEntity.ok(ApiResponse.success(true, "Total savings calculated successfully", institutionService.getSavingsStatistics()));
     }
 
     @GetMapping("/total-loans-outstanding")
-    public ResponseEntity<ApiResponse<TotalLoansOutstandingStatisticsResponse>> getLoansOutstandingStatistics()  {
+    public ResponseEntity<ApiResponse<TotalLoansOutstandingStatisticsResponse>> getLoansOutstandingStatistics() {
         return ResponseEntity.ok(ApiResponse.success(true, "Total outstanding loans calculated successfully", institutionService.getLoansOutstandingStatistics()));
     }
 
     @GetMapping("/total-deposits")
-    public ResponseEntity<ApiResponse<TotalDepositsStatisticsResponse>> getDepositsStatistics()  {
+    public ResponseEntity<ApiResponse<TotalDepositsStatisticsResponse>> getDepositsStatistics() {
         return ResponseEntity.ok(ApiResponse.success(true, "Total deposits calculated successfully", institutionService.getDepositsStatistics()));
     }
 

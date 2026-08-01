@@ -69,11 +69,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<SessionResponse> getActiveSessions(HttpServletRequest request) {
         User currentUser = currentUserUtil.getLoggedInUser();
-        String token = request.getHeader(HttpHeaders.AUTHORIZATION)
-                .substring(7);
+        String token = request.getHeader(HttpHeaders.AUTHORIZATION).substring(7);
         String currentSessionId = jwtService.getSessionId(token);
-        List<UserSession> sessions =
-                redisSessionService.getUserSessions(currentUser.getId());
+        List<UserSession> sessions = redisSessionService.getUserSessions(currentUser.getId());
         return sessions.stream()
                 .map(session -> SessionResponse.builder()
                         .sessionId(session.getSessionId())

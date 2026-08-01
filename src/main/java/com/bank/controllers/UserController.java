@@ -3,7 +3,6 @@ package com.bank.controllers;
 
 import com.bank.dtos.requestDtos.ChangePasswordRequest;
 import com.bank.dtos.responseDtos.SessionResponse;
-import com.bank.services.AuthenticationService;
 import com.bank.services.UserService;
 import com.bank.utils.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,18 +17,18 @@ import java.util.List;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @RestController
-@PreAuthorize("hasAnyRole('SUPER_ADMIN','INSTITUTION_AMDIN','LOAN_OFFICER', 'ACCOUNTANT', 'MEMBER')")
+@PreAuthorize("hasAnyRole('SUPER_ADMIN','INSTITUTION_ADMIN','LOAN_OFFICER', 'ACCOUNTANT', 'MEMBER')")
 public class UserController {
     private  final UserService userService;
 
 
-    @PostMapping("/change-password") // working
+    @PostMapping("/change-password")
     public ResponseEntity<ApiResponse<String>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(request);
         return ResponseEntity.ok(ApiResponse.success(true, "Password changed successfully", null));
     }
 
-    @PostMapping("/logout") // working
+    @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout(HttpServletRequest request) {
         userService.logout(request);
         return ResponseEntity.ok(ApiResponse.success(true, "Logout successful", null));

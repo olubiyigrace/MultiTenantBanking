@@ -41,14 +41,14 @@ public class InstitutionAdminController {
     private final LoanApplicationService loanApplicationService;
     private final CollateralService collateralService;
 
-    @PostMapping("/register-user")
+    @PostMapping("/register-user") // working
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody RegisterUserRequest registerUserRequest){
         authenticationService.createUser(registerUserRequest);
         return ResponseEntity.ok(ApiResponse.success(true,
                 "Almost there! Check your email to complete your registration.", null));
     }
 
-    @GetMapping("/all-members")
+    @GetMapping("/all-members") // working
     public ResponseEntity<ApiResponse<PageResponse<MemberResponse>>> getMembers(
             @RequestParam (required = false) ProfileStatus profileStatus,
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -57,7 +57,7 @@ public class InstitutionAdminController {
                 memberService.getAllMembers(profileStatus, page, size)));
     }
 
-    @PostMapping("/create-products")
+    @PostMapping("/create-loan-products")
     public ResponseEntity<ApiResponse<String>> create(@Valid @RequestBody LoanProductRequest loanProductRequest) {
         loanProductService.create(loanProductRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "Loan product created successfully",

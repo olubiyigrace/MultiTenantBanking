@@ -301,13 +301,13 @@ All data access is scoped using institutionId.
 Example:
 
 ```java id="tl8d0z"
-findByIdAndInstitutionId()
+findByIdAndInstitutionId();
 ```
 
 NOT:
 
 ```java id="kk2r1c"
-findById()
+findById();
 ```
 
 This prevents cross-institution access.
@@ -487,7 +487,6 @@ UNIQUE(reference)
 POST /api/v1/auth/register-institution
 POST /api/v1/auth/login
 POST /api/v1/auth/refresh-token
-POST /api/v1/auth/change-password
 ```
 
 ---

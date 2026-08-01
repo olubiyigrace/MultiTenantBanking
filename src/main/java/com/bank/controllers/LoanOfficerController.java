@@ -22,7 +22,7 @@ public class LoanOfficerController {
     private final MemberService memberService;
     private final LoanApplicationService loanApplicationService;
 
-    @PostMapping("/register-members")
+    @PostMapping("/register-members") // working
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody MemberRequest memberRequest) throws MessagingException {
         memberService.createMember(memberRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "Member registered successfully!", null));

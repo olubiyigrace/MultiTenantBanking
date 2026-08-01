@@ -64,7 +64,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserAgentUtil userAgentUtil;
     private final IpAddressUtil ipAddressUtil;
     private final JwtProperties jwtProperties;
-
+    private final SavingsRepository savingsRepository;
 
 
     @Override
@@ -179,7 +179,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void verifyUserOtp(OtpVerifyRequest request) {
-        Optional<Otp> existingOtp = otpRepository.findByEmailAndPurpose(request.getEmail(), request.getPurpose());
+        Optional<Otp> existingOtp = otpRepository.findTopByEmailAndPurposeOrderByCreatedAtDesc(request.getEmail(), request.getPurpose());
         if (existingOtp.isEmpty()) {
             throw new InvalidRequestException("OTP not found");
         }
@@ -199,7 +199,28 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setIsVerified(true);
         userRepository.save(user);
         otpRepository.save(existingOtp.get());
+
+        Optional<MemberProfile> memberOpt = memberRepository.findByUserIdAndInstitutionId(user.getId(), user.getInstitution().getId());
+        if (memberOpt.isEmpty()) {
+            return;
+        }
+        MemberProfile member = memberOpt.get();
+        SavingsAccount account = savingsRepository.findByMemberId(member.getId())
+                .orElseThrow(() -> new InvalidRequestException("Savings account not found for member."));
+        if (!Boolean.TRUE.equals(account.getAccountNumberEmailSent())) {
+            emailService.sendAccountNumberEmail(
+                    user.getEmail(),
+                    account.getAccountNumber(),
+                    user.getInstitution().getInstitutionName()
+            );
+            account.setAccountNumberEmailSent(true);
+        }
+        member.setProfileStatus(ProfileStatus.ACTIVE);
+        account.setSavingsStatus(SavingsStatus.ACTIVE);
+        memberRepository.save(member);
+        savingsRepository.save(account);
     }
+
 
     @Override
     public SelectInstitutionResponse preLogin(SelectInstitutionRequest request) {

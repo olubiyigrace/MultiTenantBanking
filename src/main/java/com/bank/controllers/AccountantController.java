@@ -20,7 +20,7 @@ public class AccountantController {
 
 
     @PostMapping("/deposit")
-    public ResponseEntity<ApiResponse<String>> deposit(@RequestBody DepositRequest depositRequest) throws MessagingException {
+    public ResponseEntity<ApiResponse<String>> deposit(@RequestBody DepositRequest depositRequest) {
         transactionService.createDeposit(depositRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "Deposit successful", null));
     }
