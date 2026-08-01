@@ -41,14 +41,14 @@ public class InstitutionAdminController {
     private final LoanApplicationService loanApplicationService;
     private final CollateralService collateralService;
 
-    @PostMapping("/register-user") // working
+    @PostMapping("/register-user")
     public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody RegisterUserRequest registerUserRequest){
         authenticationService.createUser(registerUserRequest);
         return ResponseEntity.ok(ApiResponse.success(true,
                 "Almost there! Check your email to complete your registration.", null));
     }
 
-    @GetMapping("/all-members") // working
+    @GetMapping("/all-members")
     public ResponseEntity<ApiResponse<PageResponse<MemberResponse>>> getMembers(
             @RequestParam (required = false) ProfileStatus profileStatus,
             @RequestParam(name = "page", defaultValue = "0") int page,

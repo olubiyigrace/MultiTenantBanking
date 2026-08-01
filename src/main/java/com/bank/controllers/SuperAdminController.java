@@ -25,7 +25,7 @@ import java.time.Year;
 public class SuperAdminController {
     private final InstitutionService institutionService;
 
-    @PostMapping("/approve") // working
+    @PostMapping("/approve")
     public ResponseEntity<ApiResponse<String>> approveInstitution(@RequestParam String institutionId) throws MessagingException {
         institutionService.approveInstitution(institutionId);
         return ResponseEntity.ok(ApiResponse.success(true, "Institution approved!", null));
