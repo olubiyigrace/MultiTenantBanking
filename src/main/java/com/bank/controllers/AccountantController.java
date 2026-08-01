@@ -1,9 +1,9 @@
 package com.bank.controllers;
 
-import com.bank.others.utils.ApiResponse;
-import com.bank.loanapplications.LoanApplicationService;
-import com.bank.transactions.TransactionRequest;
-import com.bank.transactions.TransactionService;
+import com.bank.utils.ApiResponse;
+import com.bank.services.LoanApplicationService;
+import com.bank.dtos.requestDtos.DepositRequest;
+import com.bank.services.TransactionService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +20,8 @@ public class AccountantController {
 
 
     @PostMapping("/deposit")
-    public ResponseEntity<ApiResponse<String>> deposit(@RequestBody TransactionRequest transactionRequest) throws MessagingException {
-        transactionService.createDeposit(transactionRequest);
+    public ResponseEntity<ApiResponse<String>> deposit(@RequestBody DepositRequest depositRequest) throws MessagingException {
+        transactionService.createDeposit(depositRequest);
         return ResponseEntity.ok(ApiResponse.success(true, "Deposit successful", null));
     }
     @PostMapping("/disburse-loan")

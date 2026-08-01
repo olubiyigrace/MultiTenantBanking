@@ -1,14 +1,14 @@
 package com.bank.controllers;
 
-import com.bank.loanapplications.TotalLoansDisbursedStatisticsResponse;
-import com.bank.loanrepaymentschedule.TotalLoansOutstandingStatisticsResponse;
-import com.bank.memberprofiles.TotalMembersStatisticsResponse;
-import com.bank.institutions.InstitutionResponse;
-import com.bank.others.utils.PageResponse;
-import com.bank.institutions.InstitutionService;
-import com.bank.others.utils.ApiResponse;
-import com.bank.savingsaccount.TotalSavingsStatisticsResponse;
-import com.bank.transactions.TotalDepositsStatisticsResponse;
+import com.bank.dtos.responseDtos.TotalLoansDisbursedStatisticsResponse;
+import com.bank.dtos.responseDtos.TotalLoansOutstandingStatisticsResponse;
+import com.bank.dtos.responseDtos.TotalMembersStatisticsResponse;
+import com.bank.dtos.responseDtos.InstitutionResponse;
+import com.bank.utils.PageResponse;
+import com.bank.services.InstitutionService;
+import com.bank.utils.ApiResponse;
+import com.bank.dtos.responseDtos.TotalSavingsStatisticsResponse;
+import com.bank.dtos.responseDtos.TotalDepositsStatisticsResponse;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,20 +25,20 @@ import java.time.Year;
 public class SuperAdminController {
     private final InstitutionService institutionService;
 
-    @PostMapping("/approve/{institution-id}")
-    public ResponseEntity<ApiResponse<String>> approveInstitution(@PathVariable("institution-id") final String institutionId) throws MessagingException {
+    @PostMapping("/approve") // working
+    public ResponseEntity<ApiResponse<String>> approveInstitution(@RequestParam String institutionId) throws MessagingException {
         institutionService.approveInstitution(institutionId);
         return ResponseEntity.ok(ApiResponse.success(true, "Institution approved!", null));
     }
 
-    @PatchMapping("/activate/{institution-id}")
-    public ResponseEntity<ApiResponse<String>> activateInstitution(@PathVariable("institution-id") final String institutionId) {
+    @PatchMapping("/activate")
+    public ResponseEntity<ApiResponse<String>> activateInstitution(@RequestParam String institutionId) {
         institutionService.activateInstitution(institutionId);
         return ResponseEntity.ok(ApiResponse.success(true, "Institution activated successfully!", null));
     }
 
-    @PatchMapping("/suspend/{institution-id}")
-    public ResponseEntity<ApiResponse<String>> suspendInstitution(@PathVariable("institution-id") final String  institutionId) {
+    @PatchMapping("/suspend")
+    public ResponseEntity<ApiResponse<String>> suspendInstitution(@RequestParam String  institutionId) {
         institutionService.suspendInstitution(institutionId);
         return ResponseEntity.ok(ApiResponse.success(true, "Institution suspended successfully!", null));
     }

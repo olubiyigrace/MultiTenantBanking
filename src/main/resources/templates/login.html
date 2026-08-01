@@ -28,8 +28,85 @@
                         </p>
 
                         <p style="font-size:15px; line-height:1.6;">
-                            We detected a new login to your MultiTenantBank account. If this was you, you can ignore this message.
+                            We detected a new login to your Nodal account. If this was you, you can ignore this message.
                         </p>
+
+                <tr>
+                    <td style="font-size:16px;
+                   font-weight:bold;
+                   color:#111827;
+                   padding-bottom:16px;">
+                        Login Details
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+
+                        <table width="100%" cellpadding="0" cellspacing="0">
+
+                            <tr>
+                                <td style="padding:10px 0;
+                               color:#6b7280;
+                               font-size:14px;
+                               width:35%;">
+                                    Login Time
+                                </td>
+
+                                <td style="padding:10px 0;
+                               color:#111827;
+                               font-size:14px;
+                               font-weight:600;"
+                                    th:text="${loginTime}">
+                                    July 8, 2026 • 2:15 PM WAT
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td colspan="2"
+                                    style="border-top:1px solid #e5e7eb;">
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="padding:10px 0;
+                               color:#6b7280;
+                               font-size:14px;">
+                                    Device
+                                </td>
+
+                                <td style="padding:10px 0;
+                               color:#111827;
+                               font-size:14px;
+                               font-weight:600;"
+                                    th:text="${device}">
+                                    Chrome on macOS
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td colspan="2"
+                                    style="border-top:1px solid #e5e7eb;">
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="padding:10px 0;
+                               color:#6b7280;
+                               font-size:14px;">
+                                    IP Address
+                                </td>
+
+                                <td style="padding:10px 0;
+                               color:#111827;
+                               font-size:14px;
+                               font-weight:600;"
+                                    th:text="${ipAddress}">
+                                    102.xxx.xxx.xxx
+                                </td>
+                            </tr>
+
+                        </table>
 
                         <p style="font-size:15px; color:#b91c1c; font-weight:bold;">
                             If you did NOT perform this login:
@@ -41,12 +118,12 @@
                                 <td style="padding:5px;">
 
 
-                                    <a th:href="${revokeUrl}"
+                                    <a th:href="${securityUrl}"
                                        style="background:#dc2626; color:#ffffff; padding:12px 18px; text-decoration:none; border-radius:6px; font-weight:bold; margin-right:10px; margin-bottom:5px; display:inline-block;">
                                         Revoke Session
                                     </a>
 
-                                    <a th:href="${resetUrl}"
+                                    <a th:href="${changePasswordUrl}"
                                        style="background:#2563eb; color:#ffffff; padding:12px 18px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">
                                         Reset Password
                                     </a>
@@ -60,7 +137,7 @@
 
                         <p style="font-size:14px; margin-top:20px;">
                             Regards,<br>
-                            <strong th:text="${MultiTenantBank}"></strong> MultitenantBank Security Team
+                            <strong th:text="${InstitutionName}"></strong> Security Team
                         </p>
 
                     </td>
@@ -69,7 +146,7 @@
                 <tr>
                     <td style="background:#f4f6f8; text-align:center; padding:15px; font-size:12px; color:#6b7280;">
                         © <span th:text="${#dates.year(#dates.createNow())}">2026</span>
-                        <span th:text="${institutionName}">.MultiTenantBank</span> All rights reserved.
+                        <span th:text="${institutionName}">.Nodal</span> All rights reserved.
                     </td>
                 </tr>
 

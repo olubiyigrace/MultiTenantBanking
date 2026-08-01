@@ -1,24 +1,24 @@
 package com.bank.controllers;
 
-import com.bank.loanapplications.TotalInterestCollectedResponse;
-import com.bank.loanrepaymentschedule.TotalLoansOutstandingResponse;
-import com.bank.loanrepaymentschedule.TotalLoansOverdueResponse;
-import com.bank.savingsaccount.TotalSavingsResponse;
-import com.bank.loanapplications.LoanApplicationResponse;
-import com.bank.loanapplications.LoanRejectionRequest;
-import com.bank.loanproducts.LoanProductResponse;
-import com.bank.memberprofiles.MemberResponse;
-import com.bank.users.RegisterUserRequest;
-import com.bank.others.auth.AuthenticationService;
-import com.bank.loanapplications.LoanApplicationService;
-import com.bank.loancollaterals.CollateralService;
-import com.bank.loanproducts.LoanProductService;
-import com.bank.memberprofiles.MemberService;
-import com.bank.others.utils.PageResponse;
-import com.bank.memberprofiles.ProfileStatus;
-import com.bank.loanproducts.LoanProductRequest;
-import com.bank.savingsaccount.SavingsService;
-import com.bank.others.utils.ApiResponse;
+import com.bank.dtos.responseDtos.TotalInterestCollectedResponse;
+import com.bank.dtos.responseDtos.TotalLoansOutstandingResponse;
+import com.bank.dtos.responseDtos.TotalLoansOverdueResponse;
+import com.bank.dtos.responseDtos.TotalSavingsResponse;
+import com.bank.dtos.responseDtos.LoanApplicationResponse;
+import com.bank.dtos.requestDtos.LoanRejectionRequest;
+import com.bank.dtos.responseDtos.LoanProductResponse;
+import com.bank.dtos.responseDtos.MemberResponse;
+import com.bank.dtos.requestDtos.RegisterUserRequest;
+import com.bank.services.AuthenticationService;
+import com.bank.services.LoanApplicationService;
+import com.bank.services.CollateralService;
+import com.bank.services.LoanProductService;
+import com.bank.services.MemberService;
+import com.bank.utils.PageResponse;
+import com.bank.enums.ProfileStatus;
+import com.bank.dtos.requestDtos.LoanProductRequest;
+import com.bank.services.SavingsService;
+import com.bank.utils.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +42,7 @@ public class InstitutionAdminController {
     private final CollateralService collateralService;
 
     @PostMapping("/register-user")
-    public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody RegisterUserRequest registerUserRequest)
-            throws MessagingException {
+    public ResponseEntity<ApiResponse<String>> registerUser(@Valid @RequestBody RegisterUserRequest registerUserRequest){
         authenticationService.createUser(registerUserRequest);
         return ResponseEntity.ok(ApiResponse.success(true,
                 "Almost there! Check your email to complete your registration.", null));
@@ -83,8 +82,7 @@ public class InstitutionAdminController {
     @PutMapping("/update-product")
     public ResponseEntity<ApiResponse<String>> update(@RequestParam String id, @Valid @RequestBody LoanProductRequest loanProductRequest) {
         loanProductService.update(id, loanProductRequest);
-        return ResponseEntity.ok(ApiResponse.success(true, "Loan product updated successfully",
-                null));
+        return ResponseEntity.ok(ApiResponse.success(true, "Loan product updated successfully", null));
     }
 
     @GetMapping("/delete-product")

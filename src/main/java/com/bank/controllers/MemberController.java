@@ -1,16 +1,16 @@
 package com.bank.controllers;
 
-import com.bank.loanproducts.LoanProductResponse;
-import com.bank.others.services.CloudinaryService;
-import com.bank.loanapplications.LoanApplicationRequest;
-import com.bank.loancollaterals.LoanCollateralRequest;
-import com.bank.loancollaterals.CollateralService;
-import com.bank.loanapplications.LoanApplicationService;
-import com.bank.others.utils.ApiResponse;
-import com.bank.loanguarantors.GuarantorRequest;
-import com.bank.loanguarantors.GuarantorService;
-import com.bank.savingsaccount.SavingsAccountRequest;
-import com.bank.savingsaccount.SavingsService;
+import com.bank.dtos.responseDtos.LoanProductResponse;
+import com.bank.services.CloudinaryService;
+import com.bank.dtos.requestDtos.LoanApplicationRequest;
+import com.bank.dtos.requestDtos.LoanCollateralRequest;
+import com.bank.services.CollateralService;
+import com.bank.services.LoanApplicationService;
+import com.bank.utils.ApiResponse;
+import com.bank.dtos.requestDtos.GuarantorRequest;
+import com.bank.services.GuarantorService;
+import com.bank.dtos.requestDtos.SavingsAccountRequest;
+import com.bank.services.SavingsService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

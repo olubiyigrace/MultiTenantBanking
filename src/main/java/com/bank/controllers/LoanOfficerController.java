@@ -1,12 +1,12 @@
 package com.bank.controllers;
 
-import com.bank.loanrepaymentschedule.OverdueRepaymentScheduleResponse;
-import com.bank.memberprofiles.MemberRequest;
-import com.bank.loanapplications.LoanApplicationResponse;
-import com.bank.others.utils.PageResponse;
-import com.bank.loanapplications.LoanApplicationService;
-import com.bank.memberprofiles.MemberService;
-import com.bank.others.utils.ApiResponse;
+import com.bank.dtos.responseDtos.OverdueRepaymentScheduleResponse;
+import com.bank.dtos.requestDtos.MemberRequest;
+import com.bank.dtos.responseDtos.LoanApplicationResponse;
+import com.bank.utils.PageResponse;
+import com.bank.services.LoanApplicationService;
+import com.bank.services.MemberService;
+import com.bank.utils.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,0 +1,28 @@
+package com.bank.services;
+
+import com.bank.dtos.requestDtos.LoanApplicationRequest;
+import com.bank.dtos.requestDtos.LoanRejectionRequest;
+import com.bank.dtos.responseDtos.LoanApplicationResponse;
+import com.bank.dtos.responseDtos.LoanProductResponse;
+import com.bank.dtos.responseDtos.OverdueRepaymentScheduleResponse;
+import com.bank.utils.PageResponse;
+
+import java.util.List;
+
+public interface LoanApplicationService {
+    List<LoanProductResponse> getEligibleLoanProducts();
+    void createApplication(LoanApplicationRequest loanApplicationRequest);
+    PageResponse<LoanApplicationResponse> getAllApplications(int page, int size);
+    void reviewLoanApplication(String loanApplicationId);
+    void assignApplication(String loanApplicationId, String loanOfficerId);
+    PageResponse<LoanApplicationResponse> getAllAssignedApplications(int page, int size);
+    void recommendApproval(String loanApplicationId);
+    void approveLoan(String loanApplicationId);
+    void recommendRejection(String loanApplicationId);
+    void rejectLoan(String loanApplicationId, LoanRejectionRequest loanRejectionRequest);
+    void disburseLoan(String loanApplicationId);
+    void checkIfRepaid(String loanApplicationId);
+    void addDefaulter(String loanApplicationId);
+    void writeOff(String loanApplicationId);
+    PageResponse<OverdueRepaymentScheduleResponse> getOverdueRepaymentSchedules(int page, int size);
+}

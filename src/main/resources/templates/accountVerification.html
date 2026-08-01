@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Welcome to Nodal</title>
+
+</head>
+
+<body style="margin:0;padding:0;background:#F5F6FA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#F5F6FA;padding:40px 15px;">
+
+    <tr>
+
+        <td align="center">
+
+            <table width="620" cellpadding="0" cellspacing="0" role="presentation"
+                   style="background:#FFFFFF;border-radius:18px;overflow:hidden;">
+
+                <!-- HEADER -->
+
+                <tr>
+
+                    <td align="center"
+                        style="
+                                background:#5B3DF5;
+                                padding:65px 40px;">
+
+                        <div style="
+                                    font-size:52px;
+                                    font-weight:700;
+                                    line-height:60px;
+                                    color:#FFFFFF;">
+
+                            Welcome to Nodal!
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                <!-- BODY -->
+
+                <tr>
+
+                    <td style="padding:55px 50px 40px;">
+
+                        <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+
+                            <tr>
+
+                                <td align="center"
+                                    style="
+                                        font-size:20px;
+                                        line-height:34px;
+                                        color:#5F6775;">
+
+                                    Use the verification code below to securely verify your email and continue setting
+                                    up your account.
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td height="45"></td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td align="center"
+                                    style="
+                                        font-size:19px;
+                                        font-weight:600;
+                                        color:#6B7280;">
+
+                                    Verification Code
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td height="20"></td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td>
+
+                                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+                                           style="
+                                                border:2px solid #5B3DF5;
+                                                border-radius:18px;
+                                                background:#FFFFFF;">
+
+                                        <tr>
+
+                                            <td align="center"
+                                                th:text="${otp}"
+                                                style="
+                                                    padding:34px;
+                                                    font-size:58px;
+                                                    font-weight:800;
+                                                    letter-spacing:14px;
+                                                    color:#5B3DF5;">
+
+                                                482913
+
+                                            </td>
+
+                                        </tr>
+
+                                    </table>
+
+                                </td>
+
+                            </tr>
+                            <tr>
+
+                                <td height="32"></td>
+
+                            </tr>
+
+                            <!-- Expiry -->
+
+                            <tr>
+
+                                <td align="center"
+                                    style="
+                                            font-size:18px;
+                                            line-height:30px;
+                                            color:#6B7280;">
+
+                                    ⏱ Expires in
+                                    <span style="
+                                        color:#5B3DF5;
+                                        font-weight:700;">
+
+                                        10 minutes
+
+                                        </span>
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td height="30"></td>
+
+                            </tr>
+
+                            <!-- Security -->
+
+                            <tr>
+
+                                <td align="center"
+                                    style="
+                                            font-size:17px;
+                                            line-height:32px;
+                                            color:#6B7280;">
+
+                                    🔒 Never share this verification code.<br>
+                                    Nodal will never ask for your verification code.
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td height="55"></td>
+
+                            </tr>
+
+                            <!-- Ignore Message (NO divider above it) -->
+
+                            <tr>
+
+                                <td align="center"
+                                    style="
+                                        font-size:17px;
+                                        line-height:32px;
+                                        color:#6B7280;">
+
+                                    If you didn't request this verification,
+                                    you can safely ignore this email.
+
+                                </td>
+
+                            </tr>
+
+                        </table>
+
+                    </td>
+
+                </tr>
+
+                <!-- FOOTER TRAY -->
+
+                <tr>
+
+                    <td
+                            style="
+                                    background:#F6F7FB;
+                                    padding:45px 50px;
+                                    border-top:1px solid #ECEEF3;">
+
+                        <table
+                                width="100%"
+                                cellpadding="0"
+                                cellspacing="0"
+                                role="presentation">
+                            <!-- Copyright -->
+
+                            <tr>
+
+                                <td align="center"
+                                    style="
+                                        font-size:20px;
+                                        font-weight:700;
+                                        color:#1F2937;">
+
+                                    © 2026 Nodal. All rights reserved.
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td height="14"></td>
+
+                            </tr>
+
+                            <!-- Platform -->
+
+                            <tr>
+
+                                <td align="center"
+                                    style="
+                                        font-size:16px;
+                                        line-height:28px;
+                                        color:#6B7280;">
+
+                                    Microfinance &amp; Cooperative Finance Platform
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td height="20"></td>
+
+                            </tr>
+
+                            <!-- Automated Email -->
+
+                            <tr>
+
+                                <td align="center"
+                                    style="
+                                        font-size:14px;
+                                        line-height:24px;
+                                        color:#9CA3AF;">
+
+                                    This is an automated email. Please do not reply.
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td height="8"></td>
+
+                            </tr>
+
+                        </table>
+
+                    </td>
+
+                </tr>
+            </table>
+
+        </td>
+
+    </tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>

@@ -1,10 +1,8 @@
 spring:
   application:
     name: MultiTenantBanking
-  config:
-    import: optional:file:.env
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE}
+    active: dev
 
   servlet:
     multipart:
@@ -13,7 +11,7 @@ spring:
       max-request-size: 50MB
 
   mail:
-    host: ${MAIL_HOST}
+    host: smtp.gmail.com
     port: ${MAIL_PORT}
     username: ${SUPPORT_EMAIL}
     password: ${APP_PASSWORD}
@@ -22,13 +20,13 @@ spring:
       mail:
         smtp:
           auth: true
-#
-#          starttls:
-#            enable: true
-#            required: true
+
+          starttls:
+            enable: true
+            required: true
 
           ssl:
-            enable: true
+            enable: false
 
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
@@ -45,7 +43,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -67,16 +65,36 @@ spring:
     table: flyway_schema_history
     validate-on-migrate: true
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - openid
+              - profile
+              - email
+  data:
+    redis:
+      host: localhost
+      port: 6369
+      timeout: 60000
+
+  rabbitmq:
+    host: localhost
+    port: 5662
+    username: guest
+    password: guest
 
 server:
   port: ${SERVER_PORT}
-
 
 app:
   jwt:
     private-key-path: certs/private_key.pem
     public-key-path: certs/public_key.pem
-
     access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
     refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
 
@@ -95,6 +113,8 @@ cloudinary:
 logging:
   level:
     org.springframework.security: DEBUG
+
+
 
 
 
